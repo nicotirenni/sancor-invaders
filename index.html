@@ -41,7 +41,7 @@
         box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(116,192,245,.05)}
   .card[data-mode=menu]{background:none;border-color:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;overflow:visible;gap:max(14px,2.4cqw)}
   .card>*{display:none}
-  .card[data-mode=menu]>:is(#kicker,#title,#tag){display:block} .card[data-mode=menu]>#menuBtns{display:flex}
+  .card[data-mode=menu]>:is(#kicker,#title){display:block} .card[data-mode=menu]>#menuBtns{display:flex}
   .card[data-mode=name]>#kicker{display:block} .card[data-mode=name]>#nameStep{display:flex}
   .card[data-mode=podium]>:is(#podTitle,#boardNote){display:block} .card[data-mode=podium]>#board{display:flex} .card[data-mode=podium]>#backBtn{display:inline-block}
   .card[data-mode=over]>:is(#kicker,#final,#rank,#boardNote){display:block} .card[data-mode=over]>#board{display:flex} .card[data-mode=over]>:is(#share,#overBtns){display:flex}
@@ -123,9 +123,8 @@
   <div id="ui">
     <div id="banner"><span class="shiny" id="bannerText"></span><small id="bannerSub"></small></div>
     <div class="card" id="card" data-mode="menu">
-      <div class="kicker" id="kicker">Show de drones</div>
+      <div class="kicker" id="kicker">Destruí al invasor. Cuidá lo nuestro.</div>
       <h1 class="title" id="title" aria-label="Drone Invaders"></h1>
-      <div class="tag" id="tag">Destruí al invasor. Cuidá lo nuestro.</div>
       <div class="podTitle" id="podTitle">Ranking</div>
       <div class="row" id="menuBtns">
         <button class="sb" id="newBtn" type="button">Nueva partida</button>
@@ -640,7 +639,7 @@ function closePodium() {
   if (cardBefore === 'over' && lastRes) renderBoard(lastRes, { name: playerName, score });
 }
 function openName() { setMode('name'); $('nameInput').value = playerName; setTimeout(() => $('nameInput').focus(), 30); }
-function backToMenu() { state = 'menu'; $('kicker').textContent = 'Show de drones'; document.documentElement.classList.add('scene-menu'); $('banner').classList.remove('on'); setMode('menu'); }
+function backToMenu() { state = 'menu'; $('kicker').textContent = 'Destruí al invasor. Cuidá lo nuestro.'; document.documentElement.classList.add('scene-menu'); $('banner').classList.remove('on'); setMode('menu'); }
 function tryStart() {
   const inp = $('nameInput'), name = cleanName(inp.value);
   if (!name) { inp.classList.add('bad'); inp.focus(); setTimeout(() => inp.classList.remove('bad'), 600); return; }
