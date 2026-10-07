@@ -15,7 +15,7 @@
   #wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;container-type:size}
   #stage{position:relative;width:min(100cqw,133.333cqh);aspect-ratio:4/3}
   #stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-  #stage #stadium{position:absolute;left:0;top:auto;bottom:0;width:100%;height:auto;aspect-ratio:200/32;display:block;pointer-events:none;image-rendering:pixelated;-webkit-mask-image:linear-gradient(to right,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(to right,transparent,#000 6%,#000 94%,transparent)}
+  #stage #stadium{position:absolute;left:0;top:auto;bottom:0;width:100%;height:auto;aspect-ratio:400/64;display:block;pointer-events:none;image-rendering:pixelated;-webkit-mask-image:linear-gradient(to right,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(to right,transparent,#000 6%,#000 94%,transparent)}
   #bloom{filter:blur(6px) brightness(1.3);mix-blend-mode:screen;opacity:.75;pointer-events:none}
   #ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;container-type:inline-size}
   .card{pointer-events:auto;background:var(--ink);border:1px solid #26305a;border-radius:6px;padding:4cqw 5cqw;text-align:center;
@@ -46,7 +46,7 @@
 <body>
 <canvas id="bg"></canvas>
 <div id="wrap"><div id="stage">
-  <canvas id="stadium" width="200" height="32"></canvas>
+  <canvas id="stadium" width="400" height="64"></canvas>
   <canvas id="game" width="1200" height="900"></canvas>
   <canvas id="bloom" width="300" height="225"></canvas>
   <div id="ui">
@@ -277,44 +277,72 @@ const bloomCv = document.getElementById('bloom'), bctx = bloomCv.getContext('2d'
 const $ = id => document.getElementById(id);
 const RED = '#ff5a78', CELESTE = '#74c0f5', GOLD = '#ffc928', MINT = '#7fffd4';
 
-// ---------- Monumental en pixel art (colores de Argentina) ----------
-const SPX = 4, SW = 200, SH = 32; // cada pixel del dibujo = 4 px del juego
+// ---------- Monumental en pixel art nocturno (colores de Argentina) ----------
+const SW = 400, SH = 64; // cada pixel del dibujo = 2 px del juego
 function drawStadium() {
   const c = $('stadium'), g = c.getContext('2d');
-  let seed = 7; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const px = (x, y, col) => { g.fillStyle = col; g.fillRect(x, y, 1, 1); };
-  const CEL = ['#2f6aa3', '#4a95cf', '#74c0f5', '#9bd4fa'], WHT = ['#8590b3', '#b8c4e0', '#e6ecfb', '#ffffff'];
-  const NAVY = '#0a1030', NAVY2 = '#1a2352', GOLD = '#ffc928';
-  const roofY = x => 3 - Math.round(2 * Math.sin(Math.PI * x / (SW - 1)));
-  const pitchX = y => [48 - (y - 20) * 2.55, 152 + (y - 20) * 2.55]; // trapecio de la cancha
+  const img = g.createImageData(SW, SH), D = img.data;
+  let seed = 11; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const set = (x, y, r, gg, b, a = 255) => { if (x < 0 || y < 0 || x >= SW || y >= SH) return; const i = (y * SW + x) * 4; D[i] = Math.min(255, r); D[i + 1] = Math.min(255, gg); D[i + 2] = Math.min(255, b); D[i + 3] = a; };
+  const setC = (x, y, c3, k = 1) => set(x, y, c3[0] * k | 0, c3[1] * k | 0, c3[2] * k | 0);
+  const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  const CEL = [116, 192, 245], WHT = [236, 242, 255], GOLDc = [255, 201, 40], AMBER = [255, 214, 140];
+  const DARK = [8, 12, 34], ROOF = [26, 34, 84], UNDER = [12, 16, 46];
+  const GD = [14, 80, 44], GL = [44, 168, 84];
+  const roofY = x => 6 - Math.round(4 * Math.sin(Math.PI * x / (SW - 1)));
+  const pitchX = y => [92 - (y - 38) * 3.3, 308 + (y - 38) * 3.3];
+  const TOW = [7, 392];
   for (let x = 0; x < SW; x++) {
     const ry = roofY(x);
-    px(x, ry, '#ffffff'); px(x, ry + 1, NAVY2); px(x, ry + 2, NAVY);          // techo + sombra
-    for (let y = ry + 3; y < SH; y++) {
-      const t = y - 0.09 * Math.abs(x - 100) + 1.2;                           // las gradas bajan hacia los costados
-      const [pl, pr] = pitchX(y);
-      if (y >= 20 && x >= pl && x <= pr) {                                    // cancha con franjas de corte
-        const dx = (x - 100) / 10, dy = (y - 25.5) / 3, ring = dx * dx + dy * dy;
-        let col = (y >> 1) % 2 ? '#2f9e44' : '#3fb653';
-        if (x === 100 || (ring > .75 && ring < 1.25)) col = '#e9fbe0';
-        px(x, y, col); continue;
+    const spill = Math.max(0, 1 - Math.abs(x - TOW[0]) / 160) + Math.max(0, 1 - Math.abs(x - TOW[1]) / 160);
+    for (let y = ry; y < SH; y++) {
+      if (y === ry) { x % 3 === 0 ? set(x, y, 245, 248, 255) : setC(x, y, ROOF); continue; }
+      if (y <= ry + 3) { setC(x, y, UNDER, 1 - (y - ry) * .12); continue; }
+      const t = y - 0.07 * Math.abs(x - 200);
+      if (y >= 38) { // cancha
+        const [pl, pr] = pitchX(y);
+        if (x >= pl && x <= pr) {
+          const yy = y - 38, stripe = Math.floor(Math.pow(yy + 2, 1.15) / 2.6) % 2;
+          const light = .7 + .45 * (1 - Math.abs(x - 200) / 210) + (yy < 3 ? .12 : 0);
+          let col = mix(GD, GL, stripe ? .55 : .85).map(v => v * light);
+          const dx = (x - 200) / 26, dy = (y - 51) / 9, ring = dx * dx + dy * dy;
+          const inBox = (x >= 62 && x <= 96 || x >= 304 && x <= 338) && (y === 44 || y === 59 || (y >= 44 && y <= 59 && (x === 62 || x === 96 || x === 304 || x === 338)));
+          if (x === 200 || x === 199 || (ring > .78 && ring < 1.22) || inBox) col = [226, 250, 220];
+          setC(x, y, col); continue;
+        }
       }
-      if (t >= 20) { px(x, y, y > 29 ? NAVY2 : (y === 27 ? '#e6ecfb' : NAVY)); continue; } // valla / piso
-      let tier = t < 11 ? 0 : t < 12 ? -1 : t < 16 ? 1 : t < 17 ? -1 : 2;
-      if (tier < 0) { px(x, y, NAVY2); continue; }                             // pasillos entre bandejas
-      const sector = Math.floor(x / 10);
-      if (x % 10 === 0) { px(x, y, NAVY); continue; }                          // divisor de sectores
-      const pal = sector % 2 ? WHT : CEL;
-      let shade = tier + (rand() < .22 ? -1 : 0) + (rand() < .08 ? 1 : 0);
-      px(x, y, pal[Math.max(0, Math.min(3, shade + (tier === 2 ? 1 : 0)))]);
+      if (t >= 42) { setC(x, y, DARK, y === 44 ? 1.9 : 1); continue; } // piso / valla exterior
+      if ((y === 36 || y === 37) && x >= pitchX(38)[0] - 14 && x <= pitchX(38)[1] + 14) { // carteles del borde de cancha
+        const seg = Math.floor(x / 9) % 2; setC(x, y, seg ? WHT : CEL, y === 36 ? 1.05 : .72); continue;
+      }
+      const tier = t < 18 ? 0 : t < 20 ? -1 : t < 30 ? 1 : t < 32 ? -1 : 2;
+      if (tier < 0) { setC(x, y, UNDER); if (x % 5 === 0 && y % 2 === 0) setC(x, y, AMBER, .85); continue; } // pasillos con luces
+      if (x % 20 === 0) { setC(x, y, DARK); if (y % 4 === 0) setC(x, y, AMBER, .75); continue; } // escaleras
+      const sector = Math.floor(x / 20) % 2;
+      const r = rand();
+      let shirt = r < .16 ? [28, 38, 92] : (r < .9 ? (sector ? WHT : CEL) : (sector ? CEL : WHT));
+      let bright = [.26, .36, .48][tier] + spill * .42 + (Math.abs(x - 200) < 40 ? .1 : 0);
+      if (y % 3 === 0) bright *= .55; // filas de gradas
+      bright = Math.max(.14, Math.min(1, bright));
+      set(x, y, shirt[0] * bright, shirt[1] * bright + 3, shirt[2] * bright + 14);
     }
   }
-  // tablero central con la bandera argentina y el sol
-  g.fillStyle = NAVY; g.fillRect(88, 5, 24, 7);
-  g.fillStyle = '#74c0f5'; g.fillRect(90, 6, 20, 2); g.fillStyle = '#ffffff'; g.fillRect(90, 8, 20, 2); g.fillStyle = '#74c0f5'; g.fillRect(90, 10, 20, 1);
-  g.fillStyle = GOLD; g.fillRect(99, 8, 2, 2); px(98, 8, GOLD); px(101, 9, GOLD);
+  // tablero con la bandera, el sol y el nombre
+  const rect = (x0, y0, w, h, col, k = 1) => { for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) setC(x, y, col, k); };
+  rect(168, 10, 64, 20, [20, 28, 72]); rect(169, 11, 62, 18, DARK);
+  rect(171, 12, 22, 3, CEL); rect(171, 15, 22, 3, WHT); rect(171, 18, 22, 3, CEL);
+  rect(181, 15, 2, 3, GOLDc); setC(180, 16, GOLDc); setC(183, 16, GOLDc); setC(181, 14, GOLDc, .7); setC(182, 19, GOLDc, .7);
+  const FONT = { M: '10101 11111 10101 10101 10101', O: '111 101 101 101 111', N: '1001 1101 1011 1001 1001', U: '101 101 101 101 111', E: '111 100 110 100 111', T: '111 010 010 010 010', A: '010 101 111 101 101', L: '100 100 100 100 111' };
+  let tx = 173; const label = 'MONUMENTAL';
+  for (const ch of label) { const rows = FONT[ch].split(' '); rows.forEach((row, ry2) => [...row].forEach((v, cx) => { if (v === '1') setC(tx + cx, 22 + ry2, WHT, ry2 % 2 ? .85 : 1); })); tx += rows[0].length + 1; }
+  for (let i = 0; i < 12; i++) setC(196 + i * 3, 12 + (i % 2), CEL, .9); // luces en el tablero
   // torres de luces
-  for (const x of [5, 194]) { g.fillStyle = '#e6ecfb'; g.fillRect(x, 1, 2, SH - 2); g.fillStyle = '#ffffff'; g.fillRect(x - 2, 0, 6, 2); }
+  for (const x of TOW) {
+    rect(x - 1, 8, 3, SH - 8, [112, 124, 168]); rect(x, 8, 1, SH - 8, [168, 180, 220]);
+    rect(x - 9, 0, 19, 8, [20, 26, 66]);
+    for (let yy = 0; yy < 3; yy++) for (let xx = 0; xx < 6; xx++) rect(x - 8 + xx * 3, 1 + yy * 2, 2, 1, [255, 255, 255]);
+  }
+  g.putImageData(img, 0, 0);
 }
 
 // ---------- Sprites -> puntos ----------
@@ -388,8 +416,8 @@ let state = 'menu', wave = 1, score = 0, respect = 100, flash = 0, shake = 0, co
 let danger = false;
 let groups = [], bullets = [], parts = [], rings = [], pops = [], items = [];
 const POWERUP_SCORE = 4000;
-const STADIUM_TOP = 480; // el Monumental ocupa la franja de abajo; Sancor no debe tocarlo
-const crowd = Array.from({ length: 90 }, () => ({ x: rnd0(10, W - 10), y: rnd0(STADIUM_TOP + 14, STADIUM_TOP + 48), p: Math.random() * 6, c: Math.random() < .3 ? '#74c0f5' : '#ffffff' }));
+const STADIUM_TOP = 474; // el Monumental ocupa la franja de abajo; Sancor no debe tocarlo
+const crowd = Array.from({ length: 170 }, () => ({ x: rnd0(14, W - 14), y: rnd0(STADIUM_TOP + 22, STADIUM_TOP + 88), p: Math.random() * 6, c: Math.random() < .3 ? '#74c0f5' : '#ffffff' }));
 function rnd0(a, b) { return a + Math.random() * (b - a); }
 let powerupsOn = false, itemT = 6, buffs = { triple: 0, rapid: 0 };
 const POWERS = {
@@ -572,7 +600,15 @@ function draw(t) {
   if (flash > 0) { ctx.fillStyle = `rgba(255,20,40,${flash * .45})`; ctx.fillRect(0, 0, W, H); }
   // hinchada: luces titilando en las tribunas del Monumental
   ctx.globalCompositeOperation = 'lighter';
-  for (const x of [24, 776]) dot(x, STADIUM_TOP + 3, '#ffffff', 9, .7 + .1 * Math.sin(t * 3));
+  // atmósfera nocturna del estadio: neblina celeste, conos de luz y focos
+  const hz = ctx.createRadialGradient(W / 2, H + 40, 20, W / 2, H + 40, 460); hz.addColorStop(0, 'rgba(116,192,245,.30)'); hz.addColorStop(.5, 'rgba(60,110,200,.10)'); hz.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.globalAlpha = 1; ctx.fillStyle = hz; ctx.fillRect(0, STADIUM_TOP - 260, W, 420);
+  for (const [x, dir] of [[14, 1], [786, -1]]) {
+    const bm = ctx.createLinearGradient(x, STADIUM_TOP, x + dir * 260, STADIUM_TOP + 80); bm.addColorStop(0, 'rgba(220,240,255,.20)'); bm.addColorStop(1, 'rgba(220,240,255,0)');
+    ctx.fillStyle = bm; ctx.beginPath(); ctx.moveTo(x, STADIUM_TOP + 2); ctx.lineTo(x + dir * 330, STADIUM_TOP + 40); ctx.lineTo(x + dir * 330, STADIUM_TOP + 128); ctx.lineTo(x, STADIUM_TOP + 14); ctx.fill();
+    dot(x, STADIUM_TOP + 4, '#ffffff', 11, .75 + .1 * Math.sin(t * 3 + x));
+  }
+  dot(W / 2, STADIUM_TOP + 40, CELESTE, 10, .25 + .05 * Math.sin(t * 2)); // brillo del tablero
   for (const c of crowd) dot(c.x, c.y, c.c, 1.1, .25 + .35 * Math.max(0, Math.sin(t * 2.2 + c.p * 3)));
   if (state === 'play' && danger) { ctx.globalAlpha = .35 + .25 * Math.sin(t * 8); ctx.strokeStyle = '#ff3040'; ctx.setLineDash([8, 8]); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(0, STADIUM_TOP); ctx.lineTo(W, STADIUM_TOP); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; }
   ctx.globalCompositeOperation = 'source-over';
@@ -633,7 +669,7 @@ function hud() {
   const gr = ctx.createLinearGradient(bx, 0, bx + bw, 0); gr.addColorStop(0, '#74c0f5'); gr.addColorStop(1, '#ffffff');
   ctx.fillStyle = respect < 30 ? '#ff5a78' : gr; ctx.fillRect(bx, by, Math.max(0, respect) / 100 * bw, 10);
   ctx.textAlign = 'center';
-  if (hudMsgT > 0) { ctx.globalAlpha = Math.min(1, hudMsgT * 2); ctx.fillStyle = GOLD; ctx.font = '700 18px "Chakra Petch", system-ui'; ctx.fillText(hudMsg, W / 2, H - 92); ctx.globalAlpha = 1; }
+  if (hudMsgT > 0) { ctx.globalAlpha = Math.min(1, hudMsgT * 2); ctx.fillStyle = GOLD; ctx.font = '700 18px "Chakra Petch", system-ui'; ctx.fillText(hudMsg, W / 2, STADIUM_TOP - 64); ctx.globalAlpha = 1; }
 }
 
 let last = performance.now();
