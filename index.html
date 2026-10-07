@@ -365,8 +365,10 @@ let state = 'menu', wave = 1, score = 0, respect = 100, flash = 0, shake = 0, co
 let danger = false;
 let groups = [], bullets = [], parts = [], rings = [], pops = [], items = [];
 const POWERUP_SCORE = 4000;
-const STADIUM_TOP = 475; // línea de focos del estadio: si Sancor llega acá, pierde // el Monumental ocupa la franja de abajo; Sancor no debe tocarlo
-const crowd = Array.from({ length: 170 }, () => ({ x: rnd0(14, W - 14), y: rnd0(STADIUM_TOP - 40, STADIUM_TOP + 44), p: Math.random() * 6, c: Math.random() < .3 ? '#74c0f5' : '#ffffff' }));
+const IMG_H = W * 536 / 1376;          // alto del fondo del estadio en coordenadas del juego
+const SHIP_Y = H - IMG_H * .93;        // la nave flota apenas pisando el 10% superior del fondo
+const STADIUM_TOP = SHIP_Y - 26;       // si Sancor llega a la altura de la nave, pierde // el Monumental ocupa la franja de abajo; Sancor no debe tocarlo
+const crowd = Array.from({ length: 170 }, () => ({ x: rnd0(14, W - 14), y: rnd0(H - IMG_H * .52, H - IMG_H * .2), p: Math.random() * 6, c: Math.random() < .3 ? '#74c0f5' : '#ffffff' }));
 function rnd0(a, b) { return a + Math.random() * (b - a); }
 let powerupsOn = false, itemT = 6, buffs = { triple: 0, rapid: 0 };
 const POWERS = {
@@ -376,7 +378,7 @@ const POWERS = {
   bomb:   { label: '★',  name: '¡GOLAZO!',       c: '#ffc928' }
 };
 
-const ship = { x: W / 2, y: STADIUM_TOP + 80, cd: 0, vx: 0, tilt: 0 };
+const ship = { x: W / 2, y: SHIP_Y, cd: 0, vx: 0, tilt: 0 };
 const keys = {}; let touching = false;
 const rnd = (a, b) => a + Math.random() * (b - a);
 const ease = k => 1 - Math.pow(1 - k, 3);
@@ -401,12 +403,12 @@ function buildWave() {
   logoSprite().forEach(p => dots.push(p));
   textSprite('SANCOR', 400, 64, RED).forEach(p => dots.push({ ...p, x: p.x + 152, y: p.y + 4 }));
   textSprite('SEGUROS', 400, 64, RED).forEach(p => dots.push({ ...p, x: p.x + 152, y: p.y + 68 }));
-  const sancor = makeGroup(dots, 0, 36, 45 * sp, 4 * sp, false);
+  const sancor = makeGroup(dots, 0, 24, 45 * sp, 4 * sp, false);
   sancor.x = (W - sancor.w) / 2; groups.push(sancor);
   if (wave >= 2) {
     const n = wave - 1; // ronda 2: 1 elemento, ronda 3: 2, ... uno más por nivel
     for (let i = 0; i < n; i++)
-      groups.push(makeGroup(ALLY_SPRITES[i % ALLY_SPRITES.length](), rnd(0, W - 120), 180 + (i % 4) * 50 + rnd(0, 14), (i % 2 ? 1 : -1) * rnd(50, 100) * sp, 0, true));
+      groups.push(makeGroup(ALLY_SPRITES[i % ALLY_SPRITES.length](), rnd(0, W - 120), 150 + (i % 3) * 40 + rnd(0, 12), (i % 2 ? 1 : -1) * rnd(50, 100) * sp, 0, true));
   }
   galaxyState.hue = 210 + (wave - 1) * 40;
   banner(`Ronda ${wave}`, wave === 1 ? 'Destruí a Sancor' : 'No toques lo nuestro');
