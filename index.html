@@ -342,8 +342,29 @@ function dot(x, y, c, r, a = 1) {
 
 // ---------- Estado ----------
 let state = 'menu', wave = 1, score = 0, respect = 100, flash = 0, shake = 0, combo = 0, comboT = 0, mult = 1, hudMsg = '', hudMsgT = 0, shieldT = 0;
-let groups = [], bullets = [], parts = [], rings = [], pops = [];
-const ship = { x: W / 2, y: H - 46, cd: 0, vx: 0, tilt: 0 };
+let groups = [], bullets = [], parts = [], rings = [], pops = [], items = [];
+const POWERUP_SCORE = 4500;
+let powerupsOn = false, itemT = 6, buffs = { triple: 0, rapid: 0 };
+const POWERS = {
+  triple: { label: 'x3', name: 'DISPARO TRIPLE', c: '#74c0f5' },
+  rapid:  { label: '»',  name: 'FUEGO RÁPIDO',   c: '#7fffd4' },
+  heal:   { label: '+',  name: 'RESPETO +25',    c: '#ffffff' },
+  bomb:   { label: '★',  name: '¡GOLAZO!',       c: '#ffc928' }
+};
+// Sol de Mayo hecho de drones: disco central + 16 rayos (rectos y ondulados alternados)
+const SUN = (() => {
+  const p = [{ x: 0, y: 0, w: 1 }];
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; p.push({ x: Math.cos(a) * 6, y: Math.sin(a) * 6, w: 0 }); }
+  for (let i = 0; i < 16; i++) {
+    const a = i * Math.PI / 8, ca = Math.cos(a), sa = Math.sin(a);
+    for (const r of [11, 15, 19]) {
+      const off = i % 2 ? Math.sin(r * .75) * 2.6 : 0;
+      p.push({ x: ca * r - sa * off, y: sa * r + ca * off, w: 0 });
+    }
+  }
+  return p;
+})();
+const ship = { x: W / 2, y: H - 54, cd: 0, vx: 0, tilt: 0 };
 const keys = {}; let touching = false;
 const rnd = (a, b) => a + Math.random() * (b - a);
 const ease = k => 1 - Math.pow(1 - k, 3);
@@ -383,7 +404,8 @@ function banner(t, sub) {
   clearTimeout(banner.t); banner.t = setTimeout(() => $('banner').classList.remove('on'), 1700);
 }
 function start() {
-  wave = 1; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = [];
+  wave = 1; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
+  powerupsOn = false; itemT = 6; buffs = { triple: 0, rapid: 0 };
   $('card').hidden = true; state = 'play'; buildWave();
 }
 function endGame() {
@@ -413,6 +435,19 @@ function burst(x, y, c, n, sp = 150) {
     parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, l: rnd(.4, .9), m: .9, c, s: rnd(.8, 1.6) }); }
 }
 function say(t) { hudMsg = t; hudMsgT = 1.6; }
+function collect(it) {
+  const P = POWERS[it.type];
+  rings.push({ x: it.x, y: it.y, r: 6, l: .6, c: P.c }); burst(it.x, it.y, P.c, 18, 160);
+  pops.push({ x: it.x, y: it.y - 10, t: P.name, l: 1.2 });
+  if (it.type === 'triple') buffs.triple = 10;
+  else if (it.type === 'rapid') buffs.rapid = 8;
+  else if (it.type === 'heal') respect = Math.min(100, respect + 25);
+  else { // golazo: borra al azar buena parte de Sancor
+    let n = 0;
+    for (const g of groups) if (!g.ally) for (const d of g.dots) if (d.alive && d.ready && Math.random() < .4) { d.alive = false; n++; burst(g.x + d.x, g.y + d.y, d.c, 3); }
+    score += n * 10; shake = 12; flash = .2;
+  }
+}
 function update(dt) {
   // nave con inercia
   const dir = (keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0);
@@ -421,7 +456,24 @@ function update(dt) {
   ship.vx += ((ship.x - prev) / dt - ship.vx) * .3; ship.tilt += (ship.vx / 380 - ship.tilt) * .2;
   galaxyState.mouse[0] += (ship.x / W - galaxyState.mouse[0]) * .08; galaxyState.mouse[1] = .25;
   ship.cd -= dt;
-  if ((keys.Space || touching) && ship.cd <= 0) { bullets.push({ x: ship.x, y: ship.y - 16 }); ship.cd = .2; }
+  if ((keys.Space || touching) && ship.cd <= 0) {
+    bullets.push({ x: ship.x, y: ship.y - 24, vx: 0 });
+    if (buffs.triple > 0) { bullets.push({ x: ship.x - 8, y: ship.y - 20, vx: -110 }); bullets.push({ x: ship.x + 8, y: ship.y - 20, vx: 110 }); }
+    ship.cd = buffs.rapid > 0 ? .085 : .2;
+  }
+  for (const k in buffs) buffs[k] = Math.max(0, buffs[k] - dt);
+  // power-ups: caen al azar una vez superados los 4500 puntos
+  if (!powerupsOn && score >= POWERUP_SCORE) { powerupsOn = true; itemT = 2; banner('¡Power-ups!', 'Agarralos con el sol'); }
+  if (powerupsOn) {
+    itemT -= dt;
+    if (itemT <= 0) { const k = Object.keys(POWERS); items.push({ type: k[Math.floor(Math.random() * k.length)], x: rnd(40, W - 40), y: -20, ph: Math.random() * 6 }); itemT = rnd(6, 12); }
+  }
+  for (const it of items) {
+    it.y += 85 * dt;
+    const dx = it.x - ship.x, dy = it.y - ship.y;
+    if (dx * dx + dy * dy < 30 * 30) { it.got = true; collect(it); }
+  }
+  items = items.filter(it => !it.got && it.y < H + 30);
   if (Math.random() < .8) parts.push({ x: ship.x + rnd(-3, 3), y: ship.y + 12, vx: rnd(-14, 14), vy: rnd(60, 110), l: .35, m: .35, c: MINT, s: .7 });
 
   let enemies = 0, allies = 0, lowest = -1e9;
@@ -434,7 +486,7 @@ function update(dt) {
   }
 
   for (const b of bullets) {
-    b.y -= 640 * dt;
+    b.y -= 640 * dt; b.x += (b.vx || 0) * dt; if (b.x < -10 || b.x > W + 10) b.y = -99;
     let best = null, bd = 64, bg = null, bp;
     for (const g of groups) for (const d of g.dots) {
       if (!d.alive) continue; const p = dpos(g, d); if (!d.ready) continue;
@@ -499,15 +551,22 @@ function draw(t) {
     const gr = ctx.createLinearGradient(0, b.y, 0, b.y + 26); gr.addColorStop(0, MINT); gr.addColorStop(1, 'rgba(127,255,212,0)');
     ctx.fillStyle = gr; ctx.fillRect(b.x - 1.2, b.y, 2.4, 26); dot(b.x, b.y, MINT, 3);
   }
-  // nave: dron con tres luces
-  ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.tilt * .35);
-  dot(0, -8, '#ffffff', 5.5); dot(-14, 6, MINT, 4); dot(14, 6, MINT, 4); dot(0, 4, MINT, 3.5);
-  ctx.globalAlpha = .55; ctx.strokeStyle = MINT; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-14, 6); ctx.lineTo(0, -8); ctx.lineTo(14, 6); ctx.closePath(); ctx.stroke();
+  // power-ups cayendo
+  for (const it of items) {
+    const P = POWERS[it.type], pulse = 1 + .15 * Math.sin(t * 6 + it.ph);
+    for (let i = 0; i < 12; i++) { const an = i * Math.PI / 6 + t * 1.5; dot(it.x + Math.cos(an) * 14 * pulse, it.y + Math.sin(an) * 14 * pulse, P.c, 2.1); }
+    dot(it.x, it.y, P.c, 5, .55);
+  }
+  // nave: Sol de Mayo
+  ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(t * .5 + ship.tilt * .4);
+  for (const p of SUN) dot(p.x * 1.5, p.y * 1.5, p.w ? '#ffffff' : GOLD, p.w ? 3 : 1.5);
   ctx.restore();
   ctx.restore();
 
   // puntos flotantes y HUD
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.textAlign = 'center';
+  ctx.font = '700 15px "Chakra Petch", system-ui';
+  for (const it of items) { ctx.fillStyle = '#05060f'; ctx.font = '700 13px "Chakra Petch", system-ui'; ctx.fillStyle = '#fff'; ctx.fillText(POWERS[it.type].label, it.x, it.y + 4.5); }
   ctx.font = '700 15px "Chakra Petch", system-ui';
   for (const p of pops) { ctx.globalAlpha = Math.min(1, p.l * 2); ctx.fillStyle = '#ffe3e8'; ctx.fillText(p.t, p.x, p.y - 10); }
   ctx.globalAlpha = 1;
@@ -520,6 +579,9 @@ function hud() {
   ctx.fillText('PUNTOS', 18, 24); ctx.fillText(`RONDA ${wave}`, 18, 62);
   ctx.fillStyle = '#f4f7ff'; ctx.font = '28px Anton, Impact, sans-serif'; ctx.fillText(String(score), 18, 50);
   if (mult > 1 || combo > 4) { ctx.fillStyle = GOLD; ctx.font = '700 14px "Chakra Petch", system-ui'; ctx.fillText(`COMBO x${mult}  (${combo})`, 18, 82); }
+  ctx.textAlign = 'left'; ctx.font = '700 12px "Chakra Petch", system-ui'; let by2 = (mult > 1 || combo > 4) ? 102 : 82;
+  for (const k of ['triple', 'rapid']) if (buffs[k] > 0) { ctx.fillStyle = POWERS[k].c; ctx.fillText(`${POWERS[k].name} ${buffs[k].toFixed(1)}s`, 18, by2); by2 += 18; }
+  if (!powerupsOn) { ctx.fillStyle = '#5a6a9a'; ctx.fillText(`Power-ups a los ${POWERUP_SCORE}`, 18, by2); }
   ctx.textAlign = 'right'; ctx.fillStyle = '#8fa0d0'; ctx.font = '700 11px "Chakra Petch", system-ui'; ctx.fillText('RESPETO', W - 18, 24);
   const bw = 170, bx = W - 18 - bw, by = 32;
   ctx.fillStyle = 'rgba(116,192,245,.15)'; ctx.fillRect(bx, by, bw, 10);
