@@ -385,7 +385,7 @@ void main() {
 const bgc = document.getElementById('bg');
 const gl = bgc.getContext('webgl', { antialias: false });
 let galaxy = null;
-const galaxyState = { hue: 90, mouse: [.5, .5], target: [.5, .5], active: 0, targetActive: 0 };
+const galaxyState = { hue: 0, mouse: [.5, .5], target: [.5, .5], active: 0, targetActive: 0 };
 if (gl) {
   const mk = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
   const prog = gl.createProgram();
@@ -402,10 +402,10 @@ if (gl) {
     ['uTime','uResolution','uFocal','uRotation','uStarSpeed','uDensity','uHueShift','uSpeed','uMouse','uGlowIntensity','uSaturation','uMouseRepulsion',
      'uTwinkleIntensity','uRotationSpeed','uRepulsionStrength','uMouseActiveFactor','uAutoCenterRepulsion','uTransparent','uLightMode'].forEach(n => galaxy.u[n] = U(n));
     gl.uniform2f(galaxy.u.uFocal, .5, .5); gl.uniform2f(galaxy.u.uRotation, 1, 0);
-    gl.uniform1f(galaxy.u.uDensity, .4); gl.uniform1f(galaxy.u.uSpeed, 1); gl.uniform1f(galaxy.u.uGlowIntensity, .2);
-    gl.uniform1f(galaxy.u.uSaturation, 0); gl.uniform1i(galaxy.u.uMouseRepulsion, 0); gl.uniform1f(galaxy.u.uTwinkleIntensity, .3);
-    gl.uniform1f(galaxy.u.uRotationSpeed, .1); gl.uniform1f(galaxy.u.uRepulsionStrength, 2); gl.uniform1f(galaxy.u.uAutoCenterRepulsion, 0);
-    gl.uniform1i(galaxy.u.uTransparent, 0); gl.uniform1f(galaxy.u.uLightMode, 0);
+    gl.uniform1f(galaxy.u.uDensity, .4); gl.uniform1f(galaxy.u.uSpeed, .1); gl.uniform1f(galaxy.u.uGlowIntensity, .1);
+    gl.uniform1f(galaxy.u.uSaturation, 0); gl.uniform1i(galaxy.u.uMouseRepulsion, 0); gl.uniform1f(galaxy.u.uTwinkleIntensity, 1);
+    gl.uniform1f(galaxy.u.uRotationSpeed, .05); gl.uniform1f(galaxy.u.uRepulsionStrength, 0); gl.uniform1f(galaxy.u.uAutoCenterRepulsion, 0);
+    gl.uniform1i(galaxy.u.uTransparent, 1); gl.uniform1f(galaxy.u.uLightMode, 0);
   }
 }
 addEventListener('pointermove', e => { if (state !== 'menu') return; /* el mouse solo mueve el Galaxy en el menú, no en los niveles */ /* Galaxy sin interacción con el mouse */ }, { passive: true });
@@ -420,7 +420,7 @@ addEventListener('resize', resizeBg); resizeBg();
 function drawBg(t) {
   if (!galaxy) return;
   const gs = galaxyState; gs.mouse[0] += (gs.target[0] - gs.mouse[0]) * .05; gs.mouse[1] += (gs.target[1] - gs.mouse[1]) * .05; gs.active += (gs.targetActive - gs.active) * .05;
-  gl.uniform1f(galaxy.u.uTime, t); gl.uniform1f(galaxy.u.uStarSpeed, t * .05);
+  gl.uniform1f(galaxy.u.uTime, t); gl.uniform1f(galaxy.u.uStarSpeed, t * .01);
   gl.uniform1f(galaxy.u.uHueShift, galaxyState.hue);
   gl.uniform2f(galaxy.u.uMouse, galaxyState.mouse[0], galaxyState.mouse[1]);
   gl.uniform1f(galaxy.u.uMouseActiveFactor, galaxyState.active);
