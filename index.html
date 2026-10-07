@@ -343,7 +343,7 @@ function dot(x, y, c, r, a = 1) {
 // ---------- Estado ----------
 let state = 'menu', wave = 1, score = 0, respect = 100, flash = 0, shake = 0, combo = 0, comboT = 0, mult = 1, hudMsg = '', hudMsgT = 0, shieldT = 0;
 let groups = [], bullets = [], parts = [], rings = [], pops = [], items = [];
-const POWERUP_SCORE = 4500;
+const POWERUP_SCORE = 4000;
 let powerupsOn = false, itemT = 6, buffs = { triple: 0, rapid: 0 };
 const POWERS = {
   triple: { label: 'x3', name: 'DISPARO TRIPLE', c: '#74c0f5' },
@@ -351,19 +351,7 @@ const POWERS = {
   heal:   { label: '+',  name: 'RESPETO +25',    c: '#ffffff' },
   bomb:   { label: '★',  name: '¡GOLAZO!',       c: '#ffc928' }
 };
-// Sol de Mayo hecho de drones: disco central + 16 rayos (rectos y ondulados alternados)
-const SUN = (() => {
-  const p = [{ x: 0, y: 0, w: 1 }];
-  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; p.push({ x: Math.cos(a) * 6, y: Math.sin(a) * 6, w: 0 }); }
-  for (let i = 0; i < 16; i++) {
-    const a = i * Math.PI / 8, ca = Math.cos(a), sa = Math.sin(a);
-    for (const r of [11, 15, 19]) {
-      const off = i % 2 ? Math.sin(r * .75) * 2.6 : 0;
-      p.push({ x: ca * r - sa * off, y: sa * r + ca * off, w: 0 });
-    }
-  }
-  return p;
-})();
+
 const ship = { x: W / 2, y: H - 54, cd: 0, vx: 0, tilt: 0 };
 const keys = {}; let touching = false;
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -392,9 +380,9 @@ function buildWave() {
   const sancor = makeGroup(dots, 0, 36, 45 * sp, 4 * sp, false);
   sancor.x = (W - sancor.w) / 2; groups.push(sancor);
   if (wave >= 2) {
-    const n = Math.min(2 + wave, 6);
+    const n = wave - 1; // ronda 2: 1 elemento, ronda 3: 2, ... uno más por nivel
     for (let i = 0; i < n; i++)
-      groups.push(makeGroup(ALLY_SPRITES[i % ALLY_SPRITES.length](), rnd(0, W - 120), 200 + (i % 3) * 75 + rnd(0, 20), (i % 2 ? 1 : -1) * rnd(50, 100) * sp, 0, true));
+      groups.push(makeGroup(ALLY_SPRITES[i % ALLY_SPRITES.length](), rnd(0, W - 120), 190 + (i % 4) * 58 + rnd(0, 16), (i % 2 ? 1 : -1) * rnd(50, 100) * sp, 0, true));
   }
   galaxyState.hue = 210 + (wave - 1) * 40;
   banner(`Ronda ${wave}`, wave === 1 ? 'Destruí a Sancor' : 'No toques lo nuestro');
@@ -462,7 +450,7 @@ function update(dt) {
     ship.cd = buffs.rapid > 0 ? .085 : .2;
   }
   for (const k in buffs) buffs[k] = Math.max(0, buffs[k] - dt);
-  // power-ups: caen al azar una vez superados los 4500 puntos
+  // power-ups: caen al azar una vez superados los 4000 puntos
   if (!powerupsOn && score >= POWERUP_SCORE) { powerupsOn = true; itemT = 2; banner('¡Power-ups!', 'Agarralos con el sol'); }
   if (powerupsOn) {
     itemT -= dt;
@@ -474,7 +462,7 @@ function update(dt) {
     if (dx * dx + dy * dy < 30 * 30) { it.got = true; collect(it); }
   }
   items = items.filter(it => !it.got && it.y < H + 30);
-  if (Math.random() < .8) parts.push({ x: ship.x + rnd(-3, 3), y: ship.y + 12, vx: rnd(-14, 14), vy: rnd(60, 110), l: .35, m: .35, c: MINT, s: .7 });
+  if (Math.random() < .8) parts.push({ x: ship.x + rnd(-3, 3), y: ship.y + 12, vx: rnd(-14, 14), vy: rnd(60, 110), l: .35, m: .35, c: Math.random() < .5 ? CELESTE : '#ffffff', s: .7 });
 
   let enemies = 0, allies = 0, lowest = -1e9;
   for (const g of groups) {
@@ -497,7 +485,7 @@ function update(dt) {
     b.y = -99;
     if (bg.ally) {
       best.alive = false; burst(bp[0], bp[1], best.c, 10); rings.push({ x: bp[0], y: bp[1], r: 4, l: .5, c: '#ff3040' });
-      respect -= 4; score = Math.max(0, score - 10); flash = .35; shake = 14; combo = 0; mult = 1; say('¡NO! Es de los nuestros');
+      respect -= 4; score = Math.max(0, score - 10); pops.push({ x: bp[0], y: bp[1], t: '-10', l: 1, bad: true }); flash = .35; shake = 14; combo = 0; mult = 1; say('¡NO! Es de los nuestros');
     } else {
       let n = 0;
       for (const d of bg.dots) {
@@ -548,8 +536,8 @@ function draw(t) {
   for (const r of rings) { ctx.globalAlpha = Math.max(0, r.l * 1.8); ctx.strokeStyle = r.c; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, 7); ctx.stroke(); }
   ctx.globalAlpha = 1;
   for (const b of bullets) { // tracer
-    const gr = ctx.createLinearGradient(0, b.y, 0, b.y + 26); gr.addColorStop(0, MINT); gr.addColorStop(1, 'rgba(127,255,212,0)');
-    ctx.fillStyle = gr; ctx.fillRect(b.x - 1.2, b.y, 2.4, 26); dot(b.x, b.y, MINT, 3);
+    const gr = ctx.createLinearGradient(0, b.y, 0, b.y + 26); gr.addColorStop(0, CELESTE); gr.addColorStop(1, 'rgba(116,192,245,0)');
+    ctx.fillStyle = gr; ctx.fillRect(b.x - 1.2, b.y, 2.4, 26); dot(b.x, b.y, '#ffffff', 3);
   }
   // power-ups cayendo
   for (const it of items) {
@@ -557,9 +545,10 @@ function draw(t) {
     for (let i = 0; i < 12; i++) { const an = i * Math.PI / 6 + t * 1.5; dot(it.x + Math.cos(an) * 14 * pulse, it.y + Math.sin(an) * 14 * pulse, P.c, 2.1); }
     dot(it.x, it.y, P.c, 5, .55);
   }
-  // nave: Sol de Mayo
-  ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(t * .5 + ship.tilt * .4);
-  for (const p of SUN) dot(p.x * 1.5, p.y * 1.5, p.w ? '#ffffff' : GOLD, p.w ? 3 : 1.5);
+  // nave: dron con tres luces en los colores de Argentina
+  ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.tilt * .35);
+  dot(0, -8, '#ffffff', 5.5); dot(-14, 6, CELESTE, 4.2); dot(14, 6, CELESTE, 4.2); dot(0, 4, GOLD, 3.2);
+  ctx.globalAlpha = .6; ctx.strokeStyle = CELESTE; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-14, 6); ctx.lineTo(0, -8); ctx.lineTo(14, 6); ctx.closePath(); ctx.stroke();
   ctx.restore();
   ctx.restore();
 
@@ -568,7 +557,7 @@ function draw(t) {
   ctx.font = '700 15px "Chakra Petch", system-ui';
   for (const it of items) { ctx.fillStyle = '#05060f'; ctx.font = '700 13px "Chakra Petch", system-ui'; ctx.fillStyle = '#fff'; ctx.fillText(POWERS[it.type].label, it.x, it.y + 4.5); }
   ctx.font = '700 15px "Chakra Petch", system-ui';
-  for (const p of pops) { ctx.globalAlpha = Math.min(1, p.l * 2); ctx.fillStyle = '#ffe3e8'; ctx.fillText(p.t, p.x, p.y - 10); }
+  for (const p of pops) { ctx.globalAlpha = Math.min(1, p.l * 2); ctx.fillStyle = p.bad ? '#ff4d5e' : '#ffe3e8'; ctx.fillText(p.t, p.x, p.y - 10); }
   ctx.globalAlpha = 1;
   if (state === 'play') hud();
   // bloom barato: copia reducida del juego, difuminada por CSS
