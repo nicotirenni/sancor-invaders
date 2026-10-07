@@ -45,6 +45,11 @@
   .card[data-mode=name]>#nameStep{display:flex}
   .card[data-mode=podium]>:is(#podTitle,#boardNote){display:block} .card[data-mode=podium]>#board{display:flex} .card[data-mode=podium]>#backBtn{display:inline-block}
   .card[data-mode=over]>:is(#kicker,#final,#rank,#boardNote){display:block} .card[data-mode=over]>#board{display:flex} .card[data-mode=over]>:is(#share,#overBtns){display:flex}
+  .card[data-mode=level]>:is(#kicker,#lvlTitle){display:block} .card[data-mode=level]>#lvlStats{display:flex} .card[data-mode=level]>#nextBtn{display:inline-block}
+  .lvlStats{list-style:none;margin:0;padding:0;flex-direction:column;gap:6px;width:min(100%,46cqw);font-size:clamp(13px,2.1cqw,22px)}
+  .lvlStats li{display:flex;justify-content:space-between;gap:1em;padding:.45em .9em;border-radius:12px;background:rgba(255,255,255,.04);color:var(--muted)}
+  .lvlStats li b{color:var(--white);font-weight:700} .lvlStats li.tot{background:rgba(116,192,245,.14);color:var(--white)} .lvlStats li.tot b{color:var(--celeste)}
+  .card[data-mode=level] .podTitle{font-size:clamp(30px,5.2cqw,64px)}
   .kicker{font-size:clamp(11px,1.7cqw,18px);letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:600}
   .title{margin:0;white-space:nowrap;font-family:var(--display);font-weight:400;font-size:clamp(44px,10.5cqw,128px);line-height:1;letter-spacing:.015em;text-transform:uppercase;
          filter:drop-shadow(0 0 22px rgba(116,192,245,.32))}
@@ -165,6 +170,9 @@
         <a class="sb" id="shIn" target="_blank" rel="noopener noreferrer">Compartir en LinkedIn</a>
         <button class="gh" id="shCopy" type="button">Copiar texto</button>
       </div>
+      <div class="podTitle" id="lvlTitle"></div>
+      <ul class="lvlStats" id="lvlStats"></ul>
+      <button class="sb" id="nextBtn" type="button">Próximo nivel</button>
       <div class="row" id="overBtns">
         <button class="gh" id="againBtn" type="button">Jugar de nuevo</button>
         <button class="gh" id="podBtn2" type="button">Ver ranking</button>
@@ -512,6 +520,7 @@ function dot(x, y, c, r, a = 1) {
 // ---------- Estado ----------
 let state = 'menu', wave = 1, score = 0, respect = 100, flash = 0, shake = 0, combo = 0, comboT = 0, mult = 1, hudMsg = '', hudMsgT = 0, shieldT = 0;
 let danger = false, lastBeat = 0;
+let waveScore0 = 0, waveCombo = 0, waveAllyHits = 0;
 let countT = 0, countN = 0, paused = false;
 let groups = [], bullets = [], parts = [], rings = [], pops = [], items = [];
 let IMG_H = W * 536 / 1376, SHIP_Y = 310, STADIUM_TOP = 284, SANCOR_Y0 = 24, crowd = [];
@@ -558,7 +567,7 @@ function buildWave() {
     for (let i = 0; i < n; i++)
       groups.push(makeGroup(ALLY_SPRITES[i % ALLY_SPRITES.length](), rnd(0, W - 120), SANCOR_Y0 + 112 + (i % 3) * Math.max(30, (STADIUM_TOP - 10 - (SANCOR_Y0 + 112) - 56) / 2) + rnd(0, 10), (i % 2 ? 1 : -1) * rnd(50, 100) * sp, 0, true));
   }
-  if (state === 'play') { countT = 3.2; countN = 0; clearTimeout(banner.t); $('banner').classList.remove('on'); }
+  if (state === 'play') { waveScore0 = score; waveCombo = 0; waveAllyHits = 0; countT = 3.2; countN = 0; clearTimeout(banner.t); $('banner').classList.remove('on'); }
   else banner(`Ronda ${wave}`, wave === 1 ? 'Destruí a Sancor' : 'No toques lo nuestro');
 }
 function banner(t, sub) {
@@ -703,6 +712,22 @@ function start() {
   itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; $('pauseOv').hidden = true;
   document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); buildWave(); $('pauseBtn').hidden = false;
 }
+let clearAt = 0;
+function showLevelResults(bonus, allies) {
+  state = 'clear'; clearAt = performance.now(); touching = false; for (const k in keys) keys[k] = false; $('pauseBtn').hidden = true; $('banner').classList.remove('on');
+  $('kicker').textContent = 'Ronda completada'; $('lvlTitle').textContent = `Ronda ${wave}`;
+  const row = (a, b, c = '') => `<li class="${c}"><span>${a}</span><b>${b}</b></li>`;
+  $('lvlStats').innerHTML = row('Puntos de la ronda', '+' + Math.max(0, score - waveScore0))
+    + row('Bonus por cuidar lo nuestro', '+' + bonus) + row('Mejor combo', waveCombo)
+    + row('Errores (drones nuestros)', waveAllyHits) + row('Respeto', Math.max(0, Math.round(respect)) + '%')
+    + row('Puntos totales', score, 'tot');
+  setMode('level'); SFX.clear();
+}
+function nextLevel() {
+  if (state !== 'clear') return;
+  $('card').hidden = true; state = 'play'; wave++; bullets = []; buildWave(); $('pauseBtn').hidden = false;
+}
+$('nextBtn').onclick = nextLevel;
 function setPause(p) {
   if (state !== 'play' || countT > 0 && p === paused) return;
   paused = p; $('pauseOv').hidden = !p; if (p) { touching = false; for (const k in keys) keys[k] = false; }
@@ -779,6 +804,7 @@ addEventListener('keydown', e => {
   if (e.target && e.target.id === 'nameInput') { if (e.key === 'Enter' && state !== 'play') tryStart(); return; } // escribiendo el nombre
   if (e.target && e.target.closest && e.target.closest('a,button')) { if (e.code === 'Space' || e.code === 'Enter') return; }
   keys[e.code] = true; if (e.code === 'Space') e.preventDefault();
+  if ((e.code === 'Enter' || e.code === 'Space') && state === 'clear' && performance.now() - clearAt > 1200) { nextLevel(); return; }
   if (e.code === 'Enter' && state === 'menu' && $('card').dataset.mode === 'menu') openName();
   else if ((e.code === 'Space' || e.code === 'Enter') && state === 'over' && $('card').dataset.mode === 'over' && performance.now() - overAt > 1200) tryStart();
 });
@@ -864,7 +890,7 @@ function update(dt) {
     b.y = -99;
     if (bg.ally) {
       best.alive = false; burst(bp[0], bp[1], best.c, 10); rings.push({ x: bp[0], y: bp[1], r: 4, l: .5, c: '#ff3040' });
-      respect -= 4; score = Math.max(0, score - 10); pops.push({ x: bp[0], y: bp[1], t: '-10', l: 1, bad: true }); flash = .35; shake = 14; combo = 0; mult = 1; say('¡NO! Es de los nuestros'); SFX.bad();
+      waveAllyHits++; respect -= 4; score = Math.max(0, score - 10); pops.push({ x: bp[0], y: bp[1], t: '-10', l: 1, bad: true }); flash = .35; shake = 14; combo = 0; mult = 1; say('¡NO! Es de los nuestros'); SFX.bad();
     } else {
       let n = 0;
       for (const d of bg.dots) {
@@ -872,7 +898,7 @@ function update(dt) {
         const dx = bg.x + d.x - bp[0], dy = bg.y + d.y - bp[1];
         if (dx * dx + dy * dy < (HIT + 2) * (HIT + 2)) { d.alive = false; n++; burst(bg.x + d.x, bg.y + d.y, d.c, 4); }
       }
-      const oldMult = mult; combo += n; comboT = 1.6; mult = Math.min(5, 1 + Math.floor(combo / 12)); if (n) SFX.hit(n); if (mult > oldMult) SFX.combo();
+      const oldMult = mult; combo += n; waveCombo = Math.max(waveCombo, combo); comboT = 1.6; mult = Math.min(5, 1 + Math.floor(combo / 12)); if (n) SFX.hit(n); if (mult > oldMult) SFX.combo();
       const pts = n * 10 * mult; score += pts; shake = Math.min(9, shake + n * .5);
       rings.push({ x: bp[0], y: bp[1], r: 4, l: .45, c: '#ffd0da' });
       pops.push({ x: bp[0], y: bp[1], t: '+' + pts, l: .8 });
@@ -890,7 +916,7 @@ function update(dt) {
     const bonus = allies * 2; score += bonus;
     for (const g of groups) if (g.ally) for (const d of g.dots) if (d.alive && Math.random() < .3) burst(g.x + d.x, g.y + d.y, d.c, 2, 60);
     say(bonus ? `¡Sancor destruido! +${bonus} por cuidar lo nuestro` : '¡Sancor destruido!'); SFX.clear();
-    wave++; bullets = []; buildWave();
+    bullets = []; showLevelResults(bonus, allies);
   } else if (lowest + STEP / 2 > STADIUM_TOP) endGame('Sancor llegó al Monumental');
   else if (respect <= 0) endGame('Se perdió el respeto');
   danger = lowest + STEP / 2 > STADIUM_TOP - 90;
