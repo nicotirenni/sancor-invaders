@@ -66,8 +66,8 @@
   .field{width:min(100%,320px);box-sizing:border-box;text-align:center;font:600 clamp(16px,2.6cqw,26px)/1 var(--body);letter-spacing:.02em;color:var(--white);background:rgba(7,11,32,.6);border:1px solid rgba(116,192,245,.28);border-radius:var(--radius);padding:.85em 1em}
   .field::placeholder{color:#5a6a9a} .field:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px rgba(214,32,104,.3)}
   .field.bad{border-color:var(--red);animation:nudge .35s} @keyframes nudge{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-  .how{display:flex;flex-direction:column;gap:.5em;font-size:clamp(12px,1.8cqw,19px);color:var(--muted);width:min(100%,46cqw);text-align:left}
-  .hrow{display:flex;align-items:center;gap:.8em} .hrow .kc{flex:0 0 7.2em;display:flex;gap:.3em;justify-content:flex-end}
+  .how{display:flex;flex-direction:column;gap:.5em;font-size:clamp(12px,1.8cqw,19px);color:var(--muted);width:100%;align-self:stretch;text-align:left}
+  .hrow{display:flex;align-items:center;gap:.8em;width:100%} .hrow>span:last-child{flex:1;min-width:0} .hrow .kc{flex:0 0 7.4em;display:flex;gap:.3em;justify-content:flex-start}
   .kc i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;min-width:1.9em;height:1.7em;padding:0 .5em;border-radius:999px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.14);color:rgba(244,247,255,.8);font-weight:400;font-size:.78em;letter-spacing:.04em}
   .kc i.wide{padding:0 .8em} .kc i.dot{min-width:0;width:1.9em;padding:0;position:relative} .kc i.dot::after{content:"";width:.55em;height:.55em;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red)} .kc i.dot.c::after{background:var(--celeste);box-shadow:0 0 6px var(--celeste)}
   .rules{display:flex;flex-direction:column;gap:.5em;font-size:clamp(12px,1.9cqw,20px);line-height:1.35;color:var(--muted)}
@@ -421,12 +421,12 @@ const RED = '#ff5a78', CELESTE = '#74c0f5', GOLD = '#ffc928', MINT = '#7fffd4';
 // ---------- Estadio de fondo: pegado al borde de abajo, con la opacidad bajada 15% ----------
 const stadiumImg = new Image(); let stadiumTile = null;
 stadiumImg.onload = () => { stadiumTile = stadiumImg; layoutStadium(); };
-let stadiumPxH = 0;
+let stadiumPxH = 0, stadiumLift = 0; // stadiumLift: en celulares el fondo sube para dejar lugar al dedo
 function layoutStadium() { // el fondo ocupa todo el ancho de la pantalla; si queda muy alto se recorta el cielo de arriba (sin repetir la imagen)
   const c = document.getElementById('stadium'); if (!stadiumTile) return;
   const dpr = Math.min(devicePixelRatio || 1, 2), vw = c.parentElement.clientWidth, full = vw * stadiumTile.height / stadiumTile.width;
   const th = stadiumPxH > 0 ? Math.min(stadiumPxH, full) : full;
-  c.style.height = th + 'px'; c.style.bottom = (-th * .2) + 'px'; c.width = Math.round(vw * dpr); c.height = Math.round(th * dpr);
+  c.style.height = th + 'px'; c.style.bottom = (-th * .2 + stadiumLift) + 'px'; c.width = Math.round(vw * dpr); c.height = Math.round(th * dpr);
   const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.scale(dpr, dpr);
   g.drawImage(stadiumTile, 0, th - full, vw, full);
   if (full > th + 1) { // solo si se recortó el cielo: suavizar el corte para que no quede una línea dura
@@ -872,8 +872,8 @@ function layoutAll() {
   const cw = Math.round(W * SC), ch = Math.round(H * SC);
   if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
   bloomCv.width = 220; bloomCv.height = Math.round(220 * H / W);
-  stadiumPxH = Math.min(vw * 536 / 1376, .52 * sh); IMG_H = stadiumPxH / (sw / W); SHIP_Y = H - IMG_H * .68; STADIUM_TOP = SHIP_Y - 26; ship.y = SHIP_Y;      // fondo 20% más abajo; la nave 25% más abajo (medidos sobre el alto del fondo)
-  crowd = Array.from({ length: 170 }, () => ({ x: rnd0(14, W - 14), y: rnd0(H - IMG_H * .34, H - IMG_H * .02), p: Math.random() * 6, c: Math.random() < .3 ? '#74c0f5' : '#ffffff' }));
+  stadiumPxH = Math.min(vw * 536 / 1376, .52 * sh); IMG_H = stadiumPxH / (sw / W); const mob = vw < 700 || (matchMedia('(pointer:coarse)').matches && vw < vh); stadiumLift = mob ? stadiumPxH * .4 : 0; const liftL = stadiumLift / (sw / W); SHIP_Y = H - IMG_H * .68 - liftL; STADIUM_TOP = SHIP_Y - 26; ship.y = SHIP_Y;      // fondo 20% más abajo; la nave 25% más abajo (medidos sobre el alto del fondo)
+  crowd = Array.from({ length: 170 }, () => ({ x: rnd0(14, W - 14), y: rnd0(H - IMG_H * .34 - liftL, H - IMG_H * .02 - liftL), p: Math.random() * 6, c: Math.random() < .3 ? '#74c0f5' : '#ffffff' }));
   const scale = sw / W, hb = $('hud').getBoundingClientRect().bottom;
   SANCOR_Y0 = Math.max(6, (hb + 8 - (vh - sh)) / scale);                                           // Sancor arranca justo debajo del HUD
   layoutStadium();
