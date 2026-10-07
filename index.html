@@ -403,32 +403,44 @@ stadiumImg.src = "data:image/webp;base64,UklGRsomBQBXRUJQVlA4WAoAAAAwAAAAXwUAFwI
 
 // ---------- Sprites -> puntos ----------
 const STEP = 8, R = 2.3, K = .75; // K: escala del dibujo de drones (más chico = más espacio para jugar)
-function sample(w, h, draw, tint) {
+function sample(w, h, draw, tint, step = STEP) {
   const o = document.createElement('canvas'); o.width = w; o.height = h;
   const g = o.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, w, h); draw(g, w, h);
   const d = g.getImageData(0, 0, w, h).data, pts = [];
-  for (let y = STEP / 2; y < h; y += STEP) for (let x = STEP / 2; x < w; x += STEP) {
+  for (let y = step / 2; y < h; y += step) for (let x = step / 2; x < w; x += step) {
     const i = (Math.floor(y) * w + Math.floor(x)) * 4;
     if (d[i] + d[i + 1] + d[i + 2] > 150) pts.push({ x, y, c: tint || `rgb(${d[i]},${d[i + 1]},${d[i + 2]})` });
   }
   return pts;
 }
 const FONT = `900 %spx Arial Black, Impact, sans-serif`;
-function textSprite(txt, w, h, color) {
+function textSprite(txt, w, h, color, step = STEP) {
   return sample(w, h, (g) => {
     g.fillStyle = color; g.textBaseline = 'middle'; g.textAlign = 'center';
     let size = h; g.font = FONT.replace('%s', size);
     while (g.measureText(txt).width > w - 4) { size -= 2; g.font = FONT.replace('%s', size); }
     g.fillText(txt, w / 2, h / 2 + 2);
-  });
+  }, null, step);
 }
-const logoSprite = () => sample(136, 136, (g, w, h) => {
-  g.strokeStyle = RED; g.lineWidth = 9; g.lineJoin = 'round';
-  g.beginPath(); g.arc(w / 2, h / 2, 60, 0, 7); g.stroke();
-  g.beginPath(); g.moveTo(12, h / 2); g.lineTo(w - 12, h / 2); g.stroke();
-  g.beginPath(); g.moveTo(40, 54); g.lineTo(80, 24); g.lineTo(80, 54); g.closePath(); g.stroke();
-  g.beginPath(); g.moveTo(56, 82); g.lineTo(56, 112); g.lineTo(96, 82); g.closePath(); g.stroke();
-});
+const SSTEP = 9; // paso de puntos del invasor (más grande = menos drones)
+const logoSprite = () => { // solo el trazo del isologotipo: drones equiespaciados sobre cada contorno
+  const pts = [], GAP = 12, TGAP = 18, put = (x, y) => pts.push({ x, y, c: RED });
+  const along = (poly, closed, GAP = 12) => { // recorre una polilínea poniendo un punto cada GAP
+    const n = poly.length, segs = closed ? n : n - 1; let len = 0; const L = [];
+    for (let i = 0; i < segs; i++) { const p = poly[i], q = poly[(i + 1) % n]; L.push(Math.hypot(q[0] - p[0], q[1] - p[1])); len += L[i]; }
+    const cnt = Math.max(2, Math.round(len / GAP)), d = len / (closed ? cnt : cnt - 1);
+    for (let k = 0, i = 0, acc = 0; k < (closed ? cnt : cnt); k++) {
+      const t = k * d; while (i < segs - 1 && t > acc + L[i] + 1e-6) { acc += L[i]; i++; }
+      const p = poly[i], q = poly[(i + 1) % n], f = L[i] ? (t - acc) / L[i] : 0; put(p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f);
+    }
+  };
+  const circ = 2 * Math.PI * 60, nc = Math.round(circ / GAP);
+  for (let i = 0; i < nc; i++) { const a = i / nc * 2 * Math.PI; put(68 + Math.cos(a) * 60, 68 + Math.sin(a) * 60); }
+  along([[18, 68], [118, 68]], false);
+  along([[40, 54], [80, 24], [80, 54]], true, TGAP);
+  along([[56, 82], [56, 112], [96, 82]], true, TGAP);
+  return pts;
+};
 const flagSprite = () => sample(90, 63, (g, w, h) => {
   g.fillStyle = CELESTE; g.fillRect(0, 0, w, h / 3); g.fillStyle = '#fff'; g.fillRect(0, h / 3, w, h / 3);
   g.fillStyle = CELESTE; g.fillRect(0, 2 * h / 3, w, h / 3); g.fillStyle = GOLD; g.beginPath(); g.arc(w / 2, h / 2, 8, 0, 7); g.fill();
@@ -505,8 +517,8 @@ function buildWave() {
   const sp = 1 + (wave - 1) * .18;
   const dots = [];
   logoSprite().forEach(p => dots.push(p));
-  textSprite('SANCOR', 400, 64, RED).forEach(p => dots.push({ ...p, x: p.x + 152, y: p.y + 4 }));
-  textSprite('SEGUROS', 400, 64, RED).forEach(p => dots.push({ ...p, x: p.x + 152, y: p.y + 68 }));
+  textSprite('SANCOR', 400, 64, RED, SSTEP).forEach(p => dots.push({ ...p, x: p.x + 152, y: p.y + 4 }));
+  textSprite('SEGUROS', 400, 64, RED, SSTEP).forEach(p => dots.push({ ...p, x: p.x + 152, y: p.y + 68 }));
   const travel = Math.max(60, STADIUM_TOP - (SANCOR_Y0 + 136 * K));
   const sancor = makeGroup(dots, 0, SANCOR_Y0, 45 * sp, 4 * .85 * sp * travel / 124, false);
   sancor.x = (W - sancor.w) / 2; groups.push(sancor);
