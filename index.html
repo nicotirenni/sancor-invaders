@@ -1142,7 +1142,7 @@ const splitTitle = (() => {
   function paint() {
     const W = el.scrollWidth, H = el.clientHeight; if (!(W > 0 && H > 0)) return;
     const flag = 'linear-gradient(90deg,#5aaee8 0%,#74c0f5 22%,#ffffff 42%,#ffffff 58%,#74c0f5 78%,#5aaee8 100%)', r = H * .5 * .4;   // colores de izquierda a derecha; sol 60% más chico
-    const sun = `radial-gradient(circle ${r}px at ${W / 2}px ${H / 2}px,#f6b40e 0,#f6b40e ${Math.round(r * .5)}px,rgba(246,180,14,.55) ${Math.round(r * .78)}px,rgba(246,180,14,0) ${r}px)`;
+    const sun = `radial-gradient(circle ${r}px at ${W / 2}px ${H / 2}px,rgba(246,180,14,.75) 0,rgba(246,180,14,.75) ${Math.round(r * .5)}px,rgba(246,180,14,.41) ${Math.round(r * .78)}px,rgba(246,180,14,0) ${r}px)`;
     for (const c of chars) { c.style.backgroundImage = `${sun},${flag}`; c.style.backgroundSize = `${W}px ${H}px`; c.style.backgroundPosition = `${-c.offsetLeft}px 0`; c.style.backgroundRepeat = 'no-repeat'; }
   }
   new ResizeObserver(paint).observe(el); if (document.fonts && document.fonts.ready) document.fonts.ready.then(paint); paint();
