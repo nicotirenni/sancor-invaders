@@ -33,7 +33,7 @@
   #stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   #bloom{filter:blur(6px) brightness(1.3);mix-blend-mode:screen;opacity:.75;pointer-events:none}
   /* ===== Sistema de UI (ReactBits): GradientText en títulos, StarBorder en acciones principales, GlareHover en las secundarias, ClickSpark al tocar ===== */
-  :root{--pink:#ff6b8f;--pink-hi:#ff8aa8;--pink-dark:#3a1426;--pink-dark-hi:#4d1a33;--glass:rgba(8,13,36,.62);--line:rgba(116,192,245,.2);--muted:#8fa0d0;--radius:14px}
+  :root{--pink:#D62068;--pink-hi:#E8317B;--pink-dark:#3a0d22;--pink-dark-hi:#4f1230;--glass:rgba(8,13,36,.62);--line:rgba(116,192,245,.2);--muted:#8fa0d0;--radius:14px}
   #ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;container-type:inline-size}
   html.scene-menu #stage>canvas,html.scene-menu #stadium,html.scene-menu #hud{visibility:hidden}
   .card{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:max(10px,1.8cqw);text-align:center;box-sizing:border-box;max-width:min(92cqw,760px);max-height:96%;overflow:auto;
@@ -57,22 +57,22 @@
   .nameStep{flex-direction:column;align-items:center;gap:max(10px,1.6cqw)}
   .lbl{font-size:clamp(14px,2.3cqw,24px);color:#c9d2f0}
   .field{width:min(100%,320px);box-sizing:border-box;text-align:center;font:600 clamp(16px,2.6cqw,26px)/1 var(--body);letter-spacing:.02em;color:var(--white);background:rgba(7,11,32,.6);border:1px solid rgba(116,192,245,.28);border-radius:var(--radius);padding:.85em 1em}
-  .field::placeholder{color:#5a6a9a} .field:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,107,143,.2)}
+  .field::placeholder{color:#5a6a9a} .field:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px rgba(214,32,104,.3)}
   .field.bad{border-color:var(--red);animation:nudge .35s} @keyframes nudge{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
   .rules{display:flex;flex-direction:column;gap:.5em;font-size:clamp(12px,1.9cqw,20px);line-height:1.35;color:var(--muted)}
   .rules b.r{color:var(--red)} .rules b.c{color:var(--celeste)}
   /* StarBorder (ReactBits) */
   .sb,.gh{font:600 clamp(14px,2.2cqw,22px)/1 var(--body);letter-spacing:.04em;color:var(--white);cursor:pointer;text-decoration:none;display:inline-block;border:0;background:none;border-radius:var(--radius);position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
   .sb{padding:2px 0;isolation:isolate}
-  .sb-b,.sb-t{position:absolute;width:300%;height:50%;opacity:.85;border-radius:50%;z-index:0;pointer-events:none;background:radial-gradient(circle,#ffd6e2,transparent 10%);animation:6s linear infinite alternate}
+  .sb-b,.sb-t{position:absolute;width:300%;height:50%;opacity:.85;border-radius:50%;z-index:0;pointer-events:none;background:radial-gradient(circle,#ff9fc4,transparent 10%);animation:6s linear infinite alternate}
   .sb-b{bottom:-12px;right:-250%;animation-name:star-b} .sb-t{top:-12px;left:-250%;animation-name:star-t}
   @keyframes star-b{0%{transform:translate(0,0);opacity:1}100%{transform:translate(-100%,0);opacity:0}}
   @keyframes star-t{0%{transform:translate(0,0);opacity:1}100%{transform:translate(100%,0);opacity:0}}
-  .sb{color:#2b0b17;font-weight:700}
-  .sb-in{position:relative;z-index:1;display:block;padding:.95em 1.7em;border-radius:var(--radius);border:1px solid rgba(255,214,226,.55);background:var(--pink);transition:background .2s}
+  .sb{color:#fff;font-weight:700}
+  .sb-in{position:relative;z-index:1;display:block;padding:.95em 1.7em;border-radius:var(--radius);border:1px solid rgba(255,170,205,.5);background:var(--pink);transition:background .2s}
   .sb:hover .sb-in,.sb:focus-visible .sb-in{background:var(--pink-hi)}
   /* GlareHover (ReactBits) */
-  .gh{padding:.95em 1.5em;border:1px solid rgba(255,107,143,.4);background:var(--pink-dark);color:#ffc2d3;transition:color .2s,border-color .2s,background .2s}
+  .gh{padding:.95em 1.5em;border:1px solid rgba(214,32,104,.55);background:var(--pink-dark);color:#ffb3cf;transition:color .2s,border-color .2s,background .2s}
   .gh::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(-45deg,rgba(255,255,255,0) 60%,rgba(255,255,255,.26) 70%,rgba(255,255,255,0) 100%);background-size:250% 250%;background-repeat:no-repeat;background-position:-100% -100%;transition:background-position .65s ease}
   .gh:hover::before,.gh:focus-visible::before{background-position:100% 100%} .gh:hover,.gh:focus-visible{color:#fff;border-color:var(--pink);background:var(--pink-dark-hi)}
   .sb:focus-visible,.gh:focus-visible{outline:2px solid var(--pink);outline-offset:3px}
@@ -93,7 +93,7 @@
   .card[data-mode=over] .board{gap:3px;font-size:clamp(12px,1.9cqw,20px)} .card[data-mode=over] .board li{padding:.3em .8em}
   .card[data-mode=over] .sb-in{padding:.75em 1.3em} .card[data-mode=over] .gh{padding:.8em 1.2em}
   .share{flex-wrap:wrap;gap:12px;justify-content:center}
-  #mute{position:fixed;left:12px;bottom:12px;z-index:7;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,107,143,.4);background:var(--pink-dark);color:#ffc2d3;display:grid;place-items:center;cursor:pointer;padding:0}
+  #mute{position:fixed;left:12px;bottom:12px;z-index:7;width:40px;height:40px;border-radius:50%;border:1px solid rgba(214,32,104,.55);background:var(--pink-dark);color:#ffb3cf;display:grid;place-items:center;cursor:pointer;padding:0}
   #mute:hover,#mute:focus-visible{border-color:var(--pink);outline:none} #mute .x{display:none} #mute.off .x{display:inline} #mute.off .w{display:none} #mute.off{color:#6f7fb0}
   #sparks{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
   /* ShinyText (ReactBits) */
@@ -681,7 +681,7 @@ addEventListener('pointerdown', e => { if (!e.target.closest || !e.target.closes
   sparkCtx.clearRect(0, 0, sparkCv.width, sparkCv.height);
   sparks = sparks.filter(p => {
     const k = (now - p.t) / 420; if (k >= 1) return false; const e = k * (2 - k), d = e * 22, l = 10 * (1 - e);
-    sparkCtx.strokeStyle = '#ffc2d3'; sparkCtx.lineWidth = 2; sparkCtx.beginPath();
+    sparkCtx.strokeStyle = '#ff9fc4'; sparkCtx.lineWidth = 2; sparkCtx.beginPath();
     sparkCtx.moveTo(p.x + d * Math.cos(p.a), p.y + d * Math.sin(p.a)); sparkCtx.lineTo(p.x + (d + l) * Math.cos(p.a), p.y + (d + l) * Math.sin(p.a)); sparkCtx.stroke(); return true;
   });
   requestAnimationFrame(sparkLoop);
