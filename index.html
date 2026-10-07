@@ -143,6 +143,19 @@
   .soc{padding:.65em 1em;box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.14) inset;border:0}
   #mute,#pauseBtn{border-radius:10px;border:0;background:#171c30;color:#cfd6f0;box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px #313857 inset}
   #mute:hover,#pauseBtn:hover,#mute:focus-visible,#pauseBtn:focus-visible{background:#212741;color:#fff;outline:2px solid var(--pink);outline-offset:2px}
+  /* modales: ancho completo en mobile; en desktop, ancho propio para ordenar el contenido */
+  .card[data-mode=level]{width:min(92cqw,560px)} .card[data-mode=over]{width:min(92cqw,680px)}
+  .lvlStats,.card[data-mode=over] .board{width:100%} .card[data-mode=level] #nextBtn,.card[data-mode=level] #nextBtn .sb-in{width:100%;box-sizing:border-box}
+  .card[data-mode=over] .share{width:100%;flex-wrap:nowrap} .card[data-mode=over] .share .soc{flex:1 1 0;justify-content:center;white-space:nowrap}
+  .card[data-mode=over] #overBtns{width:100%;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px} .card[data-mode=over] #overBtns>*{width:100%;box-sizing:border-box;text-align:center} .card[data-mode=over] #overBtns .sb-in{width:100%;box-sizing:border-box}
+  @media (max-width:699px){
+    .card:not([data-mode=menu]){width:calc(100cqw - 32px);max-width:none;padding:18px 16px;gap:12px}
+    .card[data-mode=name]{width:calc(100cqw - 32px)} .nameStep{width:100%}
+    .card[data-mode=over] .share{flex-direction:column;align-items:stretch} .card[data-mode=over] .share .soc{flex:none;width:100%;box-sizing:border-box;padding:.8em 1em}
+    .card[data-mode=over] #overBtns{grid-template-columns:1fr 1fr} .card[data-mode=over] #againBtn{grid-column:1 / -1}
+    .lvlStats{font-size:clamp(13px,3.6cqw,17px)} .lvlStats li{padding:.6em .9em}
+    .card[data-mode=podium]{width:calc(100cqw - 32px)}
+  }
   @media (prefers-reduced-motion:reduce){.title,.shiny,.sb-b,.sb-t{animation:none}}
 </style>
 </head>
