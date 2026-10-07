@@ -1049,26 +1049,23 @@ function draw(t) {
     for (let i = 0; i < 12; i++) { const an = i * Math.PI / 6 + t * 1.5; dot(it.x + Math.cos(an) * 14 * pulse, it.y + Math.sin(an) * 14 * pulse, P.c, 2.1); }
     dot(it.x, it.y, P.c, 5, .55);
   }
-  // nave: caza con cuerpo, alas celestes y blancas, sol de mayo dorado y propulsor
+  // nave: Monumento a la Bandera (Rosario) en celeste y blanco, con llama eterna y propulsor
   ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.tilt * .35);
   ctx.globalCompositeOperation = 'lighter'; // llama del propulsor
-  { const fl = 9 + Math.sin(t * 40) * 2.5 + Math.random() * 2, fg = ctx.createLinearGradient(0, 14, 0, 14 + fl); fg.addColorStop(0, 'rgba(255,230,150,.95)'); fg.addColorStop(.5, 'rgba(116,192,245,.7)'); fg.addColorStop(1, 'rgba(116,192,245,0)');
-    ctx.fillStyle = fg; ctx.beginPath(); ctx.moveTo(-4, 13); ctx.lineTo(4, 13); ctx.lineTo(0, 14 + fl); ctx.closePath(); ctx.fill(); }
+  { const fl = 8 + Math.sin(t * 40) * 2.5 + Math.random() * 2, fg = ctx.createLinearGradient(0, 17, 0, 17 + fl); fg.addColorStop(0, 'rgba(255,230,150,.95)'); fg.addColorStop(.5, 'rgba(116,192,245,.7)'); fg.addColorStop(1, 'rgba(116,192,245,0)');
+    ctx.fillStyle = fg; ctx.beginPath(); ctx.moveTo(-5, 16.5); ctx.lineTo(5, 16.5); ctx.lineTo(0, 17 + fl); ctx.closePath(); ctx.fill(); }
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
-  const wing = (m) => { ctx.beginPath(); ctx.moveTo(m * 5, -5); ctx.lineTo(m * 25, 9); ctx.lineTo(m * 22, 15); ctx.lineTo(m * 15, 12); ctx.lineTo(m * 6, 10); ctx.closePath(); };
-  for (const m of [-1, 1]) {
-    wing(m); const wg = ctx.createLinearGradient(m * 5, -5, m * 25, 15); wg.addColorStop(0, '#9fd4fa'); wg.addColorStop(1, '#3d8fd1'); ctx.fillStyle = wg; ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = .9; ctx.lineJoin = 'round'; ctx.stroke();
-    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(m * 9, 3); ctx.lineTo(m * 20, 11.5); ctx.stroke();       // franja blanca de la bandera
-  }
-  ctx.beginPath(); ctx.moveTo(0, -24); ctx.bezierCurveTo(7, -14, 8, -2, 7, 11); ctx.lineTo(4, 15); ctx.lineTo(-4, 15); ctx.lineTo(-7, 11); ctx.bezierCurveTo(-8, -2, -7, -14, 0, -24); ctx.closePath();
-  { const bg = ctx.createLinearGradient(-7, 0, 7, 0); bg.addColorStop(0, '#cfe6fb'); bg.addColorStop(.5, '#ffffff'); bg.addColorStop(1, '#a9cdee'); ctx.fillStyle = bg; ctx.fill(); }
-  ctx.strokeStyle = 'rgba(116,192,245,.9)'; ctx.lineWidth = 1; ctx.stroke();
-  ctx.fillStyle = '#74c0f5'; ctx.fillRect(-3.2, 7, 6.4, 5);                                                                               // propulsor
-  ctx.fillStyle = '#1b3e6b'; ctx.beginPath(); ctx.ellipse(0, -10, 2.6, 5, 0, 0, 7); ctx.fill();                                           // cabina
+  const half = [[3, -26], [3, -23.5], [5, -23.5], [5.5, -21], [5.5, -3], [7, -3], [7, -1.5], [8.5, -1.5], [8.5, 3], [10.5, 3], [10.5, 8], [12.5, 8], [12.5, 11], [14.5, 11], [14.5, 16], [13, 17]];
+  ctx.beginPath(); ctx.moveTo(half[0][0], half[0][1]); for (const p of half) ctx.lineTo(p[0], p[1]); for (let i = half.length - 1; i >= 0; i--) ctx.lineTo(-half[i][0], half[i][1]); ctx.closePath();
+  { const bg = ctx.createLinearGradient(0, -26, 0, 17); bg.addColorStop(0, '#ffffff'); bg.addColorStop(.55, '#d9ecfc'); bg.addColorStop(1, '#6fb6ee'); ctx.fillStyle = bg; ctx.fill(); }
+  ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = .9; ctx.lineJoin = 'round'; ctx.stroke();
+  ctx.strokeStyle = 'rgba(61,143,209,.9)'; ctx.lineWidth = .8; ctx.beginPath();                                                           // paños de la torre y cornisas
+  ctx.moveTo(-3.4, -21.5); ctx.lineTo(-3.4, -3); ctx.moveTo(3.4, -21.5); ctx.lineTo(3.4, -3); ctx.moveTo(-8.5, 3); ctx.lineTo(8.5, 3); ctx.moveTo(-10.5, 8); ctx.lineTo(10.5, 8); ctx.stroke();
+  ctx.fillStyle = '#3d8fd1'; ctx.fillRect(-7, 3.2, 3.6, 4.6); ctx.fillRect(3.4, 3.2, 3.6, 4.6);                                           // franjas celestes (bandera)
+  ctx.fillStyle = '#1b3e6b'; ctx.beginPath(); ctx.moveTo(-2.1, 16.5); ctx.lineTo(-2.1, 13); ctx.arc(0, 13, 2.1, Math.PI, 0); ctx.lineTo(2.1, 16.5); ctx.closePath(); ctx.fill();   // portal en arco
   ctx.globalCompositeOperation = 'lighter';
-  dot(0, 0, GOLD, 3.4); dot(0, -10, '#ffffff', 1.6);                                                                                      // sol de mayo y reflejo
-  dot(-22, 13, CELESTE, 2.6); dot(22, 13, CELESTE, 2.6); dot(0, -24, '#ffffff', 2);                                                       // luces de ala y proa
+  dot(0, 14.6, GOLD, 2.4); dot(0, -26, '#ffffff', 1.8); dot(0, -8, GOLD, 2.2);                                                           // llama eterna, cúspide y sol de mayo
+  dot(-14.5, 16, CELESTE, 2.2); dot(14.5, 16, CELESTE, 2.2);                                                                              // luces de la base
   ctx.restore();
   ctx.restore();
 
