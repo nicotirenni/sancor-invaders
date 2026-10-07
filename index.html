@@ -42,14 +42,15 @@
   .card[data-mode=menu]{background:none;border-color:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;overflow:visible;gap:max(14px,2.4cqw)}
   .card>*{display:none}
   .card[data-mode=menu]>:is(#kicker,#title,#tag){display:block} .card[data-mode=menu]>#menuBtns{display:flex}
-  .card[data-mode=name]>:is(#kicker,#title){display:block} .card[data-mode=name]>#nameStep{display:flex}
+  .card[data-mode=name]>#kicker{display:block} .card[data-mode=name]>#nameStep{display:flex}
   .card[data-mode=podium]>:is(#podTitle,#boardNote){display:block} .card[data-mode=podium]>#board{display:flex} .card[data-mode=podium]>#backBtn{display:inline-block}
   .card[data-mode=over]>:is(#kicker,#final,#rank,#boardNote){display:block} .card[data-mode=over]>#board{display:flex} .card[data-mode=over]>:is(#share,#overBtns){display:flex}
   .kicker{font-size:clamp(11px,1.7cqw,18px);letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:600}
   .title{margin:0;white-space:nowrap;font-family:var(--display);font-weight:400;font-size:clamp(44px,10.5cqw,128px);line-height:1;letter-spacing:.015em;text-transform:uppercase;
-         background-image:linear-gradient(90deg,#74c0f5,#ffffff,#74c0f5,#ffffff,#74c0f5);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-         filter:drop-shadow(0 0 22px rgba(116,192,245,.32));animation:gradmove 8s linear infinite alternate}
-  .title{min-height:1em} .tt-cur{display:inline-block;margin-left:.04em;font-weight:300;animation:ttblink .8s steps(1) infinite} @keyframes ttblink{50%{opacity:0}}
+         filter:drop-shadow(0 0 22px rgba(116,192,245,.32))}
+  .title{min-height:1em}
+  .title .ch{display:inline-block;background-image:linear-gradient(90deg,#74c0f5,#ffffff,#74c0f5,#ffffff,#74c0f5);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;opacity:0;transform:translateY(40px);transition:opacity .6s cubic-bezier(.215,.61,.355,1),transform .6s cubic-bezier(.215,.61,.355,1)}
+  .title.in .ch{opacity:1;transform:none}
   @keyframes gradmove{from{background-position:0% 50%}to{background-position:100% 50%}}
   .tag{font-size:clamp(13px,2.2cqw,24px);color:#c9d2f0;letter-spacing:.02em}
   .podTitle{font-family:var(--display);font-size:clamp(34px,6.4cqw,80px);line-height:1;text-transform:uppercase;letter-spacing:.03em;color:var(--white)}
@@ -123,7 +124,7 @@
     <div id="banner"><span class="shiny" id="bannerText"></span><small id="bannerSub"></small></div>
     <div class="card" id="card" data-mode="menu">
       <div class="kicker" id="kicker">Show de drones</div>
-      <h1 class="title" id="title" aria-label="Drone Invaders"><span id="ttText"></span><span class="tt-cur">|</span></h1>
+      <h1 class="title" id="title" aria-label="Drone Invaders"></h1>
       <div class="tag" id="tag">Destruí al invasor. Cuidá lo nuestro.</div>
       <div class="podTitle" id="podTitle">Ranking</div>
       <div class="row" id="menuBtns">
@@ -619,7 +620,7 @@ async function submitScore() {
   lastRes = res; renderBoard(res, { name, score: sc }); setShare(sc, res);
 }
 let lastRes = null, cardBefore = 'menu';
-const setMode = m => { const c = $('card'); c.dataset.mode = m; c.hidden = false; };
+const setMode = m => { const c = $('card'); const was = c.dataset.mode; c.dataset.mode = m; c.hidden = false; if (m === 'menu' && was !== 'menu') splitTitle(); };
 function renderPodium(res) {
   const ol = $('board'); ol.innerHTML = '';
   res.top.slice(0, 10).forEach((e, i) => {
@@ -888,20 +889,13 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 
-/* TextType (ReactBits): efecto de tipeo en el título */
-(function () {
-  const el = $('ttText'), texts = ['Drone Invaders'], typingSpeed = 75, deleteSpeed = 40, pause = 1500;
-  let ti = 0, ci = 0, del = false;
-  function tick() {
-    const full = texts[ti];
-    if (!del) { ci++; el.textContent = full.slice(0, ci); if (ci >= full.length) { del = true; return setTimeout(tick, pause); } return setTimeout(tick, typingSpeed); }
-    ci--; el.textContent = full.slice(0, ci);
-    if (ci <= 0) { del = false; ti = (ti + 1) % texts.length; return setTimeout(tick, 400); }
-    setTimeout(tick, deleteSpeed);
-  }
-  tick();
+/* SplitText (ReactBits, sin GSAP): letras que suben escalonadas */
+const splitTitle = (() => {
+  const el = $('title'), txt = 'Drone Invaders', n = txt.length;
+  el.innerHTML = [...txt].map((c, i) => `<span class="ch" style="background-size:${n * 100}% 100%;background-position:${i / (n - 1) * 100}% 0;transition-delay:${i * .1}s">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
+  return () => { el.classList.remove('in'); void el.offsetWidth; requestAnimationFrame(() => el.classList.add('in')); };
 })();
-document.documentElement.classList.add('scene-menu'); layoutAll(); buildWave(); $('banner').classList.remove('on');
+splitTitle(); document.documentElement.classList.add('scene-menu'); layoutAll(); buildWave(); $('banner').classList.remove('on');
 // en el menú los drones ya están armados detrás del cartel
 groups.forEach(g => g.age = 3);
 requestAnimationFrame(loop);
