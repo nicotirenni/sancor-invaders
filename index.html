@@ -626,6 +626,44 @@ const SFX = (() => {
     src.connect(f); f.connect(g); g.connect(master); src.start(t, Math.random()); src.stop(t + dur + .05);
   }
   function chord(freqs, step, dur, vol, lp = 1800) { freqs.forEach((f, i) => { tone('triangle', f, f, dur, vol, { delay: i * step, attack: .03, lp }); tone('sine', f / 2, f / 2, dur, vol * .8, { delay: i * step, attack: .04 }); }); }
+  // ---- Música: cumbia en 16 bits (pulsos cuadrados, bajo triangular, percusión de ruido) ----
+  const MU = { on: false, timer: 0, step: 0, next: 0, bpm: 92, g: null, pulse: null };
+  const hz = n => 440 * Math.pow(2, n / 12);
+  const BASS = [[-24, -17], [-19, -24], [-17, -22], [-24, -17]];                 // Am | Dm | E | Am  (raíz, quinta)
+  const STAB = [[-12, -9, -5], [-12, -7, -4], [-13, -10, -5], [-12, -9, -5]];
+  const LEAD = [
+    [[0, 7, 2], [3, 7, 1], [4, 5, 1], [5, 3, 1], [6, 0, 2], [8, 3, 2], [11, 3, 1], [12, 7, 3]],
+    [[0, 8, 2], [3, 8, 1], [4, 7, 1], [5, 5, 1], [6, 3, 2], [8, 5, 2], [11, 5, 1], [12, 0, 3]],
+    [[0, 7, 2], [3, 7, 1], [4, 2, 1], [5, -1, 1], [6, 2, 2], [8, 7, 2], [11, 2, 1], [12, -1, 3]],
+    [[0, 3, 2], [2, 7, 2], [4, 12, 4], [8, 10, 2], [10, 7, 2], [12, 3, 2], [14, 0, 2]]];
+  function mNote(type, f, t, dur, vol, o = {}) {
+    const osc = ac.createOscillator(), g = ac.createGain();
+    if (type === 'pulse') osc.setPeriodicWave(MU.pulse); else osc.type = type;
+    osc.frequency.setValueAtTime(f, t); if (o.f1) osc.frequency.exponentialRampToValueAtTime(o.f1, t + dur);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .006); g.gain.setValueAtTime(vol * (o.sus || .6), t + dur * .55); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    osc.connect(g); g.connect(MU.g); osc.start(t); osc.stop(t + dur + .03);
+  }
+  function mNoise(t, dur, vol, lp, hp = 0) {
+    const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    src.buffer = noiseBuf; src.loop = true; f.type = hp ? 'bandpass' : 'lowpass'; f.frequency.value = hp || lp; if (hp) f.Q.value = 1.2;
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .003); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(MU.g); src.start(t, Math.random()); src.stop(t + dur + .02);
+  }
+  function mStep(i, t, sd) {
+    const bar = Math.floor(i / 16) % 4, k = i % 16;
+    if (k === 0 || k === 8) { mNote('sine', 120, t, .16, .55, { f1: 42, sus: .3 }); }                       // bombo
+    if (k === 4 || k === 12) mNoise(t, .09, .22, 0, 1800);                                                 // caja
+    if (k % 2 === 0) mNoise(t, .05, k % 4 === 0 ? .1 : .06, 0, 5200);                                       // güiro: corcheas
+    else mNoise(t, .03, .035, 0, 6000);
+    const b = BASS[bar]; if (k === 0 || k === 8) mNote('triangle', hz(b[0]), t, sd * 3.2, .5); if (k === 6 || k === 14) mNote('triangle', hz(b[1]), t, sd * 1.8, .42);
+    if (k === 2 || k === 6 || k === 10 || k === 14) STAB[bar].forEach(n => mNote('pulse', hz(n), t, sd * 1.2, .06, { sus: .4 }));  // guitarra/acordeón a contratiempo
+    for (const [st, n, len] of LEAD[bar]) if (st === k) mNote('pulse', hz(n), t, sd * len * .92, .12);       // melodía
+  }
+  function musicTick() {
+    if (!MU.on || !ac) return;
+    const sd = 60 / MU.bpm / 4;
+    while (MU.next < ac.currentTime + .3) { mStep(MU.step, MU.next, sd); MU.step++; MU.next += sd; }
+  }
   function pad(level) { // colchón grave continuo, muy bajo
     if (!ac) return;
     if (!padG) {
@@ -647,6 +685,12 @@ const SFX = (() => {
     combo() { if (ok()) tone('triangle', 330, 392, .22, .16, { lp: 1500, attack: .02 }); },
     clear() { if (ok()) chord([130.8, 164.8, 196, 261.6], .12, 1, .17, 1600); },
     over() { if (!ok()) return; tone('sawtooth', 130, 46, 1.3, .28, { lp: 320 }); tone('sine', 65, 30, 1.5, .55); },
+    musicStart(bpm = 92) { if (!ac) ensure(); if (!ac) return; MU.bpm = bpm;
+      if (!MU.g) { MU.g = ac.createGain(); MU.g.connect(master); MU.pulse = ac.createPeriodicWave(new Float32Array([0, ...Array.from({ length: 24 }, (_, n) => Math.sin(Math.PI * (n + 1) * .25) * 2 / (Math.PI * (n + 1)))]), new Float32Array(25)); }
+      MU.g.gain.cancelScheduledValues(now()); MU.g.gain.setValueAtTime(.0001, now()); MU.g.gain.linearRampToValueAtTime(.24, now() + .6);
+      if (MU.on) return; MU.on = true; MU.step = 0; MU.next = now() + .08; clearInterval(MU.timer); MU.timer = setInterval(musicTick, 60); },
+    musicBpm(b) { MU.bpm = b; },
+    musicStop() { if (!MU.on || !ac) return; MU.on = false; clearInterval(MU.timer); MU.g.gain.cancelScheduledValues(now()); MU.g.gain.setTargetAtTime(.0001, now(), .25); },
     tick() { if (!ok()) return; tone('sine', 196, 180, .18, .32); },
     hold(p) { if (ac) { try { p ? ac.suspend() : ac.resume(); } catch (e) {} } },
     start() { if (!ok()) return; tone('sine', 110, 220, .38, .4); tone('triangle', 165, 330, .32, .14, { delay: .08, lp: 1400 }); },
@@ -720,7 +764,7 @@ function closePodium() {
   if (cardBefore === 'over' && lastRes) renderBoard(lastRes, { name: playerName, score });
 }
 function openName() { setMode('name'); $('nameInput').value = playerName; setTimeout(() => $('nameInput').focus(), 30); }
-function backToMenu() { state = 'menu'; countT = 0; paused = false; $('pauseOv').hidden = true; $('pauseBtn').hidden = true; SFX.hold(false); $('kicker').textContent = 'Destruí al invasor. Cuidá lo nuestro.'; document.documentElement.classList.add('scene-menu'); $('banner').classList.remove('on'); setMode('menu'); }
+function backToMenu() { state = 'menu'; SFX.musicStop(); countT = 0; paused = false; $('pauseOv').hidden = true; $('pauseBtn').hidden = true; SFX.hold(false); $('kicker').textContent = 'Destruí al invasor. Cuidá lo nuestro.'; document.documentElement.classList.add('scene-menu'); $('banner').classList.remove('on'); setMode('menu'); }
 function tryStart() {
   const inp = $('nameInput'), name = cleanName(inp.value);
   if (!name) { inp.classList.add('bad'); inp.focus(); setTimeout(() => inp.classList.remove('bad'), 600); return; }
@@ -730,7 +774,7 @@ function start() {
   $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true; $('rank').textContent = '';
   wave = 1; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
   itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; $('pauseOv').hidden = true;
-  document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); buildWave(); $('pauseBtn').hidden = false;
+  document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(92); buildWave(); $('pauseBtn').hidden = false;
 }
 let clearAt = 0;
 function showLevelResults(bonus, allies) {
@@ -745,7 +789,7 @@ function showLevelResults(bonus, allies) {
 }
 function nextLevel() {
   if (state !== 'clear') return;
-  $('card').hidden = true; state = 'play'; wave++; bullets = []; buildWave(); $('pauseBtn').hidden = false;
+  $('card').hidden = true; state = 'play'; wave++; SFX.musicBpm(Math.min(120, 92 + (wave - 1) * 4)); bullets = []; buildWave(); $('pauseBtn').hidden = false;
 }
 $('nextBtn').onclick = nextLevel;
 function setPause(p) {
@@ -764,7 +808,7 @@ function endGame(why = 'Fin del show') {
   $('finalScore').textContent = score;
   $('finalSub').textContent = `puntos · ${playerName} · Ronda ${wave}` + (best > score ? ` · Tu mejor: ${best}` : '');
   $('nameInput').value = playerName;
-  SFX.over(); SFX.pad(.03);
+  SFX.over(); SFX.pad(.03); SFX.musicStop();
   submitScore();
 }
 $('newBtn').addEventListener('click', openName);
@@ -919,7 +963,7 @@ function update(dt) {
         if (dx * dx + dy * dy < (HIT + 2) * (HIT + 2)) { d.alive = false; n++; burst(bg.x + d.x, bg.y + d.y, d.c, 4); }
       }
       const oldMult = mult; combo += n; waveCombo = Math.max(waveCombo, combo); comboT = 1.6; mult = Math.min(5, 1 + Math.floor(combo / 12)); if (n) SFX.hit(n); if (mult > oldMult) SFX.combo();
-      const pts = n * 10 * mult; score += pts; shake = Math.min(9, shake + n * .5);
+      const pts = n * 10 * mult; score += pts; shake = Math.min(4.5, shake + n * .25);
       rings.push({ x: bp[0], y: bp[1], r: 4, l: .45, c: '#ffd0da' });
       pops.push({ x: bp[0], y: bp[1], t: '+' + pts, l: .8 });
     }
