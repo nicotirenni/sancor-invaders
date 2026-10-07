@@ -327,7 +327,7 @@ void main() {
 const bgc = document.getElementById('bg');
 const gl = bgc.getContext('webgl', { antialias: false });
 let galaxy = null;
-const galaxyState = { hue: 140, mouse: [.5, .5], target: [.5, .5], active: 0, targetActive: 0 };
+const galaxyState = { hue: 90, mouse: [.5, .5], target: [.5, .5], active: 0, targetActive: 0 };
 if (gl) {
   const mk = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
   const prog = gl.createProgram();
@@ -344,13 +344,13 @@ if (gl) {
     ['uTime','uResolution','uFocal','uRotation','uStarSpeed','uDensity','uHueShift','uSpeed','uMouse','uGlowIntensity','uSaturation','uMouseRepulsion',
      'uTwinkleIntensity','uRotationSpeed','uRepulsionStrength','uMouseActiveFactor','uAutoCenterRepulsion','uTransparent','uLightMode'].forEach(n => galaxy.u[n] = U(n));
     gl.uniform2f(galaxy.u.uFocal, .5, .5); gl.uniform2f(galaxy.u.uRotation, 1, 0);
-    gl.uniform1f(galaxy.u.uDensity, 1); gl.uniform1f(galaxy.u.uSpeed, 1); gl.uniform1f(galaxy.u.uGlowIntensity, .3);
-    gl.uniform1f(galaxy.u.uSaturation, 0); gl.uniform1i(galaxy.u.uMouseRepulsion, 1); gl.uniform1f(galaxy.u.uTwinkleIntensity, .3);
+    gl.uniform1f(galaxy.u.uDensity, .4); gl.uniform1f(galaxy.u.uSpeed, 1); gl.uniform1f(galaxy.u.uGlowIntensity, .2);
+    gl.uniform1f(galaxy.u.uSaturation, 0); gl.uniform1i(galaxy.u.uMouseRepulsion, 0); gl.uniform1f(galaxy.u.uTwinkleIntensity, .3);
     gl.uniform1f(galaxy.u.uRotationSpeed, .1); gl.uniform1f(galaxy.u.uRepulsionStrength, 2); gl.uniform1f(galaxy.u.uAutoCenterRepulsion, 0);
     gl.uniform1i(galaxy.u.uTransparent, 0); gl.uniform1f(galaxy.u.uLightMode, 0);
   }
 }
-addEventListener('pointermove', e => { if (state !== 'menu') return; /* el mouse solo mueve el Galaxy en el menú, no en los niveles */ galaxyState.target = [e.clientX / innerWidth, 1 - e.clientY / innerHeight]; galaxyState.targetActive = 1; }, { passive: true });
+addEventListener('pointermove', e => { if (state !== 'menu') return; /* el mouse solo mueve el Galaxy en el menú, no en los niveles */ /* Galaxy sin interacción con el mouse */ }, { passive: true });
 document.addEventListener('mouseleave', () => { galaxyState.targetActive = 0; });
 function resizeBg() {
   const d = Math.min(devicePixelRatio || 1, 1.5);
@@ -501,7 +501,7 @@ function buildWave() {
   textSprite('SANCOR', 400, 64, RED).forEach(p => dots.push({ ...p, x: p.x + 152, y: p.y + 4 }));
   textSprite('SEGUROS', 400, 64, RED).forEach(p => dots.push({ ...p, x: p.x + 152, y: p.y + 68 }));
   const travel = Math.max(60, STADIUM_TOP - (SANCOR_Y0 + 136 * K));
-  const sancor = makeGroup(dots, 0, SANCOR_Y0, 45 * sp, 4 * sp * travel / 124, false);
+  const sancor = makeGroup(dots, 0, SANCOR_Y0, 45 * sp, 4 * .85 * sp * travel / 124, false);
   sancor.x = (W - sancor.w) / 2; groups.push(sancor);
   if (wave >= 2) {
     const n = wave - 1; // ronda 2: 1 elemento, ronda 3: 2, ... uno más por nivel
