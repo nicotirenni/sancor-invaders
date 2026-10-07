@@ -627,15 +627,24 @@ const SFX = (() => {
   }
   function chord(freqs, step, dur, vol, lp = 1800) { freqs.forEach((f, i) => { tone('triangle', f, f, dur, vol, { delay: i * step, attack: .03, lp }); tone('sine', f / 2, f / 2, dur, vol * .8, { delay: i * step, attack: .04 }); }); }
   // ---- Música: cumbia en 16 bits (pulsos cuadrados, bajo triangular, percusión de ruido) ----
-  const MU = { on: false, timer: 0, step: 0, next: 0, bpm: 92, g: null, pulse: null };
+  const MU = { on: false, timer: 0, step: 0, next: 0, bpm: 92, g: null, pulse: null, track: 'game' };
   const hz = n => 440 * Math.pow(2, n / 12);
-  const BASS = [[-24, -17], [-19, -24], [-17, -22], [-24, -17]];                 // Am | Dm | E | Am  (raíz, quinta)
-  const STAB = [[-12, -9, -5], [-12, -7, -4], [-13, -10, -5], [-12, -9, -5]];
-  const LEAD = [
-    [[0, 7, 2], [3, 7, 1], [4, 5, 1], [5, 3, 1], [6, 0, 2], [8, 3, 2], [11, 3, 1], [12, 7, 3]],
-    [[0, 8, 2], [3, 8, 1], [4, 7, 1], [5, 5, 1], [6, 3, 2], [8, 5, 2], [11, 5, 1], [12, 0, 3]],
-    [[0, 7, 2], [3, 7, 1], [4, 2, 1], [5, -1, 1], [6, 2, 2], [8, 7, 2], [11, 2, 1], [12, -1, 3]],
-    [[0, 3, 2], [2, 7, 2], [4, 12, 4], [8, 10, 2], [10, 7, 2], [12, 3, 2], [14, 0, 2]]];
+  const TRACKS = {
+    game: { // cumbia: La menor | Re menor | Mi | La menor
+      bass: [[-24, -17], [-19, -24], [-17, -22], [-24, -17]], stab: [[-12, -9, -5], [-12, -7, -4], [-13, -10, -5], [-12, -9, -5]],
+      lead: [
+        [[0, 7, 2], [3, 7, 1], [4, 5, 1], [5, 3, 1], [6, 0, 2], [8, 3, 2], [11, 3, 1], [12, 7, 3]],
+        [[0, 8, 2], [3, 8, 1], [4, 7, 1], [5, 5, 1], [6, 3, 2], [8, 5, 2], [11, 5, 1], [12, 0, 3]],
+        [[0, 7, 2], [3, 7, 1], [4, 2, 1], [5, -1, 1], [6, 2, 2], [8, 7, 2], [11, 2, 1], [12, -1, 3]],
+        [[0, 3, 2], [2, 7, 2], [4, 12, 4], [8, 10, 2], [10, 7, 2], [12, 3, 2], [14, 0, 2]]] },
+    menu: { // tema original de hinchada, Do mayor (pentatónica): Do | Fa | Sol | Do
+      bass: [[-21, -21], [-16, -16], [-14, -14], [-21, -14]], stab: [[-9, -5, -2], [-12, -9, -4], [-14, -10, -7], [-9, -5, -2]],
+      lead: [
+        [[0, 10, 2], [2, 10, 2], [4, 7, 2], [6, 10, 2], [8, 12, 4], [12, 10, 4]],
+        [[0, 12, 2], [2, 12, 2], [4, 10, 2], [6, 12, 2], [8, 15, 4], [12, 12, 4]],
+        [[0, 10, 2], [2, 10, 2], [4, 7, 2], [6, 5, 2], [8, 7, 4], [12, 2, 4]],
+        [[0, 7, 2], [2, 10, 2], [4, 12, 2], [6, 10, 2], [8, 7, 6], [14, 5, 2]]] }
+  };
   function mNote(type, f, t, dur, vol, o = {}) {
     const osc = ac.createOscillator(), g = ac.createGain();
     if (type === 'pulse') osc.setPeriodicWave(MU.pulse); else osc.type = type;
@@ -650,14 +659,22 @@ const SFX = (() => {
     src.connect(f); f.connect(g); g.connect(MU.g); src.start(t, Math.random()); src.stop(t + dur + .02);
   }
   function mStep(i, t, sd) {
-    const bar = Math.floor(i / 16) % 4, k = i % 16;
-    if (k === 0 || k === 8) { mNote('sine', 120, t, .16, .55, { f1: 42, sus: .3 }); }                       // bombo
-    if (k === 4 || k === 12) mNoise(t, .09, .22, 0, 1800);                                                 // caja
-    if (k % 2 === 0) mNoise(t, .05, k % 4 === 0 ? .1 : .06, 0, 5200);                                       // güiro: corcheas
-    else mNoise(t, .03, .035, 0, 6000);
-    const b = BASS[bar]; if (k === 0 || k === 8) mNote('triangle', hz(b[0]), t, sd * 3.2, .5); if (k === 6 || k === 14) mNote('triangle', hz(b[1]), t, sd * 1.8, .42);
-    if (k === 2 || k === 6 || k === 10 || k === 14) STAB[bar].forEach(n => mNote('pulse', hz(n), t, sd * 1.2, .06, { sus: .4 }));  // guitarra/acordeón a contratiempo
-    for (const [st, n, len] of LEAD[bar]) if (st === k) mNote('pulse', hz(n), t, sd * len * .92, .12);       // melodía
+    const T = TRACKS[MU.track], menu = MU.track === 'menu', bar = Math.floor(i / 16) % 4, k = i % 16;
+    if (menu) { // hinchada: bombo a negras, palmas en ritmo de cantito
+      if (k % 4 === 0) mNote('sine', 120, t, .18, .6, { f1: 42, sus: .3 });
+      if ([0, 4, 8, 10, 12].includes(k)) mNoise(t, .06, .2, 0, 2400);
+      if (k % 2 === 0) mNoise(t, .03, .05, 0, 6000);
+      const b = T.bass[bar]; if (k % 8 === 0) mNote('triangle', hz(b[0]), t, sd * 3.5, .5); if (k === 6 || k === 14) mNote('triangle', hz(b[1]) + 0, t, sd * 1.5, .4);
+      if (k === 0 || k === 8) T.stab[bar].forEach(n => mNote('pulse', hz(n), t, sd * 3.6, .05, { sus: .6 }));
+    } else {
+      if (k === 0 || k === 8) { mNote('sine', 120, t, .16, .55, { f1: 42, sus: .3 }); }                       // bombo
+      if (k === 4 || k === 12) mNoise(t, .09, .22, 0, 1800);                                                 // caja
+      if (k % 2 === 0) mNoise(t, .05, k % 4 === 0 ? .1 : .06, 0, 5200);                                       // güiro: corcheas
+      else mNoise(t, .03, .035, 0, 6000);
+      const b = T.bass[bar]; if (k === 0 || k === 8) mNote('triangle', hz(b[0]), t, sd * 3.2, .5); if (k === 6 || k === 14) mNote('triangle', hz(b[1]), t, sd * 1.8, .42);
+      if (k === 2 || k === 6 || k === 10 || k === 14) T.stab[bar].forEach(n => mNote('pulse', hz(n), t, sd * 1.2, .06, { sus: .4 }));  // guitarra/acordeón a contratiempo
+    }
+    for (const [st, n, len] of T.lead[bar]) if (st === k) mNote('pulse', hz(n), t, sd * len * .92, .12);       // melodía
   }
   function musicTick() {
     if (!MU.on || !ac) return;
@@ -685,7 +702,7 @@ const SFX = (() => {
     combo() { if (ok()) tone('triangle', 330, 392, .22, .16, { lp: 1500, attack: .02 }); },
     clear() { if (ok()) chord([130.8, 164.8, 196, 261.6], .12, 1, .17, 1600); },
     over() { if (!ok()) return; tone('sawtooth', 130, 46, 1.3, .28, { lp: 320 }); tone('sine', 65, 30, 1.5, .55); },
-    musicStart(bpm = 92) { if (!ac) ensure(); if (!ac) return; MU.bpm = bpm;
+    musicStart(bpm = 92, track = 'game') { if (!ac) ensure(); if (!ac) return; MU.bpm = bpm; if (MU.track !== track) { MU.track = track; MU.step = 0; if (MU.on) MU.next = now() + .08; }
       if (!MU.g) { MU.g = ac.createGain(); MU.g.connect(master); MU.pulse = ac.createPeriodicWave(new Float32Array([0, ...Array.from({ length: 24 }, (_, n) => Math.sin(Math.PI * (n + 1) * .25) * 2 / (Math.PI * (n + 1)))]), new Float32Array(25)); }
       MU.g.gain.cancelScheduledValues(now()); MU.g.gain.setValueAtTime(.0001, now()); MU.g.gain.linearRampToValueAtTime(.24, now() + .6);
       if (MU.on) return; MU.on = true; MU.step = 0; MU.next = now() + .08; clearInterval(MU.timer); MU.timer = setInterval(musicTick, 60); },
@@ -699,7 +716,7 @@ const SFX = (() => {
     tick() { if (ok()) tone('sine', 230, 150, .08, .22); }
   };
 })();
-['pointerdown', 'keydown'].forEach(ev => addEventListener(ev, () => SFX.ensure(), { passive: true }));
+['pointerdown', 'keydown'].forEach(ev => addEventListener(ev, () => { SFX.ensure(); if (state === 'menu') SFX.musicStart(112, 'menu'); }, { passive: true }));
 
 let playerName = LS.get('sancor_name', ''), best = +LS.get('sancor_best', 0), overAt = 0;
 const cleanName = n => String(n || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 16);
@@ -764,7 +781,7 @@ function closePodium() {
   if (cardBefore === 'over' && lastRes) renderBoard(lastRes, { name: playerName, score });
 }
 function openName() { setMode('name'); $('nameInput').value = playerName; setTimeout(() => $('nameInput').focus(), 30); }
-function backToMenu() { state = 'menu'; SFX.musicStop(); countT = 0; paused = false; $('pauseOv').hidden = true; $('pauseBtn').hidden = true; SFX.hold(false); $('kicker').textContent = 'Destruí al invasor. Cuidá lo nuestro.'; document.documentElement.classList.add('scene-menu'); $('banner').classList.remove('on'); setMode('menu'); }
+function backToMenu() { state = 'menu'; SFX.musicStart(112, 'menu'); countT = 0; paused = false; $('pauseOv').hidden = true; $('pauseBtn').hidden = true; SFX.hold(false); $('kicker').textContent = 'Destruí al invasor. Cuidá lo nuestro.'; document.documentElement.classList.add('scene-menu'); $('banner').classList.remove('on'); setMode('menu'); }
 function tryStart() {
   const inp = $('nameInput'), name = cleanName(inp.value);
   if (!name) { inp.classList.add('bad'); inp.focus(); setTimeout(() => inp.classList.remove('bad'), 600); return; }
@@ -774,7 +791,7 @@ function start() {
   $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true; $('rank').textContent = '';
   wave = 1; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
   itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; $('pauseOv').hidden = true;
-  document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(92); buildWave(); $('pauseBtn').hidden = false;
+  document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(92, 'game'); buildWave(); $('pauseBtn').hidden = false;
 }
 let clearAt = 0;
 function showLevelResults(bonus, allies) {
