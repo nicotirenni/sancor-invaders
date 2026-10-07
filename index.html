@@ -847,12 +847,17 @@ function update(dt) {
     for (const d of g.dots) if (d.alive) { if (g.ally) allies++; else { enemies++; lowest = Math.max(lowest, g.y + d.y); } }
   }
 
+  let left = 0; for (const g of groups) if (!g.ally) for (const d of g.dots) if (d.alive) left++;
+  const HIT = left <= 40 ? 17 : left <= 100 ? 13 : 10; // cuando quedan pocos, el área de impacto crece
   for (const b of bullets) {
+    const x0 = b.x, y0 = b.y;
     b.y -= 640 * dt; b.x += (b.vx || 0) * dt; if (b.x < -10 || b.x > W + 10) b.y = -99;
-    let best = null, bd = 78, bg = null, bp;
+    let best = null, bd = HIT * HIT, bg = null, bp;
+    const sx = b.x - x0, sy = b.y - y0, sl = sx * sx + sy * sy || 1; // colisión sobre todo el tramo recorrido (no se salta drones)
     for (const g of groups) for (const d of g.dots) {
       if (!d.alive) continue; const p = dpos(g, d); if (!d.ready) continue;
-      const dx = p[0] - b.x, dy = p[1] - b.y, q = dx * dx + dy * dy;
+      const t = Math.max(0, Math.min(1, ((p[0] - x0) * sx + (p[1] - y0) * sy) / sl));
+      const dx = p[0] - (x0 + sx * t), dy = p[1] - (y0 + sy * t), q = dx * dx + dy * dy;
       if (q < bd) { bd = q; best = d; bg = g; bp = p; }
     }
     if (!best) continue;
@@ -865,7 +870,7 @@ function update(dt) {
       for (const d of bg.dots) {
         if (!d.alive || !d.ready) continue;
         const dx = bg.x + d.x - bp[0], dy = bg.y + d.y - bp[1];
-        if (dx * dx + dy * dy < 11 * 11) { d.alive = false; n++; burst(bg.x + d.x, bg.y + d.y, d.c, 4); }
+        if (dx * dx + dy * dy < (HIT + 2) * (HIT + 2)) { d.alive = false; n++; burst(bg.x + d.x, bg.y + d.y, d.c, 4); }
       }
       const oldMult = mult; combo += n; comboT = 1.6; mult = Math.min(5, 1 + Math.floor(combo / 12)); if (n) SFX.hit(n); if (mult > oldMult) SFX.combo();
       const pts = n * 10 * mult; score += pts; shake = Math.min(9, shake + n * .5);
