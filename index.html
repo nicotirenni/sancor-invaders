@@ -561,11 +561,16 @@ const keys = {}; let touching = false;
 const rnd = (a, b) => a + Math.random() * (b - a);
 const ease = k => 1 - Math.pow(1 - k, 3);
 
+function thin(pts, minD) { // deja puntos separados al menos minD (para que al achicar el dibujo no queden amontonados)
+  const out = []; for (const p of pts) if (out.every(q => Math.hypot(q.x - p.x, q.y - p.y) >= minD)) out.push(p); return out;
+}
+const ALLY_SCALE = .5, ALLY_DOT = .72;   // los elementos que no hay que golpear: 50% más chicos
 function makeGroup(pts, x, y, vx, vy, ally) {
-  pts = pts.map(p => ({ ...p, x: p.x * K, y: p.y * K }));
-  let w = 0, h = 0; pts.forEach(p => { w = Math.max(w, p.x + STEP * K / 2); h = Math.max(h, p.y + STEP * K / 2); });
+  const k = ally ? K * ALLY_SCALE : K;
+  pts = pts.map(p => ({ ...p, x: p.x * k, y: p.y * k })); if (ally) pts = thin(pts, 4.4);
+  let w = 0, h = 0; pts.forEach(p => { w = Math.max(w, p.x + STEP * k / 2); h = Math.max(h, p.y + STEP * k / 2); });
   return { x, y, vx, vy, ally, w, h, ph: Math.random() * 6, age: 0,
-    dots: pts.map(p => ({ x: p.x, y: p.y, c: p.c, alive: true, delay: Math.random() * .9,
+    dots: pts.map(p => ({ x: p.x, y: p.y, c: p.c, rs: ally ? ALLY_DOT : 1, alive: true, delay: Math.random() * .9,
       sx: rnd(-40, W + 40), sy: rnd(H * .55, H + 80) })) };
 }
 function dpos(g, d, o) { // los drones vuelan a su lugar al comenzar la ronda (o: arreglo reutilizable, evita basura por cuadro)
@@ -588,8 +593,10 @@ function buildWave() {
   sancor.x = (W - sancor.w) / 2; groups.push(sancor);
   if (wave >= 2) {
     const n = wave - 1; // ronda 2: 1 elemento, ronda 3: 2, ... uno más por nivel
-    for (let i = 0; i < n; i++)
-      groups.push(makeGroup(ALLY_SPRITES[i % ALLY_SPRITES.length](), rnd(0, W - 120), SANCOR_Y0 + 112 + (i % 3) * Math.max(30, (STADIUM_TOP - 10 - (SANCOR_Y0 + 112) - 56) / 2) + rnd(0, 10), (i % 2 ? 1 : -1) * rnd(50, 100) * sp, 0, true));
+    for (let i = 0; i < n; i++) { // pasan de lado a lado, desaparecen y vuelven (no están todo el tiempo en pantalla)
+      const a = makeGroup(ALLY_SPRITES[i % ALLY_SPRITES.length](), -999, 0, 0, 0, true);
+      a.age = 3; a.hidden = true; a.wait = rnd(.6, 2.2) + i * .9; a.dir = i % 2 ? 1 : -1; a.sp = sp; groups.push(a);
+    }
   }
   if (state === 'play') { waveScore0 = score; waveCombo = 0; waveAllyHits = 0; countT = 3.2; countN = 0; clearTimeout(banner.t); $('banner').classList.remove('on'); }
   else banner(`Ronda ${wave}`, wave === 1 ? 'Destruí a Sancor' : 'No toques lo nuestro');
@@ -960,9 +967,16 @@ function update(dt) {
   let enemies = 0, allies = 0, lowest = -1e9;
   for (const g of groups) {
     g.age += dt;
-    if (g.age > 1.2) { g.x += g.vx * dt; g.y += g.vy * dt; }
-    if (g.x < 10) { g.x = 10; g.vx = Math.abs(g.vx); }
-    if (g.x + g.w > W - 10) { g.x = W - 10 - g.w; g.vx = -Math.abs(g.vx); }
+    if (g.ally) {
+      if (g.hidden) { g.wait -= dt; if (g.wait <= 0) { // sale otra vez, desde el lado contrario y a otra altura
+        const yMin = SANCOR_Y0 + 120, yMax = Math.max(yMin + 20, STADIUM_TOP - 70); g.dir = -g.dir; g.y = rnd(yMin, yMax);
+        g.vx = g.dir * rnd(110, 170) * g.sp; g.x = g.dir > 0 ? -g.w - 10 : W + 10; g.hidden = false; } }
+      else { g.x += g.vx * dt; if ((g.vx > 0 && g.x > W + 10) || (g.vx < 0 && g.x + g.w < -10)) { g.hidden = true; g.wait = rnd(1.4, 4); } }
+    } else {
+      if (g.age > 1.2) { g.x += g.vx * dt; g.y += g.vy * dt; }
+      if (g.x < 10) { g.x = 10; g.vx = Math.abs(g.vx); }
+      if (g.x + g.w > W - 10) { g.x = W - 10 - g.w; g.vx = -Math.abs(g.vx); }
+    }
     for (const d of g.dots) if (d.alive) { if (g.ally) allies++; else { enemies++; lowest = Math.max(lowest, g.y + d.y); } }
   }
 
@@ -973,7 +987,7 @@ function update(dt) {
     b.y -= 640 * dt; b.x += (b.vx || 0) * dt; if (b.x < -10 || b.x > W + 10) b.y = -99;
     let best = null, bd = HIT * HIT, bg = null, bp;
     const sx = b.x - x0, sy = b.y - y0, sl = sx * sx + sy * sy || 1; // colisión sobre todo el tramo recorrido (no se salta drones)
-    for (const g of groups) for (const d of g.dots) {
+    for (const g of groups) if (!g.hidden) for (const d of g.dots) {
       if (!d.alive) continue; const p = dpos(g, d); if (!d.ready) continue;
       const t = Math.max(0, Math.min(1, ((p[0] - x0) * sx + (p[1] - y0) * sy) / sl));
       const dx = p[0] - (x0 + sx * t), dy = p[1] - (y0 + sy * t), q = dx * dx + dy * dy;
@@ -1006,7 +1020,7 @@ function update(dt) {
   if (comboT > 0) { comboT -= dt; if (comboT <= 0) { combo = 0; mult = 1; } }
 
   if (enemies === 0 && groups.some(g => g.age > 1.2)) {
-    const bonus = allies * 2; score += bonus;
+    const bonus = allies * 4; score += bonus;
     for (const g of groups) if (g.ally) for (const d of g.dots) if (d.alive && Math.random() < .3) burst(g.x + d.x, g.y + d.y, d.c, 2, 60);
     say(bonus ? `¡Sancor destruido! +${bonus} por cuidar lo nuestro` : '¡Sancor destruido!'); SFX.clear();
     bullets = []; showLevelResults(bonus, allies);
@@ -1031,10 +1045,10 @@ function draw(t) {
 
   // barrido de brillo sobre los drones (estilo ShinyText)
   const sweep = ((t * 260) % (W + 600)) - 300;
-  for (const g of groups) for (const d of g.dots) if (d.alive) {
+  for (const g of groups) if (!g.hidden) for (const d of g.dots) if (d.alive) {
     const p = dpos(g, d, _dp);
-    let a = .95, r = R;
-    const q = Math.abs(p[0] + p[1] * .6 - sweep); if (q < 60 && d.ready) { const k = 1 - q / 60; r = R * (1 + .5 * k); a = 1; }
+    let a = .95, r = R * d.rs;
+    const q = Math.abs(p[0] + p[1] * .6 - sweep); if (q < 60 && d.ready) { const k = 1 - q / 60; r = R * d.rs * (1 + .5 * k); a = 1; }
     dot(p[0], p[1] + Math.sin(t * 2 + g.ph + d.x * .05) * .9, q < 40 && d.ready ? '#ffffff' : d.c, r, a);
   }
   for (const p of parts) dot(p.x, p.y, p.c, p.s * 2.2, Math.max(0, p.l / p.m));
