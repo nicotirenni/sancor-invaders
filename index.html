@@ -1049,10 +1049,26 @@ function draw(t) {
     for (let i = 0; i < 12; i++) { const an = i * Math.PI / 6 + t * 1.5; dot(it.x + Math.cos(an) * 14 * pulse, it.y + Math.sin(an) * 14 * pulse, P.c, 2.1); }
     dot(it.x, it.y, P.c, 5, .55);
   }
-  // nave: dron con tres luces en los colores de Argentina
+  // nave: caza con cuerpo, alas celestes y blancas, sol de mayo dorado y propulsor
   ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.tilt * .35);
-  dot(0, -8, '#ffffff', 5.5); dot(-14, 6, CELESTE, 4.2); dot(14, 6, CELESTE, 4.2); dot(0, 4, GOLD, 3.2);
-  ctx.globalAlpha = .6; ctx.strokeStyle = CELESTE; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-14, 6); ctx.lineTo(0, -8); ctx.lineTo(14, 6); ctx.closePath(); ctx.stroke();
+  ctx.globalCompositeOperation = 'lighter'; // llama del propulsor
+  { const fl = 9 + Math.sin(t * 40) * 2.5 + Math.random() * 2, fg = ctx.createLinearGradient(0, 14, 0, 14 + fl); fg.addColorStop(0, 'rgba(255,230,150,.95)'); fg.addColorStop(.5, 'rgba(116,192,245,.7)'); fg.addColorStop(1, 'rgba(116,192,245,0)');
+    ctx.fillStyle = fg; ctx.beginPath(); ctx.moveTo(-4, 13); ctx.lineTo(4, 13); ctx.lineTo(0, 14 + fl); ctx.closePath(); ctx.fill(); }
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  const wing = (m) => { ctx.beginPath(); ctx.moveTo(m * 5, -5); ctx.lineTo(m * 25, 9); ctx.lineTo(m * 22, 15); ctx.lineTo(m * 15, 12); ctx.lineTo(m * 6, 10); ctx.closePath(); };
+  for (const m of [-1, 1]) {
+    wing(m); const wg = ctx.createLinearGradient(m * 5, -5, m * 25, 15); wg.addColorStop(0, '#9fd4fa'); wg.addColorStop(1, '#3d8fd1'); ctx.fillStyle = wg; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = .9; ctx.lineJoin = 'round'; ctx.stroke();
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(m * 9, 3); ctx.lineTo(m * 20, 11.5); ctx.stroke();       // franja blanca de la bandera
+  }
+  ctx.beginPath(); ctx.moveTo(0, -24); ctx.bezierCurveTo(7, -14, 8, -2, 7, 11); ctx.lineTo(4, 15); ctx.lineTo(-4, 15); ctx.lineTo(-7, 11); ctx.bezierCurveTo(-8, -2, -7, -14, 0, -24); ctx.closePath();
+  { const bg = ctx.createLinearGradient(-7, 0, 7, 0); bg.addColorStop(0, '#cfe6fb'); bg.addColorStop(.5, '#ffffff'); bg.addColorStop(1, '#a9cdee'); ctx.fillStyle = bg; ctx.fill(); }
+  ctx.strokeStyle = 'rgba(116,192,245,.9)'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.fillStyle = '#74c0f5'; ctx.fillRect(-3.2, 7, 6.4, 5);                                                                               // propulsor
+  ctx.fillStyle = '#1b3e6b'; ctx.beginPath(); ctx.ellipse(0, -10, 2.6, 5, 0, 0, 7); ctx.fill();                                           // cabina
+  ctx.globalCompositeOperation = 'lighter';
+  dot(0, 0, GOLD, 3.4); dot(0, -10, '#ffffff', 1.6);                                                                                      // sol de mayo y reflejo
+  dot(-22, 13, CELESTE, 2.6); dot(22, 13, CELESTE, 2.6); dot(0, -24, '#ffffff', 2);                                                       // luces de ala y proa
   ctx.restore();
   ctx.restore();
 
