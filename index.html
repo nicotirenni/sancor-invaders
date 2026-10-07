@@ -422,23 +422,46 @@ function textSprite(txt, w, h, color, step = STEP) {
     g.fillText(txt, w / 2, h / 2 + 2);
   }, null, step);
 }
-const SSTEP = 9; // paso de puntos del invasor (más grande = menos drones)
-const logoSprite = () => { // solo el trazo del isologotipo: drones equiespaciados sobre cada contorno
-  const pts = [], GAP = 12, TGAP = 18, put = (x, y) => pts.push({ x, y, c: RED });
-  const along = (poly, closed, GAP = 12) => { // recorre una polilínea poniendo un punto cada GAP
-    const n = poly.length, segs = closed ? n : n - 1; let len = 0; const L = [];
+// Invasor al estilo show real: drones solo sobre el contorno de letras y logo
+const OGAP = 10.5;
+function ringPts(mask, w, h, gap, c) { // contorno de una máscara, con drones separados >= gap
+  const on = (x, y) => x >= 0 && y >= 0 && x < w && y < h && mask[(y * w + x) * 4 + 3] > 127;
+  const cell = gap, cols = Math.ceil(w / cell) + 1, grid = new Map(), out = [];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if (!on(x, y) || (on(x - 1, y) && on(x + 1, y) && on(x, y - 1) && on(x, y + 1))) continue;
+    const gx = Math.floor(x / cell), gy = Math.floor(y / cell); let ok = true;
+    for (let j = gy - 1; j <= gy + 1 && ok; j++) for (let i = gx - 1; i <= gx + 1 && ok; i++) {
+      const l = grid.get(j * cols + i); if (l) for (const p of l) if (Math.hypot(p.x - x, p.y - y) < gap) { ok = false; break; }
+    }
+    if (ok) { const p = { x, y, c }; out.push(p); const k = gy * cols + gx; (grid.get(k) || grid.set(k, []).get(k)).push(p); }
+  }
+  return out;
+}
+function outlineText(txt, w, h, gap, color) {
+  const o = document.createElement('canvas'); o.width = w; o.height = h; const g = o.getContext('2d');
+  g.fillStyle = '#000'; g.textBaseline = 'middle'; g.textAlign = 'left';
+  const size = h - 2; g.font = `700 ${size}px Arial, Helvetica, sans-serif`;
+  const base = g.measureText(txt).width, sp = Math.max(2, (w - base) / (txt.length - 1));
+  g.letterSpacing = sp + 'px'; g.fillText(txt, 0, h / 2 + 3);
+  return ringPts(g.getImageData(0, 0, w, h).data, w, h, gap, color);
+}
+const LOGO_D = 150;
+const logoSprite = () => { // isologotipo: círculo, línea y dos triángulos, solo trazo
+  const pts = [], f = LOGO_D / 136, put = (x, y) => pts.push({ x: x * f, y: y * f, c: RED });
+  const along = (poly, closed, gap) => {
+    const n = poly.length, segs = closed ? n : n - 1, L = []; let len = 0;
     for (let i = 0; i < segs; i++) { const p = poly[i], q = poly[(i + 1) % n]; L.push(Math.hypot(q[0] - p[0], q[1] - p[1])); len += L[i]; }
-    const cnt = Math.max(2, Math.round(len / GAP)), d = len / (closed ? cnt : cnt - 1);
-    for (let k = 0, i = 0, acc = 0; k < (closed ? cnt : cnt); k++) {
+    const cnt = Math.max(2, Math.round(len / gap)), d = len / (closed ? cnt : cnt - 1);
+    for (let k = 0, i = 0, acc = 0; k < cnt; k++) {
       const t = k * d; while (i < segs - 1 && t > acc + L[i] + 1e-6) { acc += L[i]; i++; }
-      const p = poly[i], q = poly[(i + 1) % n], f = L[i] ? (t - acc) / L[i] : 0; put(p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f);
+      const p = poly[i], q = poly[(i + 1) % n], r = L[i] ? (t - acc) / L[i] : 0; put(p[0] + (q[0] - p[0]) * r, p[1] + (q[1] - p[1]) * r);
     }
   };
-  const circ = 2 * Math.PI * 60, nc = Math.round(circ / GAP);
-  for (let i = 0; i < nc; i++) { const a = i / nc * 2 * Math.PI; put(68 + Math.cos(a) * 60, 68 + Math.sin(a) * 60); }
-  along([[18, 68], [118, 68]], false);
-  along([[40, 54], [80, 24], [80, 54]], true, TGAP);
-  along([[56, 82], [56, 112], [96, 82]], true, TGAP);
+  const gap = OGAP / f, nc = Math.round(2 * Math.PI * 62 / gap);
+  for (let i = 0; i < nc; i++) { const a = i / nc * 2 * Math.PI; put(68 + Math.cos(a) * 62, 68 + Math.sin(a) * 62); }
+  along([[8, 68], [128, 68]], false, gap);
+  along([[40, 54], [80, 22], [80, 54]], true, gap * 1.8);
+  along([[56, 82], [56, 114], [96, 82]], true, gap * 1.8);
   return pts;
 };
 const flagSprite = () => sample(90, 63, (g, w, h) => {
@@ -517,9 +540,9 @@ function buildWave() {
   const sp = 1 + (wave - 1) * .18;
   const dots = [];
   logoSprite().forEach(p => dots.push(p));
-  textSprite('SANCOR', 400, 64, RED, SSTEP).forEach(p => dots.push({ ...p, x: p.x + 152, y: p.y + 4 }));
-  textSprite('SEGUROS', 400, 64, RED, SSTEP).forEach(p => dots.push({ ...p, x: p.x + 152, y: p.y + 68 }));
-  const travel = Math.max(60, STADIUM_TOP - (SANCOR_Y0 + 136 * K));
+  outlineText('SANCOR', 440, 70, OGAP, RED).forEach(p => dots.push({ ...p, x: p.x + LOGO_D + 20, y: p.y + 2 }));
+  outlineText('SEGUROS', 440, 70, OGAP, RED).forEach(p => dots.push({ ...p, x: p.x + LOGO_D + 20, y: p.y + 76 }));
+  const travel = Math.max(60, STADIUM_TOP - (SANCOR_Y0 + LOGO_D * K));
   const sancor = makeGroup(dots, 0, SANCOR_Y0, 45 * sp, 4 * .85 * sp * travel / 124, false);
   sancor.x = (W - sancor.w) / 2; groups.push(sancor);
   if (wave >= 2) {
