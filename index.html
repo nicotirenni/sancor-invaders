@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>Sancor Invaders</title>
+<title>Drone Invaders</title>
 <meta name="description" content="Destruí a Sancor con un show de drones en el cielo nocturno. Cuidá lo nuestro y llegá al ranking.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Sancor Invaders">
+<meta property="og:title" content="Drone Invaders">
 <meta property="og:description" content="Destruí a Sancor con un show de drones en el cielo nocturno. ¿Cuántos puntos hacés?">
 <meta property="og:image" content="/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Sancor Invaders">
+<meta name="twitter:title" content="Drone Invaders">
 <meta name="twitter:image" content="/og.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@500;700&display=swap">
 <style>
@@ -115,7 +115,7 @@
     <div id="banner"><span class="shiny" id="bannerText"></span><small id="bannerSub"></small></div>
     <div class="card" id="card">
       <div class="kicker" id="kicker">Show de drones</div>
-      <div class="glitch" id="title" data-text="Sancor Invaders">Sancor Invaders</div>
+      <div class="glitch" id="title" data-text="Drone Invaders">Drone Invaders</div>
       <div class="podTitle" id="podTitle">Podio</div>
       <div class="rules" id="rules">
         <div><b class="r">●</b> Destruí el logo y el texto de Sancor.</div>
@@ -580,7 +580,7 @@ function renderBoard(res, mine) {
 }
 function setShare(sc, res) {
   const url = location.origin === 'null' ? location.href : location.origin + location.pathname;
-  const text = res && !res.local ? `Hice ${sc} puntos en Sancor Invaders y quedé #${res.rank} de ${res.total}. ¿Podés superarme?` : `Hice ${sc} puntos en Sancor Invaders. ¿Podés superarme?`;
+  const text = res && !res.local ? `Hice ${sc} puntos en Drone Invaders y quedé #${res.rank} de ${res.total}. ¿Podés superarme?` : `Hice ${sc} puntos en Drone Invaders. ¿Podés superarme?`;
   $('shX').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
   $('shIn').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
   $('shCopy').onclick = async () => { const b = $('shCopy'); try { await navigator.clipboard.writeText(text + ' ' + url); b.textContent = '¡Copiado!'; } catch { b.textContent = 'Copiá manual'; } setTimeout(() => b.textContent = 'Copiar texto', 1600); };

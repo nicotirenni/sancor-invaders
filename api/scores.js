@@ -1,4 +1,4 @@
-// Ranking global de Sancor Invaders (función serverless de Vercel).
+// Ranking global de Drone Invaders (función serverless de Vercel).
 // Guarda los puntajes en Upstash Redis (integración gratuita de Vercel). Sin esas variables, responde 501 y el juego usa un ranking local.
 const KEY = 'sancor:scores';
 const URL_ = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
