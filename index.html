@@ -42,7 +42,7 @@
   .card[data-mode=menu]{background:none;border-color:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;overflow:visible;gap:max(14px,2.4cqw)}
   .card>*{display:none}
   .card[data-mode=menu]>:is(#kicker,#title){display:block} .card[data-mode=menu]>#menuBtns{display:flex}
-  .card[data-mode=name]>#kicker{display:block} .card[data-mode=name]>#nameStep{display:flex}
+  .card[data-mode=name]>#nameStep{display:flex}
   .card[data-mode=podium]>:is(#podTitle,#boardNote){display:block} .card[data-mode=podium]>#board{display:flex} .card[data-mode=podium]>#backBtn{display:inline-block}
   .card[data-mode=over]>:is(#kicker,#final,#rank,#boardNote){display:block} .card[data-mode=over]>#board{display:flex} .card[data-mode=over]>:is(#share,#overBtns){display:flex}
   .kicker{font-size:clamp(11px,1.7cqw,18px);letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:600}
@@ -61,6 +61,10 @@
   .field{width:min(100%,320px);box-sizing:border-box;text-align:center;font:600 clamp(16px,2.6cqw,26px)/1 var(--body);letter-spacing:.02em;color:var(--white);background:rgba(7,11,32,.6);border:1px solid rgba(116,192,245,.28);border-radius:var(--radius);padding:.85em 1em}
   .field::placeholder{color:#5a6a9a} .field:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px rgba(214,32,104,.3)}
   .field.bad{border-color:var(--red);animation:nudge .35s} @keyframes nudge{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .how{display:flex;flex-direction:column;gap:.55em;font-size:clamp(12px,1.9cqw,20px);color:var(--muted);width:min(100%,46cqw);text-align:left}
+  .hrow{display:flex;align-items:center;gap:.8em} .hrow .kc{flex:0 0 7.2em;display:flex;gap:.3em;justify-content:flex-end}
+  .kc i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;min-width:2.1em;height:2em;padding:0 .6em;border-radius:.5em;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-bottom-width:3px;color:#fff;font-weight:600;font-size:.85em}
+  .kc i.wide{padding:0 .9em} .kc i.dot{min-width:0;width:2.1em;padding:0;position:relative} .kc i.dot::after{content:"";width:.8em;height:.8em;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red)} .kc i.dot.c::after{background:var(--celeste);box-shadow:0 0 8px var(--celeste)}
   .rules{display:flex;flex-direction:column;gap:.5em;font-size:clamp(12px,1.9cqw,20px);line-height:1.35;color:var(--muted)}
   .rules b.r{color:var(--red)} .rules b.c{color:var(--celeste)}
   /* StarBorder (ReactBits) */
@@ -133,10 +137,12 @@
       <div class="nameStep" id="nameStep">
         <label class="lbl" for="nameInput">¿Cómo te llamás?</label>
         <input id="nameInput" class="field" type="text" maxlength="16" placeholder="Tu nombre" autocomplete="off" autocapitalize="words" enterkeyhint="go">
-        <div class="rules">
-          <div><b class="r">●</b> Destruí al invasor antes de que llegue al estadio.</div>
-          <div><b class="c">●</b> No toques lo nuestro: bandera, pelota, el 10 y las estrellas.</div>
-          <div>← → mover · Espacio disparar · en el celu, arrastrá</div>
+        <div class="how">
+          <div class="hrow"><span class="kc"><i>←</i><i>→</i></span><span>Mover la nave</span></div>
+          <div class="hrow"><span class="kc"><i class="wide">Espacio</i></span><span>Disparar</span></div>
+          <div class="hrow"><span class="kc"><i class="wide">Celu</i></span><span>Arrastrá y disparás solo</span></div>
+          <div class="hrow"><span class="kc"><i class="dot r"></i></span><span>Destruí al invasor</span></div>
+          <div class="hrow"><span class="kc"><i class="dot c"></i></span><span>No toques bandera, pelota, 10 ni estrellas</span></div>
         </div>
         <div class="row">
           <button class="sb" id="playBtn" type="button">Empezar</button>
