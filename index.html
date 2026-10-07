@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Sancor Invaders</title>
+<meta name="description" content="Destruí a Sancor con un show de drones en el cielo nocturno. Cuidá lo nuestro y llegá al ranking.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sancor Invaders">
+<meta property="og:description" content="Destruí a Sancor con un show de drones en el cielo nocturno. ¿Cuántos puntos hacés?">
+<meta property="og:image" content="/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sancor Invaders">
+<meta name="twitter:image" content="/og.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@500;700&display=swap">
 <style>
   /* Cielo nocturno: fondo Galaxy (WebGL) + juego en canvas + bloom + overlays con texto Glitch/Shiny (estilo ReactBits) */
@@ -28,6 +36,23 @@
   .card{pointer-events:auto;background:var(--ink);border:1px solid #26305a;border-radius:6px;padding:4cqw 5cqw;text-align:center;
         box-shadow:0 0 80px rgba(255,90,120,.18),0 0 0 1px #0b0f24 inset;display:flex;flex-direction:column;gap:2.2cqw;align-items:center;max-width:86cqw;cursor:pointer}
   .card[hidden]{display:none!important}
+  .card{cursor:default;gap:max(6px,1.3cqw);padding:max(14px,2.6cqw) 4cqw;max-height:96%;overflow:auto;box-sizing:border-box}
+  .card.over .glitch{font-size:clamp(34px,6.4cqw,80px)}
+  .board{align-self:center;min-width:min(100%,40cqw)}
+  .rules{font-size:clamp(12px,2.1cqw,24px)} .kicker{font-size:clamp(10px,1.9cqw,22px)}
+  .rank{font-family:var(--display);font-size:clamp(20px,4.2cqw,48px);letter-spacing:.04em;color:var(--gold)}
+  .board{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;width:min(100%,44cqw);font-size:clamp(12px,2cqw,22px);text-align:left}
+  .board li{display:flex;gap:10px;justify-content:space-between;padding:2px 8px;border-radius:3px;color:#c9d2f0}
+  .board li b{font-weight:700;color:var(--white)} .board li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .board li.me{background:rgba(116,192,245,.18);color:var(--white)}
+  .note{font-size:clamp(10px,1.5cqw,16px);color:#6f7fb0}
+  .share{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .btn,.play{font:700 clamp(12px,1.9cqw,20px)/1 var(--body);letter-spacing:.06em;color:var(--celeste);background:transparent;border:1px solid #2d4a78;border-radius:4px;padding:.9em 1.3em;cursor:pointer;text-decoration:none;text-transform:uppercase}
+  .btn:hover,.btn:focus-visible,.play:hover,.play:focus-visible{background:rgba(116,192,245,.14);border-color:var(--celeste);outline:none}
+  .play{padding:1em 2.6em;font-size:clamp(14px,2.6cqw,28px);letter-spacing:.18em;border-color:var(--celeste)}
+  #nameInput{width:min(100%,34cqw);box-sizing:border-box;text-align:center;font:700 clamp(14px,2.5cqw,28px)/1 var(--body);color:var(--white);background:#0b1030;border:1px solid #2d4a78;border-radius:4px;padding:.7em 1em}
+  #nameInput::placeholder{color:#5a6a9a} #nameInput:focus{outline:none;border-color:var(--celeste)}
+  #nameInput.bad{border-color:var(--red);animation:nudge .35s} @keyframes nudge{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
   .kicker{font-size:1.9cqw;letter-spacing:.35em;text-transform:uppercase;color:var(--celeste);font-weight:700}
   .rules{display:flex;flex-direction:column;gap:.9cqw;font-size:2.1cqw;line-height:1.35;color:#c9d2f0}
   .rules b.r{color:var(--red)} .rules b.c{color:var(--celeste)}
@@ -70,7 +95,16 @@
         <div>← → mover · Espacio disparar · celu: arrastrá</div>
       </div>
       <div class="stat" id="stat" hidden></div>
-      <div class="cta"><span class="shiny" id="cta">Espacio o tocá para empezar</span></div>
+      <div class="rank" id="rank" hidden></div>
+      <ol class="board" id="board" hidden></ol>
+      <div class="note" id="boardNote" hidden></div>
+      <div class="share" id="share" hidden>
+        <a class="btn" id="shX" target="_blank" rel="noopener noreferrer">Compartir en X</a>
+        <a class="btn" id="shIn" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <button class="btn" id="shCopy" type="button">Copiar texto</button>
+      </div>
+      <input id="nameInput" type="text" maxlength="16" placeholder="Tu nombre" autocomplete="off" autocapitalize="words" enterkeyhint="go" aria-label="Tu nombre">
+      <button class="play" id="playBtn" type="button"><span class="shiny" id="cta">Jugar</span></button>
     </div>
   </div>
 </div></div>
@@ -426,20 +460,76 @@ function banner(t, sub) {
   $('bannerText').textContent = t; $('bannerSub').textContent = sub; $('banner').classList.add('on');
   clearTimeout(banner.t); banner.t = setTimeout(() => $('banner').classList.remove('on'), 1700);
 }
+// ---------- Jugador y ranking ----------
+const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+let playerName = LS.get('sancor_name', ''), best = +LS.get('sancor_best', 0), overAt = 0;
+const cleanName = n => String(n || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 16);
+async function api(method, body) { // ranking global (función de Vercel); si no está, devuelve null
+  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 4500);
+  try {
+    const r = await fetch('/api/scores', { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined, signal: ctl.signal });
+    if (!r.ok) return null; const j = await r.json(); return j && Array.isArray(j.top) ? j : null;
+  } catch { return null; } finally { clearTimeout(to); }
+}
+function localBoard() { try { return JSON.parse(LS.get('sancor_scores', '[]')); } catch { return []; } }
+function localSave(name, sc) { // copia en este dispositivo: sirve de respaldo si no hay ranking global
+  const l = localBoard(); l.push({ name, score: sc }); l.sort((x, y) => y.score - x.score); const keep = l.slice(0, 50); LS.set('sancor_scores', JSON.stringify(keep));
+  return { rank: 1 + keep.filter(e => e.score > sc).length, total: keep.length, top: keep.slice(0, 10), local: true };
+}
+function renderBoard(res, mine) {
+  const ol = $('board'); ol.innerHTML = ''; let marked = false;
+  res.top.slice(0, 5).forEach((e, i) => {
+    const li = document.createElement('li'), n = document.createElement('span'), p = document.createElement('b');
+    n.textContent = `${i + 1}. ${e.name}`; p.textContent = e.score; li.append(n, p);
+    if (mine && !marked && e.name === mine.name && e.score === mine.score) { li.className = 'me'; marked = true; }
+    ol.appendChild(li);
+  });
+  ol.hidden = !res.top.length; $('boardNote').hidden = !res.top.length;
+  $('boardNote').textContent = res.local ? 'Ranking de este dispositivo' : 'Ranking global';
+}
+function setShare(sc, res) {
+  const url = location.origin === 'null' ? location.href : location.origin + location.pathname;
+  const text = res && !res.local ? `Hice ${sc} puntos en Sancor Invaders y quedé #${res.rank} de ${res.total}. ¿Podés superarme?` : `Hice ${sc} puntos en Sancor Invaders. ¿Podés superarme?`;
+  $('shX').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+  $('shIn').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+  $('shCopy').onclick = async () => { const b = $('shCopy'); try { await navigator.clipboard.writeText(text + ' ' + url); b.textContent = '¡Copiado!'; } catch { b.textContent = 'Copiá manual'; } setTimeout(() => b.textContent = 'Copiar texto', 1600); };
+  $('share').hidden = false;
+}
+async function submitScore() {
+  const name = playerName, sc = score, w = wave;
+  if (sc > best) { best = sc; LS.set('sancor_best', best); }
+  $('rank').hidden = false; $('rank').textContent = 'Guardando puntaje…'; $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true;
+  const loc = localSave(name, sc), res = (await api('POST', { name, score: sc, wave: w })) || loc;
+  if (state !== 'over') return; // ya empezó otra partida
+  $('rank').textContent = res.local ? `Puesto #${res.rank} de ${res.total}` : `Puesto #${res.rank} de ${res.total} jugadores`;
+  renderBoard(res, { name, score: sc }); setShare(sc, res);
+}
+async function loadMenuBoard() {
+  const res = (await api('GET')) || { top: localBoard().slice(0, 10), local: true };
+  if (state === 'menu' && res.top.length) { $('kicker').textContent = 'Show de drones'; renderBoard(res, null); $('boardNote').textContent = res.local ? 'Mejores puntajes de este dispositivo' : 'Mejores jugadores'; }
+}
+function tryStart() {
+  const inp = $('nameInput'), name = cleanName(inp.value);
+  if (!name) { inp.classList.add('bad'); inp.focus(); setTimeout(() => inp.classList.remove('bad'), 600); return; }
+  playerName = name; LS.set('sancor_name', name); inp.blur(); start();
+}
 function start() {
-  $('rules').hidden = false; $('stat').hidden = true; $('title').textContent = $('title').dataset.text = 'Sancor Invaders'; $('kicker').textContent = 'Show de drones'; $('cta').textContent = 'Espacio o tocá para empezar';
+  $('rules').hidden = true; $('stat').hidden = true; $('rank').hidden = true; $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true;
   wave = 1; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
   powerupsOn = false; itemT = 6; buffs = { triple: 0, rapid: 0 };
-  $('card').hidden = true; state = 'play'; buildWave();
+  $('card').hidden = true; $('card').classList.remove('over'); state = 'play'; buildWave();
 }
 function endGame(why = 'Fin del show') {
-  state = 'over'; $('card').hidden = false; $('banner').classList.remove('on');
+  state = 'over'; overAt = performance.now(); touching = false; for (const k in keys) keys[k] = false;
+  $('card').hidden = false; $('card').classList.add('over'); $('banner').classList.remove('on');
   $('kicker').textContent = why; $('title').textContent = $('title').dataset.text = 'Game over';
-  $('rules').hidden = true; $('stat').hidden = false; $('stat').textContent = `${score} puntos · Ronda ${wave}`;
-  $('cta').textContent = 'Espacio o tocá para reintentar';
-  $('rules').hidden = true;
+  $('rules').hidden = true; $('stat').hidden = false; $('stat').textContent = `${playerName} · ${score} puntos · Ronda ${wave}` + (best > score ? ` · Tu mejor: ${best}` : '');
+  $('cta').textContent = 'Jugar de nuevo'; $('nameInput').value = playerName;
+  submitScore();
 }
-$('card').addEventListener('pointerdown', e => { e.preventDefault(); if (state !== 'play') start(); });
+$('playBtn').addEventListener('click', tryStart);
+$('nameInput').value = playerName;
+loadMenuBoard();
 
 // ---------- Medidas: el juego ocupa todo el alto, el HUD va arriba del viewport ----------
 function layoutAll() {
@@ -468,8 +558,10 @@ addEventListener('resize', layoutAll); new ResizeObserver(layoutAll).observe($('
 
 // ---------- Entrada ----------
 addEventListener('keydown', e => {
+  if (e.target && e.target.id === 'nameInput') { if (e.key === 'Enter' && state !== 'play') tryStart(); return; } // escribiendo el nombre
+  if (e.target && e.target.closest && e.target.closest('a,button')) { if (e.code === 'Space' || e.code === 'Enter') return; }
   keys[e.code] = true; if (e.code === 'Space') e.preventDefault();
-  if ((e.code === 'Space' || e.code === 'Enter') && state !== 'play') start();
+  if ((e.code === 'Space' || e.code === 'Enter') && state !== 'play' && performance.now() - overAt > 1200) tryStart();
 });
 addEventListener('keyup', e => keys[e.code] = false);
 const stage = $('stage');
