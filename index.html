@@ -50,6 +50,20 @@
   .btn,.play{font:700 clamp(12px,1.9cqw,20px)/1 var(--body);letter-spacing:.06em;color:var(--celeste);background:transparent;border:1px solid #2d4a78;border-radius:4px;padding:.9em 1.3em;cursor:pointer;text-decoration:none;text-transform:uppercase}
   .btn:hover,.btn:focus-visible,.play:hover,.play:focus-visible{background:rgba(116,192,245,.14);border-color:var(--celeste);outline:none}
   .play{padding:1em 2.6em;font-size:clamp(14px,2.6cqw,28px);letter-spacing:.18em;border-color:var(--celeste)}
+  /* Pantalla de fin de partida: más calma, la acción principal es compartir */
+  .card.over{gap:max(10px,1.9cqw)} .card.over .glitch,.card.over #nameInput,.card.over .stat{display:none}
+  .card.over .kicker{font-size:clamp(12px,2cqw,22px);letter-spacing:.04em;text-transform:none;font-weight:500;color:#8fa0d0}
+  .final{text-align:center} .final .big{font-family:var(--display);font-size:clamp(46px,8cqw,100px);line-height:1;letter-spacing:.01em}
+  .final .sub{font-size:clamp(12px,2cqw,22px);color:#8fa0d0;margin-top:.5em}
+  .card.over .rank{font-family:var(--body);font-size:clamp(14px,2.5cqw,26px);font-weight:600;letter-spacing:0;color:var(--white)}
+  .card.over .board{font-size:clamp(12px,1.9cqw,20px);color:#8fa0d0} .card.over .board li{color:#9aa8d0} .card.over .board li.me{color:var(--white)}
+  .card.over .btn,.card.over .play{text-transform:none;letter-spacing:.01em;font-size:clamp(13px,2.1cqw,22px);font-weight:600}
+  .btn.primary{background:var(--celeste);border-color:var(--celeste);color:var(--ink)}
+  .btn.primary:hover,.btn.primary:focus-visible{background:#9bd4fa;border-color:#9bd4fa}
+  .btn.ghost{border-color:transparent;color:#8fa0d0} .btn.ghost:hover{border-color:#2d4a78}
+  .card.over .play{border-color:#26305a;color:#8fa0d0;padding:.8em 1.8em}
+  .card.over .shiny{animation:none;background:none;-webkit-text-fill-color:currentColor;color:inherit}
+  .card.over .share{margin-top:.4em}
   #nameInput{width:min(100%,34cqw);box-sizing:border-box;text-align:center;font:700 clamp(14px,2.5cqw,28px)/1 var(--body);color:var(--white);background:#0b1030;border:1px solid #2d4a78;border-radius:4px;padding:.7em 1em}
   #nameInput::placeholder{color:#5a6a9a} #nameInput:focus{outline:none;border-color:var(--celeste)}
   #nameInput.bad{border-color:var(--red);animation:nudge .35s} @keyframes nudge{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
@@ -94,14 +108,15 @@
         <div><b class="c">●</b> Lo nuestro no se toca: bandera, pelota, el 10 y las estrellas.</div>
         <div>← → mover · Espacio disparar · celu: arrastrá</div>
       </div>
+      <div class="final" id="final" hidden><div class="big" id="finalScore"></div><div class="sub" id="finalSub"></div></div>
       <div class="stat" id="stat" hidden></div>
       <div class="rank" id="rank" hidden></div>
       <ol class="board" id="board" hidden></ol>
       <div class="note" id="boardNote" hidden></div>
       <div class="share" id="share" hidden>
-        <a class="btn" id="shX" target="_blank" rel="noopener noreferrer">Compartir en X</a>
-        <a class="btn" id="shIn" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-        <button class="btn" id="shCopy" type="button">Copiar texto</button>
+        <a class="btn primary" id="shX" target="_blank" rel="noopener noreferrer">Compartir en X</a>
+        <a class="btn primary" id="shIn" target="_blank" rel="noopener noreferrer">Compartir en LinkedIn</a>
+        <button class="btn ghost" id="shCopy" type="button">Copiar texto</button>
       </div>
       <input id="nameInput" type="text" maxlength="16" placeholder="Tu nombre" autocomplete="off" autocapitalize="words" enterkeyhint="go" aria-label="Tu nombre">
       <button class="play" id="playBtn" type="button"><span class="shiny" id="cta">Jugar</span></button>
@@ -501,7 +516,7 @@ async function submitScore() {
   $('rank').hidden = false; $('rank').textContent = 'Guardando puntaje…'; $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true;
   const loc = localSave(name, sc), res = (await api('POST', { name, score: sc, wave: w })) || loc;
   if (state !== 'over') return; // ya empezó otra partida
-  $('rank').textContent = res.local ? `Puesto #${res.rank} de ${res.total}` : `Puesto #${res.rank} de ${res.total} jugadores`;
+  $('rank').textContent = res.local ? `Puesto ${res.rank} de ${res.total} en este dispositivo` : `Puesto ${res.rank} de ${res.total} jugadores`;
   renderBoard(res, { name, score: sc }); setShare(sc, res);
 }
 async function loadMenuBoard() {
@@ -514,7 +529,7 @@ function tryStart() {
   playerName = name; LS.set('sancor_name', name); inp.blur(); start();
 }
 function start() {
-  $('rules').hidden = true; $('stat').hidden = true; $('rank').hidden = true; $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true;
+  $('rules').hidden = true; $('stat').hidden = true; $('final').hidden = true; $('rank').hidden = true; $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true;
   wave = 1; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
   powerupsOn = false; itemT = 6; buffs = { triple: 0, rapid: 0 };
   $('card').hidden = true; $('card').classList.remove('over'); state = 'play'; buildWave();
@@ -523,7 +538,8 @@ function endGame(why = 'Fin del show') {
   state = 'over'; overAt = performance.now(); touching = false; for (const k in keys) keys[k] = false;
   $('card').hidden = false; $('card').classList.add('over'); $('banner').classList.remove('on');
   $('kicker').textContent = why; $('title').textContent = $('title').dataset.text = 'Game over';
-  $('rules').hidden = true; $('stat').hidden = false; $('stat').textContent = `${playerName} · ${score} puntos · Ronda ${wave}` + (best > score ? ` · Tu mejor: ${best}` : '');
+  $('rules').hidden = true; $('stat').hidden = true; $('final').hidden = false; $('finalScore').textContent = score;
+  $('finalSub').textContent = `puntos · ${playerName} · Ronda ${wave}` + (best > score ? ` · Tu mejor: ${best}` : '');
   $('cta').textContent = 'Jugar de nuevo'; $('nameInput').value = playerName;
   submitScore();
 }
