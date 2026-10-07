@@ -17,7 +17,8 @@ const cv = document.getElementById('c');
 const ctx = cv.getContext('2d');
 
 // ---------- Sprites -> puntos ----------
-const STEP = 6;
+const STEP = 8;      // separación entre drones (más grande = menos puntos)
+const R = 2.6;        // radio de cada punto
 function sample(w, h, draw, tint) {
   const o = document.createElement('canvas'); o.width = w; o.height = h;
   const g = o.getContext('2d');
@@ -41,47 +42,75 @@ function textSprite(txt, w, h, color) {
     g.fillText(txt, w / 2, h / 2 + 2);
   });
 }
-const flagSprite = () => sample(96, 72, (g, w, h) => {
-  g.fillStyle = '#74c0f5'; g.fillRect(0, 0, w, h / 3);
-  g.fillStyle = '#ffffff'; g.fillRect(0, h / 3, w, h / 3);
-  g.fillStyle = '#74c0f5'; g.fillRect(0, 2 * h / 3, w, h / 3);
-  g.fillStyle = '#ffc928'; g.beginPath(); g.arc(w / 2, h / 2, 9, 0, 7); g.fill();
+const RED = '#ff5a78', CELESTE = '#74c0f5';
+const logoSprite = () => sample(136, 136, (g, w, h) => {
+  g.strokeStyle = RED; g.lineWidth = 9; g.lineJoin = 'round';
+  g.beginPath(); g.arc(w / 2, h / 2, 60, 0, 7); g.stroke();
+  g.beginPath(); g.moveTo(12, h / 2); g.lineTo(w - 12, h / 2); g.stroke();
+  g.beginPath(); g.moveTo(40, 54); g.lineTo(80, 24); g.lineTo(80, 54); g.closePath(); g.stroke();
+  g.beginPath(); g.moveTo(56, 82); g.lineTo(56, 112); g.lineTo(96, 82); g.closePath(); g.stroke();
 });
-const ballSprite = () => sample(84, 84, (g, w, h) => {
+const flagSprite = () => sample(90, 63, (g, w, h) => {
+  g.fillStyle = CELESTE; g.fillRect(0, 0, w, h / 3);
+  g.fillStyle = '#fff'; g.fillRect(0, h / 3, w, h / 3);
+  g.fillStyle = CELESTE; g.fillRect(0, 2 * h / 3, w, h / 3);
+  g.fillStyle = '#ffc928'; g.beginPath(); g.arc(w / 2, h / 2, 8, 0, 7); g.fill();
+});
+const ballSprite = () => sample(72, 72, (g, w, h) => {
   g.fillStyle = '#fff'; g.beginPath(); g.arc(w / 2, h / 2, w / 2 - 2, 0, 7); g.fill();
   g.fillStyle = '#000';
-  g.beginPath(); // pentagono central
-  for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; g.lineTo(w / 2 + Math.cos(a) * 14, h / 2 + Math.sin(a) * 14); }
+  g.beginPath();
+  for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; g.lineTo(w / 2 + Math.cos(a) * 12, h / 2 + Math.sin(a) * 12); }
   g.fill();
-  for (let i = 0; i < 5; i++) { // parches
-    const a = -Math.PI / 2 + i * 2 * Math.PI / 5;
-    g.beginPath(); g.arc(w / 2 + Math.cos(a) * 28, h / 2 + Math.sin(a) * 28, 7, 0, 7); g.fill();
-  }
+  for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; g.beginPath(); g.arc(w / 2 + Math.cos(a) * 25, h / 2 + Math.sin(a) * 25, 6, 0, 7); g.fill(); }
 });
+const tenSprite = () => textSprite('10', 72, 63, CELESTE);
+const starSprite = () => sample(72, 72, (g, w, h) => {
+  g.fillStyle = '#ffc928'; g.beginPath();
+  for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 15 : 34; g.lineTo(w / 2 + Math.cos(a) * r, h / 2 + Math.sin(a) * r); }
+  g.fill();
+});
+const ALLY_SPRITES = [flagSprite, ballSprite, tenSprite, starSprite];
 
 // ---------- Estado ----------
 let state = 'menu', wave = 1, score = 0, respect = 100, flash = 0, msg = '', msgT = 0;
-let dots = [], bullets = [], parts = [], form = { x: 0, y: 0, vx: 40, vy: 4 };
+let groups = [], bullets = [], parts = [];
 const ship = { x: W / 2, y: H - 40, cd: 0 };
 const keys = {};
 let touching = false;
 
 const stars = Array.from({ length: 90 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: Math.random() * 1.3 + .3, p: Math.random() * 6 }));
 
+function makeGroup(pts, x, y, vx, vy, ally) {
+  let w = 0, h = 0; pts.forEach(p => { w = Math.max(w, p.x + STEP / 2); h = Math.max(h, p.y + STEP / 2); });
+  return { x, y, vx, vy, ally, w, h, ph: Math.random() * 6,
+    dots: pts.map(p => ({ x: p.x, y: p.y, c: p.c, alive: true })) };
+}
 function buildWave() {
-  dots = [];
-  const add = (pts, ox, oy, ally) => pts.forEach(p => dots.push({ x: p.x + ox, y: p.y + oy, c: p.c, ally, alive: true, ph: Math.random() * 6 }));
-  add(textSprite('SANCOR', 470, 76, '#ff5a78'), 165, 0, false);
-  add(textSprite('SEGUROS', 470, 76, '#ff5a78'), 165, 84, false);
-  add(flagSprite(), 30, 40, true);
-  add(ballSprite(), 686, 38, true);
-  form.x = 0; form.y = 30;
-  form.vx = (form.vx < 0 ? -1 : 1) * (40 + wave * 12);
-  form.vy = 3 + wave * 1.5;
+  groups = [];
+  const sp = 1 + (wave - 1) * .18;
+  // Sancor: logo + texto. Siempre presente.
+  const dots = [];
+  logoSprite().forEach(p => dots.push(p));
+  textSprite('SANCOR', 400, 64, RED).forEach(p => dots.push({ ...p, x: p.x + 152, y: p.y + 4 }));
+  textSprite('SEGUROS', 400, 64, RED).forEach(p => dots.push({ ...p, x: p.x + 152, y: p.y + 68 }));
+  const sancor = makeGroup(dots, 0, 30, 45 * sp, 4 * sp, false);
+  sancor.x = (W - sancor.w) / 2;
+  groups.push(sancor);
+  // Desde la ronda 2: elementos que NO hay que disparar cruzando por el medio.
+  if (wave >= 2) {
+    const n = Math.min(2 + wave, 6);
+    for (let i = 0; i < n; i++) {
+      const g = makeGroup(ALLY_SPRITES[i % ALLY_SPRITES.length](), Math.random() * (W - 120), 190 + (i % 3) * 75 + Math.random() * 20,
+        (i % 2 ? 1 : -1) * (50 + Math.random() * 50) * sp, 0, true);
+      groups.push(g);
+    }
+  }
+  // Sancor se menea verticalmente entre los aliados
 }
 function start() {
   wave = 1; score = 0; respect = 100; bullets = []; parts = [];
-  form.vx = 40; buildWave(); state = 'play';
+  buildWave(); state = 'play';
 }
 function say(t) { msg = t; msgT = 1.6; }
 
@@ -99,37 +128,45 @@ cv.addEventListener('pointermove', e => { if (touching) ship.x = toLogical(e); }
 addEventListener('pointerup', () => touching = false);
 
 // ---------- Lógica ----------
-function explode(d, n = 5) {
-  for (let i = 0; i < n; i++) parts.push({ x: d.x + form.x, y: d.y + form.y, vx: (Math.random() - .5) * 140, vy: (Math.random() - .5) * 140, l: .6, c: d.c });
+function explode(x, y, c, n = 5) {
+  for (let i = 0; i < n; i++) parts.push({ x, y, vx: (Math.random() - .5) * 140, vy: (Math.random() - .5) * 140, l: .6, c });
 }
 function update(dt) {
-  // nave
   const dir = (keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0);
   ship.x = Math.max(20, Math.min(W - 20, ship.x + dir * 380 * dt));
   ship.cd -= dt;
   if ((keys.Space || touching) && ship.cd <= 0) { bullets.push({ x: ship.x, y: ship.y - 14 }); ship.cd = .22; }
 
-  // formación
-  let minX = 1e9, maxX = -1e9, maxEnemyY = -1e9, enemies = 0, allies = 0;
-  for (const d of dots) if (d.alive) {
-    minX = Math.min(minX, d.x); maxX = Math.max(maxX, d.x);
-    if (d.ally) allies++; else { enemies++; maxEnemyY = Math.max(maxEnemyY, d.y); }
+  // movimiento de grupos
+  let enemies = 0, allies = 0, lowest = -1e9;
+  for (const g of groups) {
+    g.x += g.vx * dt; g.y += g.vy * dt;
+    if (g.x < 10) { g.x = 10; g.vx = Math.abs(g.vx); }
+    if (g.x + g.w > W - 10) { g.x = W - 10 - g.w; g.vx = -Math.abs(g.vx); }
+    for (const d of g.dots) if (d.alive) {
+      if (g.ally) allies++; else { enemies++; lowest = Math.max(lowest, g.y + d.y); }
+    }
   }
-  form.x += form.vx * dt; form.y += form.vy * dt;
-  if (minX + form.x < 10) { form.x = 10 - minX; form.vx = Math.abs(form.vx); }
-  if (maxX + form.x > W - 10) { form.x = W - 10 - maxX; form.vx = -Math.abs(form.vx); }
 
-  // balas
+  // balas: golpea el punto más cercano; si es Sancor explota un poco alrededor
   for (const b of bullets) {
     b.y -= 560 * dt;
-    for (const d of dots) {
+    let best = null, bd = 64, bg = null;
+    for (const g of groups) for (const d of g.dots) {
       if (!d.alive) continue;
-      const dx = d.x + form.x - b.x, dy = d.y + form.y - b.y;
-      if (dx * dx + dy * dy < 36) {
-        d.alive = false; b.y = -99; explode(d);
-        if (d.ally) { respect -= 4; score = Math.max(0, score - 10); flash = .25; say('¡NO! Es de los nuestros'); }
-        else score += 10;
-        break;
+      const dx = g.x + d.x - b.x, dy = g.y + d.y - b.y, q = dx * dx + dy * dy;
+      if (q < bd) { bd = q; best = d; bg = g; }
+    }
+    if (!best) continue;
+    b.y = -99;
+    const hx = bg.x + best.x, hy = bg.y + best.y;
+    if (bg.ally) {
+      best.alive = false; explode(hx, hy, best.c);
+      respect -= 4; score = Math.max(0, score - 10); flash = .25; say('¡NO! Es de los nuestros');
+    } else {
+      for (const d of bg.dots) {
+        const dx = bg.x + d.x - hx, dy = bg.y + d.y - hy;
+        if (d.alive && dx * dx + dy * dy < 15 * 15) { d.alive = false; score += 10; explode(bg.x + d.x, bg.y + d.y, d.c, 3); }
       }
     }
   }
@@ -138,11 +175,11 @@ function update(dt) {
   parts = parts.filter(p => p.l > 0);
   flash = Math.max(0, flash - dt); msgT -= dt;
 
-  // fin de ronda / derrota
   if (enemies === 0) {
-    score += allies * 2; say(`¡Sancor destruido! +${allies * 2} por cuidar lo nuestro`);
+    const bonus = allies * 2; score += bonus;
+    say(bonus ? `¡Sancor destruido! +${bonus} por cuidar lo nuestro` : '¡Sancor destruido!');
     wave++; bullets = []; buildWave();
-  } else if (maxEnemyY + form.y > ship.y - 20 || respect <= 0) {
+  } else if (lowest > ship.y - 20 || respect <= 0) {
     state = 'over';
   }
 }
@@ -158,9 +195,9 @@ function draw(t) {
   ctx.globalAlpha = 1;
   if (flash > 0) { ctx.fillStyle = `rgba(255,0,0,${flash})`; ctx.fillRect(0, 0, W, H); }
 
-  for (const d of dots) if (d.alive)
-    glow(d.x + form.x, d.y + form.y + Math.sin(t * 2 + d.ph) * .8, d.c, 2.1);
-  for (const p of parts) { ctx.globalAlpha = p.l / .6; glow(p.x, p.y, p.c, 1.6); }
+  for (const g of groups) for (const d of g.dots) if (d.alive)
+    glow(g.x + d.x, g.y + d.y + Math.sin(t * 2 + g.ph + d.x * .05) * .8, d.c, R);
+  for (const p of parts) { ctx.globalAlpha = p.l / .6; glow(p.x, p.y, p.c, 2); }
   ctx.globalAlpha = 1;
   for (const b of bullets) glow(b.x, b.y, '#7fffd4', 2.4);
   glow(ship.x, ship.y, '#7fffd4', 5); glow(ship.x - 12, ship.y + 6, '#7fffd4', 3); glow(ship.x + 12, ship.y + 6, '#7fffd4', 3);
@@ -179,8 +216,8 @@ function draw(t) {
     ctx.fillText(state === 'menu' ? 'SANCOR INVADERS' : 'GAME OVER', W / 2, 220);
     ctx.fillStyle = '#fff'; ctx.font = '18px system-ui';
     if (state === 'over') ctx.fillText(`Puntos: ${score} · Ronda ${wave}`, W / 2, 262);
-    ctx.fillStyle = '#ff5a78'; ctx.fillText('● Destruí los puntos rojos de Sancor', W / 2, 320);
-    ctx.fillStyle = '#74c0f5'; ctx.fillText('● Cuidá la bandera y la pelota: no les dispares', W / 2, 350);
+    ctx.fillStyle = '#ff5a78'; ctx.fillText('● Destruí el logo y el texto de Sancor (puntos rojos)', W / 2, 320);
+    ctx.fillStyle = '#74c0f5'; ctx.fillText('● Desde la ronda 2 cruzan cosas nuestras (bandera, pelota, 10, estrellas): no les dispares', W / 2, 350);
     ctx.fillStyle = '#fff'; ctx.fillText('← → mover · Espacio disparar  (celu: arrastrá)', W / 2, 390);
     ctx.fillStyle = '#ffc928'; ctx.font = '22px system-ui'; ctx.fillText('Espacio / tocá para empezar', W / 2, 450);
   }
