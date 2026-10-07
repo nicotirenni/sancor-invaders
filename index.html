@@ -394,9 +394,10 @@ if (gl) {
 }
 addEventListener('pointermove', e => { if (state !== 'menu') return; /* el mouse solo mueve el Galaxy en el menú, no en los niveles */ /* Galaxy sin interacción con el mouse */ }, { passive: true });
 document.addEventListener('mouseleave', () => { galaxyState.targetActive = 0; });
+let perf = 0; // calidad: 0 normal, 1 sin bloom y fondo a menos fps, 2 además resolución menor
 function resizeBg() {
-  const d = Math.min(devicePixelRatio || 1, 1.5);
-  bgc.width = Math.floor(bgc.clientWidth * d); bgc.height = Math.floor(bgc.clientHeight * d);
+  const cw0 = bgc.clientWidth || 1, ch0 = bgc.clientHeight || 1, d = Math.min(devicePixelRatio || 1, 1, Math.sqrt((perf ? 3.5e5 : 6.5e5) / (cw0 * ch0))); // el shader es lo más caro: se dibuja a menor resolución
+  bgc.width = Math.floor(cw0 * d); bgc.height = Math.floor(ch0 * d);
   if (galaxy) { gl.viewport(0, 0, bgc.width, bgc.height); gl.uniform3f(galaxy.u.uResolution, bgc.width, bgc.height, bgc.width / bgc.height); }
 }
 addEventListener('resize', resizeBg); resizeBg();
@@ -411,7 +412,7 @@ function drawBg(t) {
 }
 
 // ================= Juego =================
-const W = 800, SC = 1.5; let H = 600;
+const W = 800; let SC = 1.5, H = 600; // perf (declarado arriba): 0 normal, 1 sin bloom y fondo a menos fps, 2 además resolución menor
 const cv = document.getElementById('game'), ctx = cv.getContext('2d');
 const bloomCv = document.getElementById('bloom'), bctx = bloomCv.getContext('2d');
 const $ = id => document.getElementById(id);
@@ -532,8 +533,10 @@ function toHex(c) { // rgb(...) o #hex -> #rrggbb
   if (c[0] === '#') return c;
   const m = c.match(/\d+/g).map(Number); return '#' + m.map(v => v.toString(16).padStart(2, '0')).join('');
 }
+const tracerSprite = (() => { const o = document.createElement('canvas'); o.width = 4; o.height = 32; const g = o.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 32); gr.addColorStop(0, '#74c0f5'); gr.addColorStop(1, 'rgba(116,192,245,0)'); g.fillStyle = gr; g.fillRect(0, 0, 4, 32); return o; })();
+const spriteByColor = {};
 function dot(x, y, c, r, a = 1) {
-  const sp = glowSprite(toHex(c)), s = r * 4.4;
+  const sp = spriteByColor[c] || (spriteByColor[c] = glowSprite(toHex(c))), s = r * 4.4;
   ctx.globalAlpha = a; ctx.drawImage(sp, x - s / 2, y - s / 2, s, s);
 }
 
@@ -565,13 +568,14 @@ function makeGroup(pts, x, y, vx, vy, ally) {
     dots: pts.map(p => ({ x: p.x, y: p.y, c: p.c, alive: true, delay: Math.random() * .9,
       sx: rnd(-40, W + 40), sy: rnd(H * .55, H + 80) })) };
 }
-function dpos(g, d) { // los drones vuelan a su lugar al comenzar la ronda
-  const k = (g.age - d.delay) / .7;
-  if (k >= 1) { d.ready = true; return [g.x + d.x, g.y + d.y]; }
+function dpos(g, d, o) { // los drones vuelan a su lugar al comenzar la ronda (o: arreglo reutilizable, evita basura por cuadro)
+  const k = (g.age - d.delay) / .7; o = o || [0, 0];
+  if (k >= 1) { d.ready = true; o[0] = g.x + d.x; o[1] = g.y + d.y; return o; }
   d.ready = false;
-  if (k <= 0) return [d.sx, d.sy];
-  const e = ease(k); return [d.sx + (g.x + d.x - d.sx) * e, d.sy + (g.y + d.y - d.sy) * e];
+  if (k <= 0) { o[0] = d.sx; o[1] = d.sy; return o; }
+  const e = ease(k); o[0] = d.sx + (g.x + d.x - d.sx) * e; o[1] = d.sy + (g.y + d.y - d.sy) * e; return o;
 }
+const _dp = [0, 0];
 function buildWave() {
   groups = []; if (state === 'play') SFX.whoosh();
   const sp = 1 + (wave - 1) * .18;
@@ -845,16 +849,18 @@ document.querySelectorAll('.sb').forEach(el => { el.innerHTML = '<i class="sb-b"
 // ClickSpark: chispas al tocar botones
 const sparkCv = $('sparks'), sparkCtx = sparkCv.getContext('2d'); let sparks = [];
 function sizeSparks() { sparkCv.width = innerWidth; sparkCv.height = innerHeight; } sizeSparks(); addEventListener('resize', sizeSparks);
-addEventListener('pointerdown', e => { if (!e.target.closest || !e.target.closest('.sb,.gh,#mute')) return; const t = performance.now(); for (let i = 0; i < 8; i++) sparks.push({ x: e.clientX, y: e.clientY, a: i * Math.PI / 4, t }); }, { passive: true });
-(function sparkLoop(now) {
+addEventListener('pointerdown', e => { if (!e.target.closest || !e.target.closest('.sb,.gh,#mute')) return; const t = performance.now(); for (let i = 0; i < 8; i++) sparks.push({ x: e.clientX, y: e.clientY, a: i * Math.PI / 4, t }); kickSparks(); }, { passive: true });
+let sparkRun = false;
+function sparkLoop(now) {
   sparkCtx.clearRect(0, 0, sparkCv.width, sparkCv.height);
   sparks = sparks.filter(p => {
     const k = (now - p.t) / 420; if (k >= 1) return false; const e = k * (2 - k), d = e * 22, l = 10 * (1 - e);
     sparkCtx.strokeStyle = '#ff9fc4'; sparkCtx.lineWidth = 2; sparkCtx.beginPath();
     sparkCtx.moveTo(p.x + d * Math.cos(p.a), p.y + d * Math.sin(p.a)); sparkCtx.lineTo(p.x + (d + l) * Math.cos(p.a), p.y + (d + l) * Math.sin(p.a)); sparkCtx.stroke(); return true;
   });
-  requestAnimationFrame(sparkLoop);
-})(performance.now());
+  if (sparks.length) requestAnimationFrame(sparkLoop); else sparkRun = false;      // solo corre mientras hay chispas
+}
+function kickSparks() { if (!sparkRun) { sparkRun = true; requestAnimationFrame(sparkLoop); } }
 
 // ---------- Medidas: el juego ocupa todo el alto, el HUD va arriba del viewport ----------
 function layoutAll() {
@@ -862,7 +868,10 @@ function layoutAll() {
   let sw;
   if (vw / vh >= 4 / 3) { sw = vh * 4 / 3; H = 600; } else { sw = vw; H = Math.min(1700, W * vh / vw); }
   const sh = sw * H / W; $('stage').style.width = sw + 'px'; $('stage').style.height = sh + 'px';
-  cv.width = W * SC; cv.height = Math.round(H * SC); bloomCv.height = Math.round(300 * H / W);
+  SC = Math.min(1.5, Math.sqrt(1.3e6 / (W * H))) * (perf >= 2 ? .75 : 1);     // tope de píxeles: en pantallas altas (celu) el canvas no se dispara
+  const cw = Math.round(W * SC), ch = Math.round(H * SC);
+  if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
+  bloomCv.width = 220; bloomCv.height = Math.round(220 * H / W);
   stadiumPxH = Math.min(vw * 536 / 1376, .52 * sh); IMG_H = stadiumPxH / (sw / W); SHIP_Y = H - IMG_H * .68; STADIUM_TOP = SHIP_Y - 26; ship.y = SHIP_Y;      // fondo 20% más abajo; la nave 25% más abajo (medidos sobre el alto del fondo)
   crowd = Array.from({ length: 170 }, () => ({ x: rnd0(14, W - 14), y: rnd0(H - IMG_H * .34, H - IMG_H * .02), p: Math.random() * 6, c: Math.random() < .3 ? '#74c0f5' : '#ffffff' }));
   const scale = sw / W, hb = $('hud').getBoundingClientRect().bottom;
@@ -870,9 +879,12 @@ function layoutAll() {
   layoutStadium();
 }
 let lastHud = '';
+const hudC = { s: -1, w: -1, r: -1 };
 function updateHud() {
-  $('hScore').textContent = score; $('hWave').textContent = 'RONDA ' + wave;
-  const b = $('hBar'); b.style.width = Math.max(0, respect) + '%'; b.classList.toggle('low', respect < 30);
+  if (score !== hudC.s) { hudC.s = score; $('hScore').textContent = score; }
+  if (wave !== hudC.w) { hudC.w = wave; $('hWave').textContent = 'RONDA ' + wave; }
+  const rp = Math.max(0, Math.round(respect));
+  if (rp !== hudC.r) { hudC.r = rp; const b = $('hBar'); b.style.width = rp + '%'; b.classList.toggle('low', rp < 30); }
   let h = '';
   if (mult > 1 || combo > 4) h += `<span style="color:${GOLD}">COMBO x${mult} (${combo})</span>`;
   for (const k of ['triple', 'rapid']) if (buffs[k] > 0) h += `<span style="color:${POWERS[k].c}">${POWERS[k].name} ${buffs[k].toFixed(1)}s</span>`;
@@ -1020,7 +1032,7 @@ function draw(t) {
   // barrido de brillo sobre los drones (estilo ShinyText)
   const sweep = ((t * 260) % (W + 600)) - 300;
   for (const g of groups) for (const d of g.dots) if (d.alive) {
-    const p = dpos(g, d);
+    const p = dpos(g, d, _dp);
     let a = .95, r = R;
     const q = Math.abs(p[0] + p[1] * .6 - sweep); if (q < 60 && d.ready) { const k = 1 - q / 60; r = R * (1 + .5 * k); a = 1; }
     dot(p[0], p[1] + Math.sin(t * 2 + g.ph + d.x * .05) * .9, q < 40 && d.ready ? '#ffffff' : d.c, r, a);
@@ -1029,8 +1041,7 @@ function draw(t) {
   for (const r of rings) { ctx.globalAlpha = Math.max(0, r.l * 1.8); ctx.strokeStyle = r.c; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, 7); ctx.stroke(); }
   ctx.globalAlpha = 1;
   for (const b of bullets) { // tracer
-    const gr = ctx.createLinearGradient(0, b.y, 0, b.y + 30); gr.addColorStop(0, CELESTE); gr.addColorStop(1, 'rgba(116,192,245,0)');
-    ctx.fillStyle = gr; ctx.fillRect(b.x - 1.4, b.y, 2.8, 30); dot(b.x, b.y, '#ffffff', 3.45);
+    ctx.drawImage(tracerSprite, b.x - 1.4, b.y, 2.8, 30); dot(b.x, b.y, '#ffffff', 3.45);
   }
   // power-ups cayendo
   for (const it of items) {
@@ -1054,21 +1065,31 @@ function draw(t) {
   ctx.globalAlpha = 1;
   updateHud(); if (state === 'play') hud();
   // bloom barato: copia reducida del juego, difuminada por CSS
-  bctx.clearRect(0, 0, 300, bloomCv.height); bctx.drawImage(cv, 0, 0, 300, bloomCv.height);
+  if (perf === 0 && (frameN & 1) === 0) { bctx.clearRect(0, 0, bloomCv.width, bloomCv.height); bctx.drawImage(cv, 0, 0, bloomCv.width, bloomCv.height); }
 }
 function hud() {
   ctx.textAlign = 'center';
   if (hudMsgT > 0) { ctx.globalAlpha = Math.min(1, hudMsgT * 2); ctx.fillStyle = GOLD; ctx.font = '700 18px "Chakra Petch", system-ui'; ctx.fillText(hudMsg, W / 2, STADIUM_TOP - 64); ctx.globalAlpha = 1; }
 }
 
-let last = performance.now();
+let last = performance.now(), frameN = 0, slow = 0, settle = 0, lastKey = '';
+function setPerf(p) {
+  if (p <= perf) return; perf = p;
+  if (p >= 1) { bloomCv.style.display = 'none'; resizeBg(); }
+  if (p >= 2) layoutAll();
+}
 function loop(now) {
-  const dt = Math.min(.05, (now - last) / 1000); last = now;
-  if (state === 'play' && !paused) update(dt); else { for (const g of groups) g.age += dt * .0; }
-  drawBg(now / 1000); draw(now / 1000);
+  const raw = now - last, dt = Math.min(.05, raw / 1000); last = now; frameN++;
+  // calidad adaptativa: si el equipo no da 40fps sostenidos, se baja el detalle (nunca se vuelve a subir)
+  if (state === 'play' && !paused && countT <= 0 && raw < 250) { slow = raw > 25 ? slow + 1 : Math.max(0, slow - 2); if (slow > 90) { slow = 0; setPerf(perf + 1); } }
+  const playing = state === 'play' && !paused;
+  if (playing) update(dt);
+  // el fondo se anima a 30fps (20 si el equipo va justo); el juego solo se redibuja cuando algo cambia
+  if (frameN % (perf ? 3 : 2) === 0) drawBg(now / 1000);
+  const key = state + paused; if (key !== lastKey) { lastKey = key; settle = 4; }
+  if (playing) draw(now / 1000); else if (settle > 0 && state !== 'menu') { settle--; draw(now / 1000); }
   requestAnimationFrame(loop);
 }
-
 /* SplitText (ReactBits, sin GSAP): letras que suben escalonadas */
 const splitTitle = (() => {
   const el = $('title'), txt = 'Drone Invaders', n = txt.length;
