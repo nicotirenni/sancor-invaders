@@ -124,6 +124,22 @@
           pointer-events:none;opacity:0;transform:scale(.9);transition:opacity .35s,transform .35s}
   #banner.on{opacity:1;transform:scale(1)}
   #banner small{display:block;font-family:var(--body);font-size:2.2cqw;letter-spacing:.3em;color:var(--celeste);margin-top:.6cqw;-webkit-text-fill-color:var(--celeste)}
+  /* Botones estilo Untitled UI: primario solo rosa, secundario neutro, sin efectos animados */
+  .sb,.gh,.soc{font:600 clamp(14px,1.9cqw,17px)/1.25 var(--body);letter-spacing:0;border-radius:10px;overflow:visible;transition:background .15s,box-shadow .15s,border-color .15s,color .15s}
+  .sb{padding:0;background:none;border:0;box-shadow:none;isolation:auto}
+  .sb-b,.sb-t{display:none}
+  .sb-in{display:block;text-align:center;padding:.72em 1.3em;border-radius:10px;border:0;background:var(--pink);color:#fff;font-weight:600;
+         box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px rgba(214,32,104,.9) inset,0 0 0 2px rgba(255,255,255,.14) inset}
+  .sb:hover .sb-in,.sb:focus-visible .sb-in{background:var(--pink-hi)}
+  .gh{padding:.72em 1.3em;background:#171c30;color:#e6eaf7;border:0;box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px #313857 inset}
+  .gh::before{display:none}
+  .gh:hover,.gh:focus-visible{background:#212741;color:#fff;border-color:transparent}
+  .sb:focus-visible,.gh:focus-visible,.soc:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
+  .card[data-mode=menu] #menuBtns .sb-in,.card[data-mode=menu] #menuBtns .gh{padding:.85em 1.4em;font-size:clamp(15px,2.1cqw,19px)}
+  .card[data-mode=over] .sb-in{padding:.65em 1.1em} .card[data-mode=over] .gh{padding:.65em 1.1em}
+  .soc{padding:.65em 1em;box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.14) inset;border:0}
+  #mute,#pauseBtn{border-radius:10px;border:0;background:#171c30;color:#cfd6f0;box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px #313857 inset}
+  #mute:hover,#pauseBtn:hover,#mute:focus-visible,#pauseBtn:focus-visible{background:#212741;color:#fff;outline:2px solid var(--pink);outline-offset:2px}
   @media (prefers-reduced-motion:reduce){.title,.shiny,.sb-b,.sb-t{animation:none}}
 </style>
 </head>
@@ -178,7 +194,7 @@
       <ul class="lvlStats" id="lvlStats"></ul>
       <button class="sb" id="nextBtn" type="button">Próximo nivel</button>
       <div class="row" id="overBtns">
-        <button class="gh" id="againBtn" type="button">Jugar de nuevo</button>
+        <button class="sb" id="againBtn" type="button">Jugar de nuevo</button>
         <button class="gh" id="podBtn2" type="button">Ver ranking</button>
         <button class="gh" id="menuBtn" type="button">Menú</button>
       </div>
