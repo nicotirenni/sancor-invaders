@@ -1135,8 +1135,17 @@ function loop(now) {
 }
 /* SplitText (ReactBits, sin GSAP): letras que suben escalonadas */
 const splitTitle = (() => {
-  const el = $('title'), txt = 'Drone Invaders', n = txt.length;
-  el.innerHTML = [...txt].map((c, i) => `<span class="ch" style="background-size:${n * 100}% 100%;background-position:${i / (n - 1) * 100}% 0;transition-delay:${i * .1}s">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
+  const el = $('title'), txt = 'Drone Invaders';
+  el.innerHTML = [...txt].map((c, i) => `<span class="ch" style="transition-delay:${i * .1}s">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
+  const chars = [...el.children];
+  // bandera argentina (franjas horizontales con degradé) con sol de mayo difuminado, extendida sobre las dos palabras
+  function paint() {
+    const W = el.scrollWidth, H = el.clientHeight; if (!(W > 0 && H > 0)) return;
+    const flag = 'linear-gradient(180deg,#5aaee8 0%,#74c0f5 22%,#ffffff 42%,#ffffff 58%,#74c0f5 78%,#5aaee8 100%)', r = H * .5;
+    const sun = `radial-gradient(circle ${r}px at ${W / 2}px ${H / 2}px,#f6b40e 0,#f6b40e ${Math.round(r * .5)}px,rgba(246,180,14,.55) ${Math.round(r * .78)}px,rgba(246,180,14,0) ${r}px)`;
+    for (const c of chars) { c.style.backgroundImage = `${sun},${flag}`; c.style.backgroundSize = `${W}px ${H}px`; c.style.backgroundPosition = `${-c.offsetLeft}px 0`; c.style.backgroundRepeat = 'no-repeat'; }
+  }
+  new ResizeObserver(paint).observe(el); if (document.fonts && document.fonts.ready) document.fonts.ready.then(paint); paint();
   return () => { el.classList.remove('in'); void el.offsetWidth; requestAnimationFrame(() => el.classList.add('in')); };
 })();
 splitTitle(); document.documentElement.classList.add('scene-menu'); layoutAll(); buildWave(); $('banner').classList.remove('on');
