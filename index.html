@@ -409,7 +409,7 @@
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a></div>
-      <span class="ver" id="ver">v2.2.1</span>
+      <span class="ver" id="ver">v2.3.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -1920,13 +1920,6 @@ addEventListener('keydown', e => {
   if (e.target && e.target.id === 'nameInput') { if (e.key === 'Enter' && state !== 'play') tryStart(); return; } // escribiendo el nombre
   if (e.target && e.target.closest && e.target.closest('a,button')) { if (e.code === 'Space' || e.code === 'Enter') return; }
   keys[e.code] = true; if (e.code === 'Space') e.preventDefault();
-  // ⚠️ SOLO PARA PROBAR (sacar antes de producción): T supera la ronda al instante y siempre da una figurita
-  if (e.code === 'KeyT' && state === 'play' && !paused) {
-    if (album.got.every(Boolean)) album.got = album.got.map(() => false);
-    const miss = album.got.map((g, i) => g ? -1 : i).filter(i => i >= 0);
-    album.pend = [miss[Math.floor(Math.random() * miss.length)]];
-    countT = 0; groups.forEach(g => { g.age = 3; if (!g.ally) g.dots.forEach(d => d.alive = false); }); foes = []; ebullets = []; return;
-  }
   if ((e.code === 'Enter' || e.code === 'Space') && state === 'clear' && performance.now() - clearAt > 1200) { nextLevel(); return; }
   if (e.code === 'Enter' && state === 'menu' && $('card').dataset.mode === 'menu') openName();
   else if ((e.code === 'Space' || e.code === 'Enter') && state === 'over' && $('card').dataset.mode === 'over' && performance.now() - overAt > 1200) tryStart();
