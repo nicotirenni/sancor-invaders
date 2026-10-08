@@ -130,7 +130,14 @@
   /* botones sociales (estilo Untitled UI, variante brand) */
   .soc{display:inline-flex;align-items:center;gap:.6em;padding:.7em 1.1em;border-radius:10px;font:600 clamp(12px,1.8cqw,16px)/1.2 var(--body);color:#fff;text-decoration:none;cursor:pointer;border:1px solid rgba(255,255,255,.16);box-shadow:0 1px 2px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12);transition:filter .15s,transform .15s,border-color .15s}
   .soc svg{flex:none} .soc:hover{filter:brightness(1.18);transform:translateY(-1px)} .soc:active{transform:none} .soc:focus-visible{outline:2px solid var(--celeste);outline-offset:2px}
-  .soc-x{background:#000;border-color:rgba(255,255,255,.28)} .soc-in{background:#0a66c2;border-color:#3b8ad8} .soc-cp{background:#2a3150;border-color:rgba(255,255,255,.14);color:#dfe6ff} .soc-img{background:var(--pink-dark);border:1px solid rgba(214,32,104,.55);color:#ffb3cf}
+  .soc-x{background:#000;border-color:rgba(255,255,255,.28)} .soc-in{background:#0a66c2;border-color:#3b8ad8} .soc-cp{background:#2a3150;border-color:rgba(255,255,255,.14);color:#dfe6ff}
+  .share{flex-direction:column;align-items:center;gap:10px} .shLbl{font:600 12px/1 var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .shIcons{display:flex;gap:12px;justify-content:center}
+  .shi{width:46px;height:46px;display:inline-flex;align-items:center;justify-content:center;border-radius:12px;color:#fff;cursor:pointer;border:0;padding:0;box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.16) inset;transition:transform .15s,filter .15s;-webkit-tap-highlight-color:transparent}
+  .shi:hover{filter:brightness(1.18);transform:translateY(-1px)} .shi:active{transform:none} .shi:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
+  .shi-x{background:#000;box-shadow:0 0 0 1px rgba(255,255,255,.28) inset} .shi-in{background:#0a66c2} .shi-fb{background:#1877f2}
+  .shi-ig{background:radial-gradient(circle at 30% 107%,#fdf497 0,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285aeb 90%)}
+  .shMsg{font:500 13px/1.3 var(--body);color:#9fd4fa;min-height:1.3em;text-align:center}
   .card[data-mode=level]>#share{display:flex;order:3} .card[data-mode=level]>#nextBtn{order:4} .card[data-mode=level]>#lvlStats{margin-bottom:4px}
   #mute{position:fixed;left:12px;bottom:12px;z-index:7;width:40px;height:40px;border-radius:50%;border:1px solid rgba(214,32,104,.55);background:var(--pink-dark);color:#ffb3cf;display:grid;place-items:center;cursor:pointer;padding:0}
   #pauseBtn{position:fixed;left:60px;bottom:12px;z-index:7;width:40px;height:40px;border-radius:50%;border:1px solid rgba(214,32,104,.55);background:var(--pink-dark);color:#ffb3cf;display:grid;place-items:center;cursor:pointer;padding:0}
@@ -180,12 +187,11 @@
   /* modales: ancho completo en mobile; en desktop, ancho propio para ordenar el contenido */
   .card[data-mode=level]{width:min(92cqw,560px)} .card[data-mode=over]{width:min(92cqw,680px)}
   .lvlStats,.card[data-mode=over] .board{width:100%} .card[data-mode=level] #nextBtn,.card[data-mode=level] #nextBtn .sb-in{width:100%;box-sizing:border-box}
-  .card:is([data-mode=over],[data-mode=level]) .share{width:100%;flex-wrap:wrap} .card:is([data-mode=over],[data-mode=level]) .share .soc{flex:1 1 150px;justify-content:center;white-space:nowrap;box-sizing:border-box}
+  .card:is([data-mode=over],[data-mode=level]) .share{width:100%}
   .card[data-mode=over] #overBtns{width:100%;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px} .card[data-mode=over] #overBtns>*{width:100%;box-sizing:border-box;text-align:center} .card[data-mode=over] #overBtns .sb-in{width:100%;box-sizing:border-box}
   @media (max-width:699px){
     .card:not([data-mode=menu]){width:calc(100cqw - 32px);max-width:none;padding:18px 16px;gap:12px}
     .card[data-mode=name]{width:calc(100cqw - 32px)} .nameStep{width:100%}
-    .card:is([data-mode=over],[data-mode=level]) .share{flex-direction:column;align-items:stretch} .card:is([data-mode=over],[data-mode=level]) .share .soc{flex:none;width:100%;box-sizing:border-box;padding:.8em 1em}
     .card[data-mode=over] #overBtns{grid-template-columns:1fr 1fr} .card[data-mode=over] #againBtn{grid-column:1 / -1}
     .lvlStats{font-size:clamp(13px,3.6cqw,17px)} .lvlStats li{padding:.6em .9em}
     .card[data-mode=podium]{width:calc(100cqw - 32px)}
@@ -278,11 +284,15 @@
       <div class="rank" id="rank"></div>
       <ol class="board" id="board" hidden></ol>
       <div class="note" id="boardNote" hidden></div>
-      <div class="share" id="share" hidden>
-        <button class="soc soc-img" id="shImg" type="button"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Compartir imagen</span></button>
-        <a class="soc soc-x" id="shX" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>Compartir en X</span></a>
-        <a class="soc soc-in" id="shIn" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg><span>Compartir en LinkedIn</span></a>
-        <button class="soc soc-cp" id="shCopy" type="button"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copiar texto</span></button>
+      <div class="share" id="share" role="group" aria-labelledby="shLbl" hidden>
+        <span class="shLbl" id="shLbl">Compartir</span>
+        <div class="shIcons">
+          <a class="shi shi-x" id="shX" target="_blank" rel="noopener noreferrer" aria-label="Compartir en X" title="X"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+          <a class="shi shi-in" id="shIn" target="_blank" rel="noopener noreferrer" aria-label="Compartir en LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg></a>
+          <a class="shi shi-fb" id="shFb" target="_blank" rel="noopener noreferrer" aria-label="Compartir en Facebook" title="Facebook"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.5 0-1.96.93-1.96 1.89v2.26h3.32l-.53 3.5h-2.8V24C19.62 23.1 24 18.1 24 12.07"/></svg></a>
+          <button class="shi shi-ig" id="shIg" type="button" aria-label="Compartir en Instagram" title="Instagram"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></svg></button>
+        </div>
+        <span class="shMsg" id="shMsg" aria-live="polite"></span>
       </div>
       <div class="podTitle" id="lvlTitle"></div>
       <ul class="lvlStats" id="lvlStats"></ul>
@@ -1072,17 +1082,18 @@ function setShare(sc, res, lvl) {
   shareFile = null; const tok = {}; setShare.tok = tok;
   shareImage(sc, wave, sub).then(b => { if (b && setShare.tok === tok) shareFile = new File([b], 'drones-invasores.png', { type: 'image/png' }); });
   const canFiles = (() => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File([''], 'a.png', { type: 'image/png' })] })); } catch { return false; } })();
-  const ib = $('shImg').querySelector('span'), il = canFiles ? 'Compartir imagen' : 'Descargar imagen'; ib.textContent = il;
-  $('shImg').onclick = async () => {
-    const f = shareFile || new File([await shareImage(sc, wave, sub)], 'drones-invasores.png', { type: 'image/png' });
-    if (canFiles) { try { await navigator.share({ files: [f], text: text + ' ' + url }); } catch (e) {} return; }
-    const a = document.createElement('a'), u = URL.createObjectURL(f); a.href = u; a.download = f.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
-    try { await navigator.clipboard.writeText(text + ' ' + url); } catch {}
-    ib.textContent = '¡Imagen descargada!'; SFX.ui('save'); setTimeout(() => ib.textContent = il, 1800);
-  };
+  const msg = t => { $('shMsg').textContent = t; clearTimeout(msg.t); msg.t = setTimeout(() => $('shMsg').textContent = '', 3200); };
+  $('shMsg').textContent = '';
   $('shX').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
   $('shIn').href = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text + '\n\n' + url)}`;   // LinkedIn: abre el editor con el texto ya escrito
-  $('shCopy').onclick = async () => { const b = $('shCopy').querySelector('span'); try { await navigator.clipboard.writeText(text + ' ' + url); b.textContent = '¡Copiado!'; SFX.ui('save'); } catch { b.textContent = 'Copiá manual'; } setTimeout(() => b.textContent = 'Copiar texto', 1600); };
+  $('shFb').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&hashtag=${encodeURIComponent('#DronesInvasores')}`;
+  $('shFb').onclick = () => { try { navigator.clipboard.writeText(text + ' ' + url); msg('Texto copiado: pegalo en tu publicación'); } catch {} };
+  // Instagram no tiene link para compartir: en el celu se abre el menú del teléfono con la imagen del puntaje; en la compu se copia el texto y se abre Instagram
+  $('shIg').onclick = async () => {
+    if (canFiles) { const f = shareFile || new File([await shareImage(sc, wave, sub)], 'drones-invasores.png', { type: 'image/png' }); try { await navigator.share({ files: [f], text: text + ' ' + url }); } catch (e) {} return; }
+    try { await navigator.clipboard.writeText(text + ' ' + url); msg('Texto copiado: pegalo en Instagram'); } catch {}
+    window.open('https://www.instagram.com/', '_blank', 'noopener');
+  };
   $('share').hidden = false;
 }
 async function submitScore() {
