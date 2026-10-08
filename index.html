@@ -1041,7 +1041,7 @@ function renderBoard(res, mine) {
   ol.hidden = !res.top.length; $('boardNote').hidden = !res.top.length;
   $('boardNote').textContent = res.local ? 'Ranking de este dispositivo' : 'Ranking global';
 }
-// Imagen para compartir (1200x675): cielo, Monumental, logo de Sancor en drones medio destruido, la nave elegida y el puntaje
+// Imagen para compartir (1200x675): cielo, Monumental, la nave elegida y el puntaje
 function shareImage(sc, w, sub) {
   const c = document.createElement('canvas'), Wd = 1200, Hd = 675; c.width = Wd; c.height = Hd; const g = c.getContext('2d');
   const sky = g.createLinearGradient(0, 0, 0, Hd); sky.addColorStop(0, '#04050d'); sky.addColorStop(.6, '#0b1030'); sky.addColorStop(1, '#151a40'); g.fillStyle = sky; g.fillRect(0, 0, Wd, Hd);
@@ -1055,16 +1055,12 @@ function shareImage(sc, w, sub) {
   g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.font = '76px Anton, Impact, sans-serif';
   const tw = g.measureText('DRONES INVASORES').width, fl = g.createLinearGradient(Wd / 2 - tw / 2, 0, Wd / 2 + tw / 2, 0);
   fl.addColorStop(0, '#5aaee8'); fl.addColorStop(.22, '#74c0f5'); fl.addColorStop(.42, '#ffffff'); fl.addColorStop(.58, '#ffffff'); fl.addColorStop(.78, '#74c0f5'); fl.addColorStop(1, '#5aaee8');
-  g.shadowColor = 'rgba(116,192,245,.55)'; g.shadowBlur = 24; g.fillStyle = fl; g.fillText('DRONES INVASORES', Wd / 2, 96); g.shadowBlur = 0;
-  // logo de Sancor en drones, con impactos
-  const pts = sancorPts(), ls = .82, lw = 618 * ls, lx = (Wd - lw) / 2, ly = 128; g.globalCompositeOperation = 'lighter';
-  for (const p of pts) { const x = lx + p.x * ls, y = ly + p.y * ls, hit = rr() < .4; if (hit) { if (rr() < .25) { g.globalAlpha = .5; sdot(g, x + (rr() - .5) * 26, y + (rr() - .5) * 26, '#ffd0da', 1.4); } continue; } g.globalAlpha = .95; sdot(g, x, y, RED, 2.1); }
-  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  g.shadowColor = 'rgba(116,192,245,.55)'; g.shadowBlur = 24; g.fillStyle = fl; g.fillText('DRONES INVASORES', Wd / 2, 150); g.shadowBlur = 0;
   // puntaje
-  g.font = '700 26px "Chakra Petch", sans-serif'; g.fillStyle = '#9fd4fa'; g.letterSpacing = '6px'; g.fillText(sub.toUpperCase(), Wd / 2 + 3, 362); g.letterSpacing = '0px';
+  g.font = '700 26px "Chakra Petch", sans-serif'; g.fillStyle = '#9fd4fa'; g.letterSpacing = '6px'; g.fillText(sub.toUpperCase(), Wd / 2 + 3, 290); g.letterSpacing = '0px';
   g.font = '150px Anton, Impact, sans-serif'; g.fillStyle = '#fff'; g.shadowColor = 'rgba(214,32,104,.6)'; g.shadowBlur = 30;
-  g.fillText(Number(sc).toLocaleString('es-AR'), Wd / 2, 520); g.shadowBlur = 0;
-  g.font = '700 30px "Chakra Petch", sans-serif'; g.fillStyle = '#ffb3cf'; g.letterSpacing = '8px'; g.fillText('PUNTOS', Wd / 2 + 4, 562); g.letterSpacing = '0px';
+  g.fillText(Number(sc).toLocaleString('es-AR'), Wd / 2, 450); g.shadowBlur = 0;
+  g.font = '700 30px "Chakra Petch", sans-serif'; g.fillStyle = '#ffb3cf'; g.letterSpacing = '8px'; g.fillText('PUNTOS', Wd / 2 + 4, 494); g.letterSpacing = '0px';
   // nave
   g.save(); g.translate(Wd - 150, 470); g.scale(3.4, 3.4); drawShip(g, shipType, 1); g.restore();
   g.font = '600 22px "Chakra Petch", sans-serif'; g.fillStyle = '#dfe6ff'; g.textAlign = 'left'; g.fillText('drones-invasores.vercel.app', 32, Hd - 28);
