@@ -41,6 +41,7 @@
         box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(116,192,245,.05)}
   .card[data-mode=menu]{background:none;border-color:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;overflow:visible;gap:max(14px,2.4cqw)}
   .card>*{display:none}
+  .card[data-mode=menu]>#lvlPick{display:flex}
   .card[data-mode=menu]>:is(#kicker,#title){display:block} .card[data-mode=menu]>#menuBtns{display:flex}
   .card[data-mode=name]>#nameStep{display:flex}
   .card[data-mode=podium]>:is(#podTitle,#boardNote){display:block} .card[data-mode=podium]>#board{display:flex} .card[data-mode=podium]>#backBtn{display:inline-block}
@@ -143,6 +144,8 @@
   .soc{padding:.65em 1em;box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.14) inset;border:0}
   #mute,#pauseBtn{border-radius:10px;border:0;background:#171c30;color:#cfd6f0;box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px #313857 inset}
   #mute:hover,#pauseBtn:hover,#mute:focus-visible,#pauseBtn:focus-visible{background:#212741;color:#fff;outline:2px solid var(--pink);outline-offset:2px}
+  .lvlPick{align-items:center;justify-content:center;gap:10px;color:var(--muted);font-size:clamp(12px,1.8cqw,16px)}
+  .lvlPick b{min-width:5.5em;color:#fff;font-weight:600} .lvlPick .gh{padding:.3em .8em;font-size:1.2em;line-height:1}
   /* modales: ancho completo en mobile; en desktop, ancho propio para ordenar el contenido */
   .card[data-mode=level]{width:min(92cqw,560px)} .card[data-mode=over]{width:min(92cqw,680px)}
   .lvlStats,.card[data-mode=over] .board{width:100%} .card[data-mode=level] #nextBtn,.card[data-mode=level] #nextBtn .sb-in{width:100%;box-sizing:border-box}
@@ -182,6 +185,7 @@
         <button class="sb" id="newBtn" type="button">Nueva partida</button>
         <button class="gh" id="podBtn" type="button">Ver ranking</button>
       </div>
+      <div class="lvlPick" id="lvlPick"><span>Empezar en</span><button class="gh" id="lvlDown" type="button" aria-label="Ronda anterior">‹</button><b id="lvlNum">Ronda 1</b><button class="gh" id="lvlUp" type="button" aria-label="Ronda siguiente">›</button></div>
       <div class="nameStep" id="nameStep">
         <label class="lbl" for="nameInput">¿Cómo te llamás?</label>
         <input id="nameInput" class="field" type="text" maxlength="16" placeholder="Tu nombre" autocomplete="off" autocapitalize="words" enterkeyhint="go">
@@ -781,6 +785,9 @@ function setShare(sc, res) {
   $('share').hidden = false;
 }
 async function submitScore() {
+  if (startWave > 1) { // práctica: no entra al ranking
+    $('rank').hidden = false; $('rank').textContent = `Práctica desde ronda ${startWave}: no entra al ranking`; $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true; return;
+  }
   const name = playerName, sc = score, w = wave;
   if (sc > best) { best = sc; LS.set('sancor_best', best); }
   $('rank').hidden = false; $('rank').textContent = 'Guardando puntaje…'; $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true;
@@ -816,11 +823,15 @@ function tryStart() {
   if (!name) { inp.classList.add('bad'); inp.focus(); setTimeout(() => inp.classList.remove('bad'), 600); return; }
   playerName = name; LS.set('sancor_name', name); inp.blur(); start();
 }
+let startWave = 1; // selector de nivel del menú (para revisar rondas); si es > 1 la partida es de práctica
+const setStartWave = n => { startWave = Math.max(1, Math.min(12, n)); $('lvlNum').textContent = 'Ronda ' + startWave; };
+$('lvlDown').addEventListener('click', () => setStartWave(startWave - 1));
+$('lvlUp').addEventListener('click', () => setStartWave(startWave + 1));
 function start() {
   $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true; $('rank').textContent = '';
-  wave = 1; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
+  wave = startWave; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
   itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; $('pauseOv').hidden = true;
-  document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(92, 'game'); buildWave(); $('pauseBtn').hidden = false;
+  document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(Math.min(120, 92 + (startWave - 1) * 4), 'game'); buildWave(); $('pauseBtn').hidden = false;
 }
 let clearAt = 0;
 function showLevelResults(bonus, allies) {
