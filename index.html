@@ -103,7 +103,11 @@
   .passWrap{position:relative;width:100%} .passWrap .field{padding-right:3.2em;padding-left:3.2em}
   .eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;border-radius:10px;background:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
   .eye:hover,.eye:focus-visible{color:#fff;background:rgba(255,255,255,.06);outline:none} .eye[aria-pressed=true] .slash{display:none}
-  .aSmall{font-size:13px;color:var(--muted)} .acct.s2 #acctBack{display:none}
+  .aSmall{font-size:13px;color:var(--muted)} .acct:not(.done) #acctBack{display:none}
+  #acct .row{display:flex;flex-direction:row-reverse;flex-wrap:nowrap;justify-content:center;gap:14px;width:100%;margin-top:4px}   /* desktop: volver a la izquierda */
+  #acct .row>*{min-width:150px}
+  @media (max-width:699px){ #acct .row{flex-direction:column;align-items:stretch;gap:10px} #acct .row>*,#acctBack{width:100%;min-width:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} }   /* mobile: apilados, volver abajo */
+  #acct .sb:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.5);pointer-events:none}
   .okMark{width:56px;height:56px} .okMark circle{fill:none;stroke:#7fffd4;stroke-width:3;stroke-dasharray:145;stroke-dashoffset:145;animation:draw .5s ease-out forwards}
   .okMark path{fill:none;stroke:#7fffd4;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:draw .35s .4s ease-out forwards} @keyframes draw{to{stroke-dashoffset:0}}
   .newCards{flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;font-size:clamp(13px,1.8cqw,16px);color:#ffd77a}
@@ -361,7 +365,7 @@
           <div class="gBtn" id="gBtn"></div>
           <div class="orLine"><span>o con tu mail</span></div>
           <input id="acctEmail" class="field" type="email" maxlength="254" placeholder="tu@mail.com" autocomplete="email" inputmode="email" autocapitalize="off">
-          <button class="sb" id="aNext1" type="button">Continuar</button>
+          <div class="row"><button class="sb" id="aNext1" type="button">Continuar</button><button class="gh" id="aBack0" type="button">Volver</button></div>
         </div>
         <div class="aStep" data-s="2">
           <p class="aHint" id="aEmailShow"></p>
@@ -1443,6 +1447,7 @@ function goStep(n) {
   $('acct').classList.toggle('done', n === 4); $('acct').classList.toggle('s2', n === 2);
   if (n !== 2) { $('acctPass').type = 'password'; $('aEye').setAttribute('aria-pressed', 'false'); } $('acctErr').textContent = ''; $('acctErr').classList.remove('ok');
   $('acctTitle').textContent = n === 4 ? 'Tu cuenta' : n === 3 ? 'Tu nick' : 'Creá tu cuenta';
+  aValidate(); setTimeout(aValidate, 0);
   const f = { 1: 'acctEmail', 2: 'acctPass', 3: 'acctNick' }[n]; if (f && matchMedia('(pointer:fine)').matches) setTimeout(() => $(f).focus(), 60);
 }
 function openAcct(back) { acctBack = back || $('card').dataset.mode; setMode('account'); SFX.ui('card'); renderAcct(); }
@@ -1468,9 +1473,16 @@ async function onGoogle(resp) {
 const aErr = t => { const e = $('acctErr'); e.textContent = t; e.classList.remove('ok'); };
 const aOk = t => { const e = $('acctErr'); e.textContent = t; e.classList.add('ok'); };
 const EMAIL_OK = e => /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/.test(e);
+function aValidate() {
+  $('aNext1').disabled = !EMAIL_OK($('acctEmail').value.trim());
+  $('aLogin').disabled = $('acctPass').value.length < 6;
+  $('aNickSave').disabled = cleanName($('acctNick').value).length < 2;
+}
+['acctEmail', 'acctPass', 'acctNick'].forEach(id => $(id).addEventListener('input', aValidate));
 $('aNext1').addEventListener('click', () => { const e = $('acctEmail').value.trim(); if (!EMAIL_OK(e)) { aErr('Revisá el mail: parece que no es válido.'); return; } $('aEmailShow').innerHTML = `Mail: <b>${escH(e)}</b>`; goStep(2); SFX.ui('place'); });
 $('acctEmail').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aNext1').click(); } });
 $('aBack1').addEventListener('click', e => { e.preventDefault(); goStep(1); });
+$('aBack0').addEventListener('click', () => $('acctBack').click());
 $('aEye').addEventListener('click', () => { const i = $('acctPass'), show = i.type === 'password'; i.type = show ? 'text' : 'password'; $('aEye').setAttribute('aria-pressed', show); $('aEye').setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña'); i.focus(); });
 $('acctPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aLogin').click(); } });
 $('aLogin').addEventListener('click', async () => { // si el mail ya tiene cuenta entra; si no, sigue al paso del nick y la crea
