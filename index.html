@@ -88,7 +88,7 @@
   @keyframes rvShine{to{translate:120% 0}}
   @keyframes rvBurst{0%{opacity:1;transform:translate(0,0) scale(.3) rotate(0)}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1) rotate(180deg)}}
   @keyframes rvBlink{50%{opacity:.4}}
-  #hud{transition:opacity .25s} html:has(#card:not([hidden])) #hud{opacity:0}
+  #hud{transition:opacity .25s} html:has(#card:not([hidden])) #hud,html:has(#reveal:not([hidden])) #hud{opacity:0}
   .card{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:max(10px,1.8cqw);text-align:center;box-sizing:border-box;max-width:min(92cqw,760px);max-height:96%;overflow:auto;
         padding:max(16px,2.8cqw) max(18px,4cqw);border-radius:20px;background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
         box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(116,192,245,.05)}
@@ -1402,7 +1402,7 @@ async function submitScore() {
   try { const res = await api('POST', { name, score: sc, wave: w, token: acct && acct.token }); if (res && res.reserved) { if (state === 'over') $('rank').innerHTML = `“${cleanName(name).replace(/&/g, '&amp;')}” tiene cuenta: <a data-acc>iniciá sesión</a> o usá otro nombre para entrar al ranking global`; } else if (res) show(res); } catch (e) {}   // si hay ranking global, lo reemplaza
 }
 let lastRes = null, cardBefore = 'menu';
-const setMode = m => { if (m !== 'level' && typeof rvStep !== 'undefined') { rvStep = 0; $('reveal').hidden = true; } const c = $('card'); const was = c.dataset.mode; c.dataset.mode = m; c.hidden = false; if (m === 'menu' && was !== 'menu') splitTitle(); };
+const setMode = m => { if (m !== 'level' && typeof rvStep !== 'undefined') { rvStep = 0; rvDone = null; $('reveal').hidden = true; } const c = $('card'); const was = c.dataset.mode; c.dataset.mode = m; c.hidden = false; if (m === 'menu' && was !== 'menu') splitTitle(); };
 function renderPodium(res) {
   const ol = $('board'); ol.innerHTML = '';
   res.top.slice(0, 10).forEach((e, i) => {
@@ -1459,11 +1459,11 @@ function showNewCards(id) {
   const i = newCards[0];
   el.innerHTML = `<i class="mini" style="background-position:${(i % 3) * 50}% ${Math.floor(i / 3) * 50}%"></i><span>¡Nueva figurita! <b>${ACH[i].n}</b> · ${albN()}/9</span>`;
   el.hidden = false;
-  if (id === 'lvlCards') setTimeout(() => revealCard(i), 700); else setTimeout(() => SFX.record(), 900);
+  if (id !== 'lvlCards') setTimeout(() => SFX.record(), 900);
 }
-let rvStep = 0, rvTimers = [];
-function revealCard(i) { // develado: cae → tiembla → (toque o solo) se da vuelta con rayos y destellos
-  const r = $('reveal'), c = $('rvCard'); if ($('card').dataset.mode !== 'level') return;
+let rvStep = 0, rvTimers = [], rvDone = null;
+function revealCard(i, done) { // develado: cae → tiembla → (toque o solo) se da vuelta con rayos y destellos; al cerrar, done()
+  const r = $('reveal'), c = $('rvCard'); if (state !== 'clear') return; rvDone = done;
   rvTimers.forEach(clearTimeout); rvTimers = []; rvStep = 1;
   $('rvFront').style.backgroundPosition = `${(i % 3) * 50}% ${Math.floor(i / 3) * 50}%`;
   $('rvName').textContent = ACH[i].n; $('rvDesc').textContent = `${ACH[i].d.replace(/\.$/, '')} · ${albN()}/9`;
@@ -1481,7 +1481,8 @@ function revealFlip() {
 function closeReveal() {
   if (rvStep === 1) return revealFlip();
   if (rvStep !== 2) return; rvStep = 0; const r = $('reveal'); r.classList.remove('on');
-  setTimeout(() => { r.hidden = true; r.classList.remove('flipped'); }, 300); $('nextBtn').focus({ preventScroll: true });
+  setTimeout(() => { r.hidden = true; r.classList.remove('flipped'); }, 300);
+  const d = rvDone; rvDone = null; if (d) d();
 }
 $('reveal').addEventListener('click', e => { if (rvStep === 1) revealFlip(); else if (e.target.closest('#rvGo')) closeReveal(); });
 addEventListener('keydown', e => { if (!rvStep) return; if (['Enter', 'Space', 'Escape'].includes(e.code)) { e.preventDefault(); e.stopImmediatePropagation(); closeReveal(); } }, true);
@@ -1702,7 +1703,10 @@ function showLevelResults(bonus, allies) {
     + row('Bonus por cuidar lo nuestro', bonus, '+') + row('Mejor combo', waveCombo)
     + row('Errores (drones nuestros)', waveAllyHits) + row('Respeto', Math.max(0, Math.round(respect)), '', '%')
     + row('Puntos totales', score, '', '', 'tot');
-  setMode('level'); SFX.clear(); countRows(); setShare(score, null, wave); showNewCards('lvlCards'); newCards = [];
+  const results = () => { clearAt = performance.now(); setMode('level'); countRows(); setShare(score, null, wave); };
+  SFX.clear(); showNewCards('lvlCards');
+  if (newCards.length) { const i = newCards[0]; newCards = []; $('card').hidden = true; setTimeout(() => revealCard(i, results), 500); }   // primero la figurita, después los números
+  else results();
 }
 // CountUp (ReactBits): los números suben de 0 al valor, fila por fila de arriba hacia abajo, con un tic grave por cada uno
 let countTok = 0;
@@ -1729,7 +1733,7 @@ async function countRows() {
     prev = run(i);
   }
 }
-function nextLevel() { rvStep = 0; $('reveal').hidden = true;
+function nextLevel() { rvStep = 0; rvDone = null; $('reveal').hidden = true;
   if (state !== 'clear') return; countTok++;
   $('card').hidden = true; state = 'play'; wave++; SFX.pad(.05); SFX.musicStart(...levelSong(wave)); bullets = []; buildWave(); $('pauseBtn').hidden = false;
 }
