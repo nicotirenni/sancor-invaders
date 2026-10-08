@@ -237,7 +237,8 @@
   .shipOpt.sel{background:#22142c;color:#fff;box-shadow:0 0 0 2px var(--pink) inset,0 0 18px rgba(214,32,104,.25)} .shipOpt:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
   @media (prefers-reduced-motion:reduce){.title,.shiny,.sb-b,.sb-t{animation:none}}
 </style>
-<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 <canvas id="bg"></canvas>
@@ -269,7 +270,7 @@
         <button class="gh" id="podBtn" type="button">Ver ranking</button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a></div>
-      <span class="ver" id="ver">v1.1.0</span>
+      <span class="ver" id="ver">v2.0.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -1515,14 +1516,6 @@ addEventListener('keydown', e => {
   else if ((e.code === 'Space' || e.code === 'Enter') && state === 'over' && $('card').dataset.mode === 'over' && performance.now() - overAt > 1200) tryStart();
 });
 addEventListener('keyup', e => keys[e.code] = false);
-// DEBUG (no llevar a producción): la tecla T pasa de nivel al instante
-addEventListener('keydown', e => {
-  if (e.code !== 'KeyT' || (e.target && e.target.id === 'nameInput')) return;
-  if (state === 'clear') { nextLevel(); return; }
-  if (state !== 'play' || paused) return;
-  countT = 0; $('banner').classList.remove('on');
-  for (const g of groups) { g.age = Math.max(g.age, 2); if (!g.ally) for (const d of g.dots) d.alive = false; }
-});
 const stage = $('stage');
 function toLogical(e) { const r = stage.getBoundingClientRect(); return (e.clientX - r.left) / r.width * W; }
 stage.addEventListener('pointerdown', e => { if (state === 'play' && !paused) { touching = true; ship.x = toLogical(e); } });
