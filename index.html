@@ -78,7 +78,7 @@
   .albGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:min(100%,300px,calc((100dvh - 330px) * .75));aspect-ratio:3/4;padding:6px;border-radius:14px;background:rgba(7,11,32,.6);box-shadow:inset 0 0 0 1px rgba(116,192,245,.18)}
   .albGrid.done{box-shadow:0 0 0 2px #ffc928,0 0 28px rgba(255,201,40,.45)}
   .tile{position:relative;border:0;padding:0;border-radius:6px;overflow:hidden;cursor:pointer;background-image:var(--alb);background-size:300% 300%;-webkit-tap-highlight-color:transparent}
-  .tile.off{background-image:linear-gradient(rgba(10,14,36,.95),rgba(10,14,36,.95)),var(--alb)}
+  .tile.off{background:repeating-linear-gradient(135deg,#0c1130 0 10px,#0e1436 10px 20px)!important;box-shadow:inset 0 0 0 1px rgba(116,192,245,.12)}   /* no se ve nada de la imagen hasta conseguirla */
   .tile.off::after{content:attr(data-n);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 clamp(20px,4cqw,30px)/1 var(--display);color:rgba(255,255,255,.9)}
   .tile.sel{outline:2px solid var(--pink);outline-offset:1px} .tile.new{animation:pop .7s ease-out}
   @keyframes pop{0%{transform:scale(.6);filter:brightness(3)}60%{transform:scale(1.08)}100%{transform:none}}
@@ -111,7 +111,7 @@
   .okMark{width:56px;height:56px} .okMark circle{fill:none;stroke:#7fffd4;stroke-width:3;stroke-dasharray:145;stroke-dashoffset:145;animation:draw .5s ease-out forwards}
   .okMark path{fill:none;stroke:#7fffd4;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:draw .35s .4s ease-out forwards} @keyframes draw{to{stroke-dashoffset:0}}
   .newCards{flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;font-size:clamp(13px,1.8cqw,16px);color:#ffd77a}
-  .newCards .mini{width:36px;height:48px;border-radius:5px;background-image:var(--alb);background-size:300% 300%;box-shadow:0 0 0 2px #ffc928,0 0 12px rgba(255,201,40,.5)}
+  .newCards .mini{width:54px;height:72px;border-radius:6px;animation:pop .8s ease-out;background-image:var(--alb);background-size:300% 300%;box-shadow:0 0 0 2px #ffc928,0 0 12px rgba(255,201,40,.5)}
   .credLink{gap:.7em;align-items:center} .credLink a{color:inherit;text-decoration:inherit;text-underline-offset:4px} .credLink a:hover,.credLink a:focus-visible{color:#fff;text-decoration-color:var(--pink);outline:none} .credLink span{opacity:.5;text-decoration:none}
   .tuto{flex-direction:column;align-items:center;gap:max(8px,1.2cqw);width:min(100%,460px);text-align:center;touch-action:pan-y}
   .tStep{font:600 12px/1 var(--body);letter-spacing:.16em;color:var(--muted)}
@@ -1384,16 +1384,19 @@ const ACH = [ // i = posición en la grilla 3x3 (fila por fila)
   { n: 'El 10', d: 'Llegá a superar la ronda 10.' },
   { n: 'Coleccionista', d: 'Agarrá 10 power-ups (en total).', k: 'powers', goal: 10 }
 ];
-const ALB0 = () => ({ got: Array(9).fill(false), drones: 0, powers: 0, best: 0 });
-let album = (() => { try { const a = JSON.parse(LS.get('sancor_album', '')); return a && Array.isArray(a.got) ? { ...ALB0(), ...a } : ALB0(); } catch { return ALB0(); } })();
+const ALB0 = () => ({ got: Array(9).fill(false), pend: [], drones: 0, powers: 0, best: 0 });
+let album = (() => { try { const a = JSON.parse(LS.get('sancor_album', '')); return a && Array.isArray(a.got) ? { ...ALB0(), ...a, pend: Array.isArray(a.pend) ? a.pend : [] } : ALB0(); } catch { return ALB0(); } })();
 let newCards = []; // figuritas ganadas en esta partida
 const albN = () => album.got.filter(Boolean).length;
 function albSave() { LS.set('sancor_album', JSON.stringify(album)); $('albCount').textContent = `${albN()}/9`; acctSync(); }
-function award(i) {
-  if (album.got[i]) return;
-  album.got[i] = true; newCards.push(i); albSave();
-  say(`¡Nueva figurita! ${ACH[i].n}`); SFX.record();
-  if (state === 'play') { $('bannerText').textContent = '¡Nueva figurita!'; $('bannerSub').textContent = ACH[i].n + ` · ${albN()}/9`; $('banner').classList.add('on'); clearTimeout(banner.t); banner.t = setTimeout(() => $('banner').classList.remove('on'), 2000); }
+function award(i) { // el logro queda anotado en silencio: la figurita se entrega recién al terminar una ronda
+  if (album.got[i] || album.pend.includes(i)) return;
+  album.pend.push(i); albSave();
+}
+function grantCard() { // al superar una ronda: como máximo UNA figurita nueva, la del logro más antiguo
+  album.pend = album.pend.filter(i => !album.got[i]);
+  if (!album.pend.length) return;
+  const i = album.pend.shift(); album.got[i] = true; newCards = [i]; albSave();
 }
 function albCount(k) { album[k] = (album[k] || 0) + 1; const i = ACH.findIndex(a => a.k === k); if (album[k] >= ACH[i].goal) award(i); else albSave(); }
 function albWave(w, perfect) { // al superar una ronda
@@ -1401,8 +1404,9 @@ function albWave(w, perfect) { // al superar una ronda
 }
 function showNewCards(id) {
   const el = $(id); if (!newCards.length) { el.hidden = true; return; }
-  el.innerHTML = newCards.map(i => `<i class="mini" style="background-position:${(i % 3) * 50}% ${Math.floor(i / 3) * 50}%" title="${ACH[i].n}"></i>`).join('') + `<span>¡${newCards.length === 1 ? 'Nueva figurita' : newCards.length + ' figuritas nuevas'}! · ${albN()}/9</span>`;
-  el.hidden = false;
+  const i = newCards[0];
+  el.innerHTML = `<i class="mini" style="background-position:${(i % 3) * 50}% ${Math.floor(i / 3) * 50}%"></i><span>¡Nueva figurita! <b>${ACH[i].n}</b> · ${albN()}/9</span>`;
+  el.hidden = false; setTimeout(() => SFX.record(), 900);
 }
 let albSel = -1;
 function openAlbum() { setMode('album'); SFX.ui('card'); albSel = -1; renderAlbum(); }
@@ -1413,7 +1417,8 @@ function renderAlbum() {
   g.innerHTML = ACH.map((a, i) => `<button type="button" class="tile${album.got[i] ? '' : ' off'}${i === albSel ? ' sel' : ''}" data-i="${i}" data-n="${i + 1}" aria-label="${a.n}: ${album.got[i] ? 'conseguida' : 'falta'}" style="background-position:${(i % 3) * 50}% ${Math.floor(i / 3) * 50}%"></button>`).join('');
   const i = albSel >= 0 ? albSel : album.got.findIndex(x => !x);
   if (i < 0) $('albInfo').innerHTML = '<b>¡Completaste el álbum!</b>Gracias por defender lo nuestro.';
-  else { const a = ACH[i], prog = a.k ? ` (${Math.min(album[a.k] || 0, a.goal)}/${a.goal})` : ''; $('albInfo').innerHTML = `<b>${i + 1}. ${a.n}${album.got[i] ? ' ✓' : ''}</b>${a.d}${album.got[i] ? '' : prog}`; }
+  else { const a = ACH[i], prog = a.k ? ` (${Math.min(album[a.k] || 0, a.goal)}/${a.goal})` : '', pend = !album.got[i] && album.pend.includes(i);
+    $('albInfo').innerHTML = `<b>${i + 1}. ${a.n}${album.got[i] ? ' ✓' : ''}</b>${a.d}${album.got[i] ? '' : pend ? ' ¡Ya lo lograste! Se pega cuando superes tu próxima ronda.' : prog}`; }
   renderAccBox();
 }
 $('albGrid').addEventListener('click', e => { const t = e.target.closest('.tile'); if (!t) return; albSel = +t.dataset.i; renderAlbum(); SFX.ui('place'); });
@@ -1882,7 +1887,7 @@ function update(dt) {
     for (const g of groups) if (g.ally) for (const d of g.dots) if (d.alive && Math.random() < .3) burst(g.x + d.x, g.y + d.y, d.c, 2, 60);
     say(bonus ? `¡Sancor destruido! +${bonus} por cuidar lo nuestro` : '¡Sancor destruido!'); SFX.clear();
     bullets = []; ebullets = [];
-    albWave(wave, lv(wave).allies > 0 && waveAllyHits === 0);
+    albWave(wave, lv(wave).allies > 0 && waveAllyHits === 0); grantCard();
     if (wave >= MAX_WAVE) { foes = []; endGame('¡Defendiste el Monumental!', true); } else showLevelResults(bonus, allies);
   } else if (lowest + STEP / 2 > STADIUM_TOP) endGame('Sancor llegó al Monumental');
   else if (respect <= 0) endGame('Se perdió el respeto');
