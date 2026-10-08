@@ -1065,6 +1065,7 @@ function shareImage(sc, w, sub) {
   g.save(); g.translate(Wd - 150, 470); g.scale(3.4, 3.4); drawShip(g, shipType, 1); g.restore();
   g.font = '600 22px "Chakra Petch", sans-serif'; g.fillStyle = '#dfe6ff'; g.textAlign = 'left'; g.fillText('drones-invasores.vercel.app', 32, Hd - 28);
   g.textAlign = 'right'; g.fillStyle = '#74c0f5'; g.fillText('#DronesInvasores', Wd - 32, Hd - 28);
+  g.textAlign = 'center'; g.fillStyle = '#aab4d6'; g.font = '500 20px "Chakra Petch", sans-serif'; g.fillText('Realizado por Nico Tirenni', Wd / 2, Hd - 28);   // crédito
   return new Promise(r => c.toBlob(r, 'image/png'));
 }
 let shareFile = null;
