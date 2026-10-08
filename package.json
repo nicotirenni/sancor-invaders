@@ -2,6 +2,7 @@
   "name": "drones-invasores",
   "private": true,
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "@vercel/og": "0.6.8"
   }
 }
