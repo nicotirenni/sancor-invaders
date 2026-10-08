@@ -387,7 +387,7 @@
         <span class="nw-tag">NOVEDAD</span>
         <h2 id="nwTitle">¡Llegó el álbum!</h2>
         <div class="nw-grid"><i style="--i:0">?</i><i style="--i:1">?</i><i style="--i:2">?</i><i style="--i:3">?</i><i style="--i:4">?</i><i style="--i:5">?</i><i style="--i:6">?</i><i style="--i:7">?</i><i style="--i:8">?</i></div>
-        <p>Ahora, además de defender el Monumental, tenés que <b>conseguir las 9 figuritas</b> para descubrir la imagen secreta.</p>
+        <p>Ahora, además de defender al G.O.A.T., tenés que <b>conseguir las 9 figuritas</b> para descubrir la imagen secreta.</p>
         <ul><li>Cumplí logros mientras jugás.</li><li>La figurita te llega al terminar la ronda (una por ronda como máximo).</li><li>Creá tu cuenta para no perderlas nunca.</li></ul>
         <div class="nw-btns"><button class="gh" id="nwAlb" type="button">Ver álbum</button><button class="sb" id="nwOk" type="button">¡A jugar!</button></div>
       </div>
@@ -999,7 +999,7 @@ const LV_DRONES = [0, 0, 0, 0, 1, 1, 2, 2, 2, 3, 4, 3, 3, 4, 4, 5, 4, 5, 5, 6, 6
 const LV_FIRE   = [0, 0, 0, 0, 4, 4, 3.8, 3.6, 3.4, 3, 3, 3, 2.8, 2.8, 2.6, 2.6, 2.5, 2.4, 2, 2, 1.9];
 const LV_TIPS = { 4: '¡Cuidado! Los drones isotipo disparan', 6: 'Agarrá los corazones: recuperan un golpe', 7: 'Ahora los drones te apuntan', 8: 'Tiros más rápidos', 9: 'Disparan más seguido',
   10: 'Nivel especial: formación', 11: 'Los drones aguantan más tiros', 12: 'El invasor se mueve más rápido', 13: 'Tiros dobles', 14: 'Los drones suben y bajan', 15: 'Nivel especial: ráfagas',
-  16: 'Los nuestros pasan más rápido', 17: 'Ráfagas apuntadas', 18: 'Disparan cada 2 segundos', 19: 'Todo junto', 20: 'Final: defendé el Monumental' };
+  16: 'Los nuestros pasan más rápido', 17: 'Ráfagas apuntadas', 18: 'Disparan cada 2 segundos', 19: 'Todo junto', 20: 'Final: defendé al G.O.A.T.' };
 function lv(w) {
   w = Math.min(MAX_WAVE, w);
   return { allies: LV_ALLIES[w], drones: LV_DRONES[w], fire: LV_FIRE[w], aim: w >= 7, bspd: Math.min(250, 150 + Math.max(0, w - 7) * 9), hp: w >= 11 ? 5 : 3,
@@ -1523,7 +1523,7 @@ function cheer(done) { // "¡Venciste a los drones!" con papelitos; se cierra so
   const title = '¡Venciste a los drones!'.split(' ').map(w => `<span class="w">${[...w].map(ch => `<i class="${w === 'drones!' ? 'g' : ''}" style="--i:${n++}">${ch}</i>`).join('')}</span>`).join(' ');
   const cols = ['#74c0f5', '#ffffff', '#74c0f5', '#ffffff', '#ffc928'];
   const conf = Array.from({ length: 70 }, (_, k) => `<i class="cf" style="left:${Math.random() * 100}%;--w:${6 + Math.random() * 7 | 0}px;--c:${cols[k % 5]};--x:${(Math.random() - .5) * 30 | 0}vw;--r:${(Math.random() - .5) * 1440 | 0}deg;--t:${2 + Math.random() * 1.6}s;--d:${Math.random() * .7}s"></i>`).join('');
-  el.innerHTML = `<i class="ring"></i>${conf}<span class="ch-k">RONDA ${wave} DE ${MAX_WAVE}</span><div class="ch-t">${title}</div><span class="ch-s">¡Defendiste el Monumental!</span>`;
+  el.innerHTML = `<i class="ring"></i>${conf}<span class="ch-k">RONDA ${wave} DE ${MAX_WAVE}</span><div class="ch-t">${title}</div><span class="ch-s">¡Defendiste al G.O.A.T.!</span>`;
   el.hidden = false; requestAnimationFrame(() => el.classList.add('on'));
   clearTimeout(chT); chT = setTimeout(closeCheer, 2600);
 }
@@ -2053,7 +2053,7 @@ function update(dt) {
     say(bonus ? `¡Sancor destruido! +${bonus} por cuidar lo nuestro` : '¡Sancor destruido!'); SFX.clear();
     bullets = []; ebullets = [];
     albWave(wave, lv(wave).allies > 0 && waveAllyHits === 0); grantCard();
-    if (wave >= MAX_WAVE) { foes = []; endGame('¡Defendiste el Monumental!', true); } else showLevelResults(bonus, allies);
+    if (wave >= MAX_WAVE) { foes = []; endGame('¡Defendiste al G.O.A.T.!', true); } else showLevelResults(bonus, allies);
   } else if (lowest + STEP / 2 > STADIUM_TOP) endGame('Sancor llegó al Monumental');
   else if (respect <= 0) endGame('Se perdió el respeto');
   danger = lowest + STEP / 2 > STADIUM_TOP - 90;
