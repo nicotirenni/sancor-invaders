@@ -988,7 +988,7 @@ function update(dt) {
   for (const it of items) {
     it.y += 85 * dt;
     const dx = it.x - ship.x, dy = it.y - ship.y;
-    if (dx * dx + dy * dy < 30 * 30) { it.got = true; collect(it); }
+    if (dx * dx + dy * dy < (mobileView ? 48 : 30) ** 2) { it.got = true; collect(it); }
   }
   items = items.filter(it => !it.got && it.y < H + 30);
   if (Math.random() < .8) parts.push({ x: ship.x + rnd(-3, 3), y: ship.y + 12, vx: rnd(-14, 14), vy: rnd(60, 110), l: .35, m: .35, c: Math.random() < .5 ? CELESTE : '#ffffff', s: .7 });
@@ -1089,8 +1089,10 @@ function draw(t) {
   // power-ups cayendo
   for (const it of items) {
     const P = POWERS[it.type], pulse = 1 + .15 * Math.sin(t * 6 + it.ph);
-    for (let i = 0; i < 12; i++) { const an = i * Math.PI / 6 + t * 1.5; dot(it.x + Math.cos(an) * 14 * pulse, it.y + Math.sin(an) * 14 * pulse, P.c, 2.1); }
-    dot(it.x, it.y, P.c, 5, .55);
+    ctx.save(); ctx.translate(it.x, it.y); if (mobileView) ctx.scale(2, 2);                       // en mobile los power-ups son el doble de grandes
+    for (let i = 0; i < 12; i++) { const an = i * Math.PI / 6 + t * 1.5; dot(Math.cos(an) * 14 * pulse, Math.sin(an) * 14 * pulse, P.c, 2.1); }
+    dot(0, 0, P.c, 5, .55);
+    ctx.restore();
   }
   // nave: Monumento a la Bandera (Rosario) en celeste y blanco, con llama eterna y propulsor
   ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.tilt * .35); if (mobileView) ctx.scale(1.15, 1.15);
@@ -1115,7 +1117,7 @@ function draw(t) {
   // puntos flotantes y HUD
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.textAlign = 'center';
   ctx.font = '700 15px "Chakra Petch", system-ui';
-  for (const it of items) { ctx.fillStyle = '#05060f'; ctx.font = '700 13px "Chakra Petch", system-ui'; ctx.fillStyle = '#fff'; ctx.fillText(POWERS[it.type].label, it.x, it.y + 4.5); }
+  for (const it of items) { ctx.fillStyle = '#fff'; ctx.font = `700 ${mobileView ? 26 : 13}px "Chakra Petch", system-ui`; ctx.fillText(POWERS[it.type].label, it.x, it.y + (mobileView ? 9 : 4.5)); }
   ctx.font = '700 15px "Chakra Petch", system-ui';
   for (const p of pops) { ctx.globalAlpha = Math.min(1, p.l * 2); ctx.fillStyle = p.bad ? '#ff4d5e' : '#ffe3e8'; ctx.fillText(p.t, p.x, p.y - 10); }
   ctx.globalAlpha = 1;
