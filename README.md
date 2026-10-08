@@ -14,3 +14,7 @@ La imagen para compartir (`og.jpg`) usa la URL completa https://drones-invasores
 - `/r?p=PUNTOS&r=RONDA&k=lvl|over[&q=PUESTO-TOTAL]` (`api/share.js`): página que se comparte. A las redes (X, LinkedIn, Facebook) les da título, texto e imagen con el puntaje; a las personas las redirige al juego.
 - `/api/og?...` (`api/og.js`): genera esa imagen (1200x630) con `@vercel/og`, sobre `og.jpg`, con las fuentes de `api/_fonts`.
 - Instagram: la historia (1080x1920) se genera en el navegador y se comparte con el menú del celular.
+
+## Cuentas y álbum
+- `api/account.js`: cuentas opcionales (nombre + contraseña con scrypt) en el mismo Upstash Redis. Guardan el álbum en la nube y reservan el nombre en el ranking (`api/scores.js` rechaza con 403 un nombre con cuenta si no viene el token de su dueño).
+- El álbum (9 figuritas de una sola imagen) se guarda siempre en el dispositivo; con cuenta además se sincroniza.
