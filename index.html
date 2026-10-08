@@ -884,10 +884,11 @@ function renderBoard(res, mine) {
   $('boardNote').textContent = res.local ? 'Ranking de este dispositivo' : 'Ranking global';
 }
 function setShare(sc, res) {
-  const url = location.origin === 'null' ? location.href : location.origin + location.pathname;
-  const text = res && !res.local ? `Hice ${sc} puntos en Drones Invasores y quedé #${res.rank} de ${res.total}. ¿Podés superarme?` : `Hice ${sc} puntos en Drones Invasores. ¿Podés superarme?`;
+  const canon = document.querySelector('link[rel=canonical]'), url = canon ? canon.href : (location.origin === 'null' ? location.href : location.origin + location.pathname);
+  const pts = Number(sc).toLocaleString('es-AR'), pos = res && !res.local ? ` y quedé en el puesto ${res.rank} de ${res.total}` : '';
+  const text = `🛸 Hice ${pts} puntos en Drones Invasores${pos} 🇦🇷 ¿Me superás? #DronesInvasores`;      // el hashtag va siempre (para poder seguirlo)
   $('shX').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-  $('shIn').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+  $('shIn').href = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text + '\n\n' + url)}`;   // LinkedIn: abre el editor con el texto ya escrito
   $('shCopy').onclick = async () => { const b = $('shCopy').querySelector('span'); try { await navigator.clipboard.writeText(text + ' ' + url); b.textContent = '¡Copiado!'; } catch { b.textContent = 'Copiá manual'; } setTimeout(() => b.textContent = 'Copiar texto', 1600); };
   $('share').hidden = false;
 }
