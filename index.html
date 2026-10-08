@@ -503,22 +503,22 @@ function outlineText(txt, w, h, gap, color) {
   return ringPts(g.getImageData(0, 0, w, h).data, w, h, gap, color);
 }
 const LOGO_D = 150;
-const logoSprite = () => { // isologotipo: círculo, línea y dos triángulos, solo trazo
+const logoSprite = () => { // isologotipo solo con contorno: anillo, línea central y dos triángulos (sin relleno)
   const pts = [], f = LOGO_D / 136, put = (x, y) => pts.push({ x: x * f, y: y * f, c: RED });
-  const along = (poly, closed, gap) => {
-    const n = poly.length, segs = closed ? n : n - 1, L = []; let len = 0;
-    for (let i = 0; i < segs; i++) { const p = poly[i], q = poly[(i + 1) % n]; L.push(Math.hypot(q[0] - p[0], q[1] - p[1])); len += L[i]; }
-    const cnt = Math.max(2, Math.round(len / gap)), d = len / (closed ? cnt : cnt - 1);
-    for (let k = 0, i = 0, acc = 0; k < cnt; k++) {
-      const t = k * d; while (i < segs - 1 && t > acc + L[i] + 1e-6) { acc += L[i]; i++; }
-      const p = poly[i], q = poly[(i + 1) % n], r = L[i] ? (t - acc) / L[i] : 0; put(p[0] + (q[0] - p[0]) * r, p[1] + (q[1] - p[1]) * r);
+  const gap = ogap() / f, ringGap = gap * .9;
+  const edges = (poly, closed) => { // cada arista lleva drones equiespaciados y siempre en los vértices
+    const n = poly.length, segs = closed ? n : n - 1;
+    for (let i = 0; i < segs; i++) {
+      const p = poly[i], q = poly[(i + 1) % n], L = Math.hypot(q[0] - p[0], q[1] - p[1]), m = Math.max(1, Math.round(L / gap));
+      for (let k = 0; k < m; k++) put(p[0] + (q[0] - p[0]) * k / m, p[1] + (q[1] - p[1]) * k / m);
     }
+    if (!closed) { const e = poly[n - 1]; put(e[0], e[1]); }
   };
-  const gap = ogap() / f, nc = Math.round(2 * Math.PI * 62 / gap);
+  const nc = Math.round(2 * Math.PI * 62 / ringGap);
   for (let i = 0; i < nc; i++) { const a = i / nc * 2 * Math.PI; put(68 + Math.cos(a) * 62, 68 + Math.sin(a) * 62); }
-  along([[8, 68], [128, 68]], false, gap);
-  along([[40, 54], [80, 22], [80, 54]], true, gap * 1.8);
-  along([[56, 82], [56, 114], [96, 82]], true, gap * 1.8);
+  edges([[8, 68], [128, 68]], false);
+  edges([[36, 56], [82, 14], [82, 56]], true);       // triángulo superior
+  edges([[54, 80], [54, 122], [100, 80]], true);     // triángulo inferior
   return pts;
 };
 const flagSprite = () => sample(90, 63, (g, w, h) => {
