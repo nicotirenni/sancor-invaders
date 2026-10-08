@@ -836,7 +836,9 @@ function start() {
 }
 let clearAt = 0;
 function showLevelResults(bonus, allies) {
-  state = 'clear'; clearAt = performance.now(); touching = false; for (const k in keys) keys[k] = false; $('pauseBtn').hidden = true; $('banner').classList.remove('on');
+  state = 'clear'; clearAt = performance.now(); SFX.musicStop(); SFX.pad(0);
+  groups = []; items = []; bullets = []; parts = []; rings = []; pops = []; hudMsgT = 0; flash = 0; shake = 0;   // pantalla limpia al superar el nivel
+  touching = false; for (const k in keys) keys[k] = false; $('pauseBtn').hidden = true; $('banner').classList.remove('on');
   $('kicker').textContent = 'Ronda completada'; $('lvlTitle').textContent = `Ronda ${wave}`;
   const row = (a, v, pre = '', suf = '', c = '') => `<li class="${c}"><span>${a}</span><b data-v="${v}" data-pre="${pre}" data-suf="${suf}">${pre}0${suf}</b></li>`;
   $('lvlStats').innerHTML = row('Puntos de la ronda', Math.max(0, score - waveScore0), '+')
@@ -870,7 +872,7 @@ async function countRows() {
 }
 function nextLevel() {
   if (state !== 'clear') return; countTok++;
-  $('card').hidden = true; state = 'play'; wave++; SFX.musicBpm(Math.min(120, 92 + (wave - 1) * 4)); bullets = []; buildWave(); $('pauseBtn').hidden = false;
+  $('card').hidden = true; state = 'play'; wave++; SFX.pad(.05); SFX.musicStart(Math.min(120, 92 + (wave - 1) * 4), 'game'); bullets = []; buildWave(); $('pauseBtn').hidden = false;
 }
 $('nextBtn').onclick = nextLevel;
 function setPause(p) {
