@@ -908,7 +908,7 @@ function buildWave() {
   const dots = [];
   sancorPts().forEach(p => dots.push(big === 1 ? p : { ...p, x: p.x * big, y: p.y * big }));
   const travel = Math.max(60, STADIUM_TOP - (SANCOR_Y0 + LOGO_D * K));
-  const slow = .5; // el logo baja a la mitad de velocidad en todos los niveles
+  const slow = .5 * (wave > MAX_WAVE - 5 ? .6 : 1); // el logo baja a la mitad de velocidad; en los últimos 5 niveles, además, un 40% más lento
   const sancor = makeGroup(dots, 0, SANCOR_Y0, 45 * sp, 4 * .612 * sp * slow * travel / 124, false);
   sancor.x = (W - sancor.w) / 2; groups.push(sancor);
   if (L.allies) {
