@@ -158,7 +158,7 @@
   /* modales: ancho completo en mobile; en desktop, ancho propio para ordenar el contenido */
   .card[data-mode=level]{width:min(92cqw,560px)} .card[data-mode=over]{width:min(92cqw,680px)}
   .lvlStats,.card[data-mode=over] .board{width:100%} .card[data-mode=level] #nextBtn,.card[data-mode=level] #nextBtn .sb-in{width:100%;box-sizing:border-box}
-  .card[data-mode=over] .share{width:100%;flex-wrap:nowrap} .card[data-mode=over] .share .soc{flex:1 1 0;justify-content:center;white-space:nowrap}
+  .card[data-mode=over] .share{width:100%;flex-wrap:wrap} .card[data-mode=over] .share .soc{flex:1 1 150px;justify-content:center;white-space:nowrap;box-sizing:border-box}
   .card[data-mode=over] #overBtns{width:100%;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px} .card[data-mode=over] #overBtns>*{width:100%;box-sizing:border-box;text-align:center} .card[data-mode=over] #overBtns .sb-in{width:100%;box-sizing:border-box}
   @media (max-width:699px){
     .card:not([data-mode=menu]){width:calc(100cqw - 32px);max-width:none;padding:18px 16px;gap:12px}
@@ -176,6 +176,12 @@
   .pbox{width:min(92vw,420px);box-sizing:border-box;padding:24px 22px}
   #menuBtns .sb-in,#menuBtns .gh,.prow .sb-in,.prow .gh{white-space:nowrap}
   @media (max-width:699px){.card[data-mode=menu] #menuBtns .sb-in,.card[data-mode=menu] #menuBtns .gh{padding:.85em .6em}}
+  /* modales: se pueden desplazar con el dedo y, en pantallas bajas, lo importante (compartir y botones) va antes que la tabla */
+  .card{touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  @media (max-width:699px),(max-height:720px){
+    .card[data-mode=over]>#kicker{order:1} .card[data-mode=over]>#final{order:2} .card[data-mode=over]>#rank{order:3}
+    .card[data-mode=over]>#share{order:4} .card[data-mode=over]>#overBtns{order:5} .card[data-mode=over]>#board{order:6;max-height:9.5em;overflow-y:auto} .card[data-mode=over]>#boardNote{order:7}
+  }
   @media (prefers-reduced-motion:reduce){.title,.shiny,.sb-b,.sb-t{animation:none}}
 </style>
 </head>
@@ -819,10 +825,16 @@ async function submitScore() {
   const name = playerName, sc = score, w = wave;
   if (sc > best) { best = sc; LS.set('sancor_best', best); }
   $('rank').hidden = false; $('rank').textContent = 'Guardando puntaje…'; $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true;
-  const loc = localSave(name, sc), res = (await api('POST', { name, score: sc, wave: w })) || loc;
-  if (state !== 'over') return; // ya empezó otra partida
-  $('rank').textContent = res.local ? `Puesto ${res.rank} de ${res.total} en este dispositivo` : `Puesto ${res.rank} de ${res.total} jugadores`;
-  lastRes = res; renderBoard(res, { name, score: sc }); setShare(sc, res);
+  const show = res => { // muestra puesto, tabla y botones de compartir; nunca deja la pantalla sin resultados
+    if (state !== 'over') return; // ya empezó otra partida
+    $('rank').textContent = res.local ? `Puesto ${res.rank} de ${res.total} en este dispositivo` : `Puesto ${res.rank} de ${res.total} jugadores`;
+    lastRes = res; try { renderBoard(res, { name, score: sc }); } catch (e) { $('board').hidden = true; } setShare(sc, res);
+  };
+  let loc = null;
+  try { loc = localSave(name, sc); } catch (e) {}
+  if (!loc) loc = { rank: 1, total: 1, top: [{ name, score: sc }], local: true };
+  show(loc);                                                   // primero el resultado local, al instante
+  try { const res = await api('POST', { name, score: sc, wave: w }); if (res) show(res); } catch (e) {}   // si hay ranking global, lo reemplaza
 }
 let lastRes = null, cardBefore = 'menu';
 const setMode = m => { const c = $('card'); const was = c.dataset.mode; c.dataset.mode = m; c.hidden = false; if (m === 'menu' && was !== 'menu') splitTitle(); };
