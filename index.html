@@ -455,7 +455,8 @@ stadiumImg.src = "data:image/webp;base64,UklGRsomBQBXRUJQVlA4WAoAAAAwAAAAXwUAFwI
 
 // ---------- Sprites -> puntos ----------
 const STEP = 8, R = 2.9, K = .75; // K: escala del dibujo de drones (más chico = más espacio para jugar)
-function sample(w, h, draw, tint, step = STEP) {
+let curStep = STEP, mobileView = false; // curStep: paso de muestreo de los dibujos (más fino en desktop)
+function sample(w, h, draw, tint, step = curStep) {
   const o = document.createElement('canvas'); o.width = w; o.height = h;
   const g = o.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, w, h); draw(g, w, h);
   const d = g.getImageData(0, 0, w, h).data, pts = [];
@@ -466,7 +467,7 @@ function sample(w, h, draw, tint, step = STEP) {
   return pts;
 }
 const FONT = `900 %spx Arial Black, Impact, sans-serif`;
-function textSprite(txt, w, h, color, step = STEP) {
+function textSprite(txt, w, h, color, step = curStep) {
   return sample(w, h, (g) => {
     g.fillStyle = color; g.textBaseline = 'middle'; g.textAlign = 'center';
     let size = h; g.font = FONT.replace('%s', size);
@@ -583,7 +584,7 @@ function thin(pts, minD) { // deja puntos separados al menos minD (para que al a
 const ALLY_SCALE = .5, ALLY_DOT = .72;   // los elementos que no hay que golpear: 50% más chicos
 function makeGroup(pts, x, y, vx, vy, ally) {
   const k = ally ? K * ALLY_SCALE : K;
-  pts = pts.map(p => ({ ...p, x: p.x * k, y: p.y * k })); if (ally) pts = thin(pts, 4.4);
+  pts = pts.map(p => ({ ...p, x: p.x * k, y: p.y * k })); if (ally) pts = thin(pts, mobileView ? 4.4 : 3.3);
   let w = 0, h = 0; pts.forEach(p => { w = Math.max(w, p.x + STEP * k / 2); h = Math.max(h, p.y + STEP * k / 2); });
   return { x, y, vx, vy, ally, w, h, ph: Math.random() * 6, age: 0,
     dots: pts.map(p => ({ x: p.x, y: p.y, c: p.c, rs: ally ? ALLY_DOT : 1, alive: true, delay: Math.random() * .9,
@@ -610,7 +611,8 @@ function buildWave() {
   if (wave >= 2) {
     const n = wave - 1; // ronda 2: 1 elemento, ronda 3: 2, ... uno más por nivel
     for (let i = 0; i < n; i++) { // pasan de lado a lado, desaparecen y vuelven (no están todo el tiempo en pantalla)
-      const a = makeGroup(ALLY_SPRITES[i % ALLY_SPRITES.length](), -999, 0, 0, 0, true);
+      curStep = mobileView ? STEP : 5;                       // en desktop los dibujos se muestrean más fino: más detalle con dots más chicos
+      const a = makeGroup(ALLY_SPRITES[i % ALLY_SPRITES.length](), -999, 0, 0, 0, true); curStep = STEP;
       a.age = 3; a.hidden = true; a.wait = rnd(.6, 2.2) + i * .9; a.dir = i % 2 ? 1 : -1; a.sp = sp; groups.push(a);
     }
   }
@@ -895,7 +897,7 @@ function layoutAll() {
   const cw = Math.round(W * SC), ch = Math.round(H * SC);
   if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
   bloomCv.width = 220; bloomCv.height = Math.round(220 * H / W);
-  stadiumPxH = Math.min(vw * 536 / 1376, .52 * sh); IMG_H = stadiumPxH / (sw / W); const mob = vw < 700 || (matchMedia('(pointer:coarse)').matches && vw < vh); stadiumLift = mob ? stadiumPxH * .4 : 0; const liftL = stadiumLift / (sw / W); SHIP_Y = H - IMG_H * .68 - liftL; STADIUM_TOP = SHIP_Y - 26; ship.y = SHIP_Y;      // fondo 20% más abajo; la nave 25% más abajo (medidos sobre el alto del fondo)
+  stadiumPxH = Math.min(vw * 536 / 1376, .52 * sh); IMG_H = stadiumPxH / (sw / W); const mob = mobileView = vw < 700 || (matchMedia('(pointer:coarse)').matches && vw < vh); stadiumLift = mob ? stadiumPxH * .4 : 0; const liftL = stadiumLift / (sw / W); SHIP_Y = H - IMG_H * .68 - liftL; STADIUM_TOP = SHIP_Y - 26; ship.y = SHIP_Y;      // fondo 20% más abajo; la nave 25% más abajo (medidos sobre el alto del fondo)
   crowd = Array.from({ length: 170 }, () => ({ x: rnd0(14, W - 14), y: rnd0(H - IMG_H * .34 - liftL, H - IMG_H * .02 - liftL), p: Math.random() * 6, c: Math.random() < .3 ? '#74c0f5' : '#ffffff' }));
   const scale = sw / W, hb = $('hud').getBoundingClientRect().bottom;
   SANCOR_Y0 = Math.max(6, (hb + 8 - (vh - sh)) / scale);                                           // Sancor arranca justo debajo del HUD
@@ -1063,8 +1065,8 @@ function draw(t) {
   const sweep = ((t * 260) % (W + 600)) - 300;
   for (const g of groups) if (!g.hidden) for (const d of g.dots) if (d.alive) {
     const p = dpos(g, d, _dp);
-    let a = .95, r = R * d.rs;
-    const q = Math.abs(p[0] + p[1] * .6 - sweep); if (q < 60 && d.ready) { const k = 1 - q / 60; r = R * d.rs * (1 + .5 * k); a = 1; }
+    let a = .95, r = R * d.rs * (mobileView ? 1 : .7);
+    const q = Math.abs(p[0] + p[1] * .6 - sweep); if (q < 60 && d.ready) { const k = 1 - q / 60; r = R * d.rs * (mobileView ? 1 : .7) * (1 + .5 * k); a = 1; }
     dot(p[0], p[1] + Math.sin(t * 2 + g.ph + d.x * .05) * .9, q < 40 && d.ready ? '#ffffff' : d.c, r, a);
   }
   for (const p of parts) dot(p.x, p.y, p.c, p.s * 2.2, Math.max(0, p.l / p.m));
