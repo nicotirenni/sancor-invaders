@@ -105,7 +105,7 @@
   .eye:hover,.eye:focus-visible{color:#fff;background:rgba(255,255,255,.06);outline:none} .eye[aria-pressed=true] .slash{display:none}
   .aSmall{font-size:13px;color:var(--muted)} .acct:not(.done) #acctBack{display:none}
   #acct .row{display:flex;flex-direction:row-reverse;flex-wrap:nowrap;justify-content:center;gap:14px;width:100%;margin-top:4px}   /* desktop: volver a la izquierda */
-  #acct .row>*{min-width:150px}
+  #acct .row>*{flex:1 1 0;min-width:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} #acct>#acctBack{width:100%;box-sizing:border-box}   /* mismo ancho que el input */
   @media (max-width:699px){ #acct .row{flex-direction:column;align-items:stretch;gap:10px} #acct .row>*,#acctBack{width:100%;min-width:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} }   /* mobile: apilados, volver abajo */
   #acct .sb:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.5);pointer-events:none}
   .okMark{width:56px;height:56px} .okMark circle{fill:none;stroke:#7fffd4;stroke-width:3;stroke-dasharray:145;stroke-dashoffset:145;animation:draw .5s ease-out forwards}
