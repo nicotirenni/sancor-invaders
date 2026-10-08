@@ -43,7 +43,6 @@
         box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(116,192,245,.05)}
   .card[data-mode=menu]{background:none;border-color:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;overflow:visible;gap:max(14px,2.4cqw)}
   .card>*{display:none}
-  .card[data-mode=menu]>#lvlPick{display:flex}
   .card[data-mode=menu]>:is(#kicker,#title){display:block} .card[data-mode=menu]>#menuBtns{display:flex}
   .card[data-mode=name]>#nameStep{display:flex}
   .card[data-mode=podium]>:is(#podTitle,#boardNote){display:block} .card[data-mode=podium]>#board{display:flex} .card[data-mode=podium]>#backBtn{display:inline-block}
@@ -153,8 +152,8 @@
   .soc{padding:.65em 1em;box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.14) inset;border:0}
   #mute,#pauseBtn{border-radius:10px;border:0;background:#171c30;color:#cfd6f0;box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px #313857 inset}
   #mute:hover,#pauseBtn:hover,#mute:focus-visible,#pauseBtn:focus-visible{background:#212741;color:#fff;outline:2px solid var(--pink);outline-offset:2px}
-  .lvlPick{align-items:center;justify-content:center;gap:10px;color:var(--muted);font-size:clamp(12px,1.8cqw,16px)}
-  .lvlPick b{min-width:5.5em;color:#fff;font-weight:600} .lvlPick .gh{padding:.3em .8em;font-size:1.2em;line-height:1}
+  /* controles según el dispositivo */
+  .only-mob{display:none} html.is-mobile .only-mob{display:flex} html.is-mobile .only-desk{display:none}
   /* modales: ancho completo en mobile; en desktop, ancho propio para ordenar el contenido */
   .card[data-mode=level]{width:min(92cqw,560px)} .card[data-mode=over]{width:min(92cqw,680px)}
   .lvlStats,.card[data-mode=over] .board{width:100%} .card[data-mode=level] #nextBtn,.card[data-mode=level] #nextBtn .sb-in{width:100%;box-sizing:border-box}
@@ -213,14 +212,13 @@
         <button class="sb" id="newBtn" type="button">Nueva partida</button>
         <button class="gh" id="podBtn" type="button">Ver ranking</button>
       </div>
-      <div class="lvlPick" id="lvlPick"><span>Empezar en</span><button class="gh" id="lvlDown" type="button" aria-label="Ronda anterior">‹</button><b id="lvlNum">Ronda 1</b><button class="gh" id="lvlUp" type="button" aria-label="Ronda siguiente">›</button></div>
       <div class="nameStep" id="nameStep">
         <label class="lbl" for="nameInput">¿Cómo te llamás?</label>
         <input id="nameInput" class="field" type="text" maxlength="16" placeholder="Tu nombre" autocomplete="off" autocapitalize="words" enterkeyhint="go">
         <div class="how">
-          <div class="hrow"><span class="kc"><i>←</i><i>→</i></span><span>Mover la nave</span></div>
-          <div class="hrow"><span class="kc"><i class="wide">Espacio</i></span><span>Disparar</span></div>
-          <div class="hrow"><span class="kc"><i class="wide">Celu</i></span><span>Arrastrá y disparás solo</span></div>
+          <div class="hrow only-desk"><span class="kc"><i>←</i><i>→</i></span><span>Mover la nave</span></div>
+          <div class="hrow only-desk"><span class="kc"><i class="wide">Espacio</i></span><span>Disparar</span></div>
+          <div class="hrow only-mob"><span class="kc"><i class="wide">Dedo</i></span><span>Arrastrá para mover la nave; dispara sola</span></div>
           <div class="hrow"><span class="kc"><i class="dot r"></i></span><span>Destruí al invasor</span></div>
           <div class="hrow"><span class="kc"><i class="dot c"></i></span><span>No toques bandera, pelota, 10 ni estrellas</span></div>
         </div>
@@ -863,10 +861,7 @@ function tryStart() {
   if (!name) { inp.classList.add('bad'); inp.focus(); setTimeout(() => inp.classList.remove('bad'), 600); return; }
   playerName = name; LS.set('sancor_name', name); inp.blur(); start();
 }
-let startWave = 1; // selector de nivel del menú (para revisar rondas); si es > 1 la partida es de práctica
-const setStartWave = n => { startWave = Math.max(1, Math.min(12, n)); $('lvlNum').textContent = 'Ronda ' + startWave; };
-$('lvlDown').addEventListener('click', () => setStartWave(startWave - 1));
-$('lvlUp').addEventListener('click', () => setStartWave(startWave + 1));
+let startWave = 1; // las partidas siempre arrancan en la ronda 1
 function start() {
   $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true; $('rank').textContent = '';
   wave = startWave; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
@@ -995,7 +990,7 @@ function layoutAll() {
   const cw = Math.round(W * SC), ch = Math.round(H * SC);
   if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
   bloomCv.width = 220; bloomCv.height = Math.round(220 * H / W);
-  stadiumPxH = Math.min(vw * 536 / 1376, .52 * sh); IMG_H = stadiumPxH / (sw / W); const mob = mobileView = vw < 700 || (matchMedia('(pointer:coarse)').matches && vw < vh); stadiumLift = mob ? stadiumPxH * .4 : 0; const liftL = stadiumLift / (sw / W); SHIP_Y = H - IMG_H * .68 - liftL; STADIUM_TOP = SHIP_Y - 26; ship.y = SHIP_Y;      // fondo 20% más abajo; la nave 25% más abajo (medidos sobre el alto del fondo)
+  stadiumPxH = Math.min(vw * 536 / 1376, .52 * sh); IMG_H = stadiumPxH / (sw / W); document.documentElement.classList.toggle('is-mobile', matchMedia('(pointer:coarse)').matches || vw < 700); const mob = mobileView = vw < 700 || (matchMedia('(pointer:coarse)').matches && vw < vh); stadiumLift = mob ? stadiumPxH * .4 : 0; const liftL = stadiumLift / (sw / W); SHIP_Y = H - IMG_H * .68 - liftL; STADIUM_TOP = SHIP_Y - 26; ship.y = SHIP_Y;      // fondo 20% más abajo; la nave 25% más abajo (medidos sobre el alto del fondo)
   crowd = Array.from({ length: 170 }, () => ({ x: rnd0(14, W - 14), y: rnd0(H - IMG_H * .34 - liftL, H - IMG_H * .02 - liftL), p: Math.random() * 6, c: Math.random() < .3 ? '#74c0f5' : '#ffffff' }));
   const scale = sw / W, hb = $('hud').getBoundingClientRect().bottom;
   SANCOR_Y0 = Math.max(6, (hb + 8 - (vh - sh)) / scale);                                           // Sancor arranca justo debajo del HUD
