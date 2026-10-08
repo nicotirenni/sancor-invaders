@@ -1,0 +1,4 @@
+{
+  "rewrites": [{ "source": "/r", "destination": "/api/share" }],
+  "functions": { "api/og.js": { "includeFiles": "{api/_fonts/**,og.jpg}" } }
+}

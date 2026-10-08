@@ -1053,55 +1053,65 @@ function renderBoard(res, mine) {
   ol.hidden = !res.top.length; $('boardNote').hidden = !res.top.length;
   $('boardNote').textContent = res.local ? 'Ranking de este dispositivo' : 'Ranking global';
 }
-// Imagen para compartir (1200x675): cielo, Monumental, la nave elegida y el puntaje
-function shareImage(sc, w, sub) {
-  const c = document.createElement('canvas'), Wd = 1200, Hd = 675; c.width = Wd; c.height = Hd; const g = c.getContext('2d');
-  const sky = g.createLinearGradient(0, 0, 0, Hd); sky.addColorStop(0, '#04050d'); sky.addColorStop(.6, '#0b1030'); sky.addColorStop(1, '#151a40'); g.fillStyle = sky; g.fillRect(0, 0, Wd, Hd);
+// Imagen para Instagram Stories (1080x1920): cielo, Monumental, la nave elegida y el puntaje (deja libres arriba y abajo para la interfaz de Instagram)
+function storyImage(sc, sub) {
+  const c = document.createElement('canvas'), Wd = 1080, Hd = 1920; c.width = Wd; c.height = Hd; const g = c.getContext('2d');
+  const sky = g.createLinearGradient(0, 0, 0, Hd); sky.addColorStop(0, '#04050d'); sky.addColorStop(.55, '#0b1030'); sky.addColorStop(1, '#151a40'); g.fillStyle = sky; g.fillRect(0, 0, Wd, Hd);
   let seed = 7; const rr = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  for (let i = 0; i < 160; i++) { g.globalAlpha = .25 + rr() * .6; g.fillStyle = '#fff'; g.beginPath(); g.arc(rr() * Wd, rr() * Hd * .7, rr() * 1.3 + .3, 0, 7); g.fill(); }
+  for (let i = 0; i < 260; i++) { g.globalAlpha = .25 + rr() * .6; g.fillStyle = '#fff'; g.beginPath(); g.arc(rr() * Wd, rr() * Hd * .72, rr() * 1.6 + .4, 0, 7); g.fill(); }
   g.globalAlpha = 1;
-  if (stadiumTile) { const sh = Wd * stadiumTile.height / stadiumTile.width; g.drawImage(stadiumTile, 0, Hd - sh * .62, Wd, sh); }
-  const fade = g.createLinearGradient(0, Hd - 300, 0, Hd - 120); fade.addColorStop(0, 'rgba(11,16,48,1)'); fade.addColorStop(1, 'rgba(11,16,48,0)'); g.fillStyle = fade; g.fillRect(0, Hd - 300, Wd, 180);
-  const foot = g.createLinearGradient(0, Hd - 90, 0, Hd); foot.addColorStop(0, 'rgba(4,5,13,0)'); foot.addColorStop(1, 'rgba(4,5,13,.9)'); g.fillStyle = foot; g.fillRect(0, Hd - 90, Wd, 90);
-  // título con la bandera
-  g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.font = '76px Anton, Impact, sans-serif';
-  const tw = g.measureText('DRONES INVASORES').width, fl = g.createLinearGradient(Wd / 2 - tw / 2, 0, Wd / 2 + tw / 2, 0);
+  if (stadiumTile) { const sh = 820, sw = sh * stadiumTile.width / stadiumTile.height; g.drawImage(stadiumTile, (Wd - sw) / 2, Hd - sh, sw, sh); }
+  const fade = g.createLinearGradient(0, Hd - 820, 0, Hd - 560); fade.addColorStop(0, 'rgba(11,16,48,1)'); fade.addColorStop(1, 'rgba(11,16,48,0)'); g.fillStyle = fade; g.fillRect(0, Hd - 820, Wd, 260);
+  const foot = g.createLinearGradient(0, Hd - 420, 0, Hd); foot.addColorStop(0, 'rgba(4,5,13,0)'); foot.addColorStop(1, 'rgba(4,5,13,.92)'); g.fillStyle = foot; g.fillRect(0, Hd - 420, Wd, 420);
+  g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+  // título con la bandera, en dos líneas
+  g.font = '150px Anton, Impact, sans-serif';
+  const tw = g.measureText('INVASORES').width, fl = g.createLinearGradient(Wd / 2 - tw / 2, 0, Wd / 2 + tw / 2, 0);
   fl.addColorStop(0, '#5aaee8'); fl.addColorStop(.22, '#74c0f5'); fl.addColorStop(.42, '#ffffff'); fl.addColorStop(.58, '#ffffff'); fl.addColorStop(.78, '#74c0f5'); fl.addColorStop(1, '#5aaee8');
-  g.shadowColor = 'rgba(116,192,245,.55)'; g.shadowBlur = 24; g.fillStyle = fl; g.fillText('DRONES INVASORES', Wd / 2, 150); g.shadowBlur = 0;
+  g.shadowColor = 'rgba(116,192,245,.55)'; g.shadowBlur = 40; g.fillStyle = fl; g.fillText('DRONES', Wd / 2, 430); g.fillText('INVASORES', Wd / 2, 590); g.shadowBlur = 0;
   // puntaje
-  g.font = '700 26px "Chakra Petch", sans-serif'; g.fillStyle = '#9fd4fa'; g.letterSpacing = '6px'; g.fillText(sub.toUpperCase(), Wd / 2 + 3, 290); g.letterSpacing = '0px';
-  g.font = '150px Anton, Impact, sans-serif'; g.fillStyle = '#fff'; g.shadowColor = 'rgba(214,32,104,.6)'; g.shadowBlur = 30;
-  g.fillText(Number(sc).toLocaleString('es-AR'), Wd / 2, 450); g.shadowBlur = 0;
-  g.font = '700 30px "Chakra Petch", sans-serif'; g.fillStyle = '#ffb3cf'; g.letterSpacing = '8px'; g.fillText('PUNTOS', Wd / 2 + 4, 494); g.letterSpacing = '0px';
+  g.font = '700 40px "Chakra Petch", sans-serif'; g.fillStyle = '#9fd4fa'; g.letterSpacing = '9px'; g.fillText(sub.toUpperCase(), Wd / 2 + 4, 790); g.letterSpacing = '0px';
+  g.font = '250px Anton, Impact, sans-serif'; g.fillStyle = '#fff'; g.shadowColor = 'rgba(214,32,104,.65)'; g.shadowBlur = 50;
+  let size = 250; while (g.measureText(Number(sc).toLocaleString('es-AR')).width > Wd - 120) { size -= 10; g.font = size + 'px Anton, Impact, sans-serif'; }
+  g.fillText(Number(sc).toLocaleString('es-AR'), Wd / 2, 1050); g.shadowBlur = 0;
+  g.font = '700 46px "Chakra Petch", sans-serif'; g.fillStyle = '#ffb3cf'; g.letterSpacing = '12px'; g.fillText('PUNTOS', Wd / 2 + 6, 1130); g.letterSpacing = '0px';
   // nave
-  g.save(); g.translate(Wd - 150, 470); g.scale(3.4, 3.4); drawShip(g, shipType, 1); g.restore();
-  g.font = '600 22px "Chakra Petch", sans-serif'; g.fillStyle = '#dfe6ff'; g.textAlign = 'left'; g.fillText('drones-invasores.vercel.app', 32, Hd - 28);
-  g.textAlign = 'right'; g.fillStyle = '#74c0f5'; g.fillText('#DronesInvasores', Wd - 32, Hd - 28);
-  g.textAlign = 'center'; g.fillStyle = '#aab4d6'; g.font = '500 20px "Chakra Petch", sans-serif'; g.fillText('Realizado por Nico Tirenni', Wd / 2, Hd - 28);   // crédito
+  g.save(); g.translate(Wd / 2, 1350); g.scale(5, 5); drawShip(g, shipType, 1); g.restore();
+  // pie
+  g.font = '600 36px "Chakra Petch", sans-serif'; g.fillStyle = '#74c0f5'; g.fillText('#DronesInvasores', Wd / 2, Hd - 330);
+  g.fillStyle = '#dfe6ff'; g.fillText('drones-invasores.vercel.app', Wd / 2, Hd - 275);
+  g.font = '500 30px "Chakra Petch", sans-serif'; g.fillStyle = '#aab4d6'; g.fillText('Realizado por Nico Tirenni', Wd / 2, Hd - 222);
   return new Promise(r => c.toBlob(r, 'image/png'));
 }
 let shareFile = null;
+// Base del link para compartir: en Vercel, el mismo sitio (así los previews también funcionan); en cualquier otro lado, el dominio oficial
+const shareBase = () => /\.vercel\.app$/.test(location.hostname) ? location.origin : 'https://drones-invasores.vercel.app';
 function setShare(sc, res, lvl) {
-  const canon = document.querySelector('link[rel=canonical]'), url = canon ? canon.href : (location.origin === 'null' ? location.href : location.origin + location.pathname);
   const pts = Number(sc).toLocaleString('es-AR'), pos = res && !res.local ? ` y quedé en el puesto ${res.rank} de ${res.total}` : '';
   const text = lvl ? `🛸 Voy por la ronda ${lvl + 1} con ${pts} puntos en Drones Invasores 🇦🇷 ¿Me superás? #DronesInvasores`
     : `🛸 Hice ${pts} puntos en Drones Invasores${pos} 🇦🇷 ¿Me superás? #DronesInvasores`;      // el hashtag va siempre (para poder seguirlo)
-  // imagen: se genera ya, así el botón comparte al instante (el celu exige que sea dentro del toque)
+  // link propio del puntaje: X, LinkedIn y Facebook muestran en la vista previa una imagen con el puntaje (la genera /api/og)
+  const qs = `p=${Math.max(0, Math.floor(sc))}&r=${lvl || wave}&k=${lvl ? 'lvl' : 'over'}` + (res && !res.local ? `&q=${res.rank}-${res.total}` : '');
+  const url = `${shareBase()}/r?${qs}`;
+  // historia de Instagram: se genera ya, así el botón comparte al instante (el celu exige que sea dentro del toque)
   const sub = lvl ? `Ronda ${lvl} superada` : (res && !res.local ? `Puesto ${res.rank} de ${res.total}` : `Llegué a la ronda ${wave}`);
   shareFile = null; const tok = {}; setShare.tok = tok;
-  shareImage(sc, wave, sub).then(b => { if (b && setShare.tok === tok) shareFile = new File([b], 'drones-invasores.png', { type: 'image/png' }); });
+  storyImage(sc, sub).then(b => { if (b && setShare.tok === tok) shareFile = new File([b], 'drones-invasores-story.png', { type: 'image/png' }); });
   const canFiles = (() => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File([''], 'a.png', { type: 'image/png' })] })); } catch { return false; } })();
-  const msg = t => { $('shMsg').textContent = t; clearTimeout(msg.t); msg.t = setTimeout(() => $('shMsg').textContent = '', 3200); };
+  const msg = t => { $('shMsg').textContent = t; clearTimeout(msg.t); msg.t = setTimeout(() => $('shMsg').textContent = '', 3600); };
+  const copy = t => { try { navigator.clipboard.writeText(text).then(() => msg(t), () => {}); } catch {} };
   $('shMsg').textContent = '';
   $('shX').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-  $('shIn').href = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text + '\n\n' + url)}`;   // LinkedIn: abre el editor con el texto ya escrito
+  // LinkedIn y Facebook no permiten precargar el texto: se comparte el link (con la imagen del puntaje) y el texto queda copiado para pegarlo
+  $('shIn').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+  $('shIn').onclick = () => copy('Texto copiado: pegalo en tu publicación de LinkedIn');
   $('shFb').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&hashtag=${encodeURIComponent('#DronesInvasores')}`;
-  $('shFb').onclick = () => { try { navigator.clipboard.writeText(text + ' ' + url); msg('Texto copiado: pegalo en tu publicación'); } catch {} };
-  // Instagram no tiene link para compartir: en el celu se abre el menú del teléfono con la imagen del puntaje; en la compu se copia el texto y se abre Instagram
+  $('shFb').onclick = () => copy('Texto copiado: pegalo en tu publicación de Facebook');
+  // Instagram: solo desde el celu, con la imagen en formato historia (title vacío: así Instagram ofrece "Historias")
   $('shIg').onclick = async () => {
-    if (canFiles) { const f = shareFile || new File([await shareImage(sc, wave, sub)], 'drones-invasores.png', { type: 'image/png' }); try { await navigator.share({ files: [f], text: text + ' ' + url }); } catch (e) {} return; }
-    try { await navigator.clipboard.writeText(text + ' ' + url); msg('Texto copiado: pegalo en Instagram'); } catch {}
-    window.open('https://www.instagram.com/', '_blank', 'noopener');
+    if (!canFiles) { msg('Las historias de Instagram se comparten desde el celular'); return; }
+    const f = shareFile || new File([await storyImage(sc, sub)], 'drones-invasores-story.png', { type: 'image/png' });
+    try { await navigator.share({ files: [f], title: '' }); } catch (e) {}
   };
   $('share').hidden = false;
 }
