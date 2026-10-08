@@ -50,6 +50,20 @@
   :root{--pink:#D62068;--pink-hi:#E8317B;--pink-dark:#3a0d22;--pink-dark-hi:#4f1230;--glass:rgba(8,13,36,.62);--line:rgba(116,192,245,.2);--muted:#8fa0d0;--radius:14px}
   #ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;container-type:inline-size}
   html.scene-menu #stage>canvas,html.scene-menu #stadium,html.scene-menu #hud{visibility:hidden}
+  /* festejo al vencer a los drones: título que salta letra por letra + papelitos celestes y blancos */
+  #cheer{position:fixed;inset:0;z-index:19;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6vw,16px);text-align:center;overflow:hidden;background:radial-gradient(circle at 50% 45%,rgba(116,192,245,.28),rgba(5,6,15,.55) 60%);opacity:0;transition:opacity .25s}
+  #cheer[hidden]{display:none} #cheer.on{opacity:1} #cheer>span,#cheer>div{position:relative;z-index:1}
+  #cheer .ch-k{font:700 clamp(12px,1.5vw,15px)/1 var(--body);letter-spacing:.3em;color:var(--celeste);opacity:0;animation:chUp .5s .15s ease-out both}
+  #cheer .ch-t{font:400 clamp(44px,9vw,120px)/.95 var(--display);text-transform:uppercase;color:var(--white);max-width:92vw;text-shadow:0 0 30px rgba(116,192,245,.6),0 6px 0 rgba(0,0,0,.35)}
+  #cheer .ch-t .w{display:inline-block;white-space:nowrap} #cheer .ch-t i{display:inline-block;font-style:normal;animation:chPop .55s calc(.25s + var(--i) * .035s) cubic-bezier(.3,1.8,.5,1) both}
+  #cheer .ch-t i.g{color:var(--gold);text-shadow:0 0 30px rgba(255,201,40,.7),0 6px 0 rgba(0,0,0,.35)}
+  #cheer .ch-s{font:600 clamp(14px,1.9vw,20px)/1.2 var(--body);color:#ffd77a;opacity:0;animation:chUp .5s .9s ease-out both}
+  #cheer .cf{position:absolute;top:-4vh;width:var(--w);height:calc(var(--w) * 1.7);background:var(--c);border-radius:2px;animation:chFall var(--t) var(--d) linear both;pointer-events:none}
+  #cheer .ring{position:absolute;left:50%;top:50%;width:20vmin;aspect-ratio:1;margin:-10vmin;border-radius:50%;border:3px solid rgba(255,255,255,.8);animation:chRing .9s .2s ease-out both;pointer-events:none}
+  @keyframes chPop{0%{opacity:0;transform:translateY(.6em) scale(.3) rotate(-12deg)}100%{opacity:1;transform:none}}
+  @keyframes chUp{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:none}}
+  @keyframes chFall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(var(--x),110vh) rotate(var(--r))}}
+  @keyframes chRing{0%{opacity:1;transform:scale(.2)}100%{opacity:0;transform:scale(6)}}
   /* develado de figurita (estilo Duolingo): cae, tiembla, se da vuelta con rayos y destellos */
   #reveal{position:fixed;inset:0;z-index:20;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,2.4cqw,22px);background:radial-gradient(circle at 50% 42%,rgba(20,26,60,.9),rgba(3,4,12,.97) 70%);opacity:0;transition:opacity .3s;text-align:center;overflow:hidden}
   #reveal[hidden]{display:none} #reveal.on{opacity:1}
@@ -88,7 +102,7 @@
   @keyframes rvShine{to{translate:120% 0}}
   @keyframes rvBurst{0%{opacity:1;transform:translate(0,0) scale(.3) rotate(0)}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1) rotate(180deg)}}
   @keyframes rvBlink{50%{opacity:.4}}
-  #hud{transition:opacity .25s} html:has(#card:not([hidden])) #hud,html:has(#reveal:not([hidden])) #hud{opacity:0}
+  #hud{transition:opacity .25s} html:has(#card:not([hidden])) #hud,html:has(#reveal:not([hidden])) #hud,html:has(#cheer:not([hidden])) #hud{opacity:0}
   .card{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:max(10px,1.8cqw);text-align:center;box-sizing:border-box;max-width:min(92cqw,760px);max-height:96%;overflow:auto;
         padding:max(16px,2.8cqw) max(18px,4cqw);border-radius:20px;background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
         box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(116,192,245,.05)}
@@ -351,6 +365,7 @@
   <canvas id="bloom" width="300" height="225"></canvas>
   <div id="ui">
     <div id="banner"><span class="shiny" id="bannerText"></span><small id="bannerSub"></small></div>
+    <div id="cheer" hidden aria-live="polite"></div>
     <div id="reveal" hidden aria-live="polite">
       <div class="rv-stage"><div class="rv-rays"></div><div class="rv-glow"></div><div class="rv-card" id="rvCard"><div class="rv-face rv-back"><b>?</b></div><div class="rv-face rv-front" id="rvFront"></div></div><div id="rvSparks"></div></div>
       <div class="rv-tap" id="rvTap">Tocá la figurita</div>
@@ -1402,7 +1417,7 @@ async function submitScore() {
   try { const res = await api('POST', { name, score: sc, wave: w, token: acct && acct.token }); if (res && res.reserved) { if (state === 'over') $('rank').innerHTML = `“${cleanName(name).replace(/&/g, '&amp;')}” tiene cuenta: <a data-acc>iniciá sesión</a> o usá otro nombre para entrar al ranking global`; } else if (res) show(res); } catch (e) {}   // si hay ranking global, lo reemplaza
 }
 let lastRes = null, cardBefore = 'menu';
-const setMode = m => { if (m !== 'level' && typeof rvStep !== 'undefined') { rvStep = 0; rvDone = null; $('reveal').hidden = true; } const c = $('card'); const was = c.dataset.mode; c.dataset.mode = m; c.hidden = false; if (m === 'menu' && was !== 'menu') splitTitle(); };
+const setMode = m => { if (m !== 'level' && typeof rvStep !== 'undefined') { rvStep = 0; rvDone = null; $('reveal').hidden = true; chDone = null; clearTimeout(chT); $('cheer').hidden = true; } const c = $('card'); const was = c.dataset.mode; c.dataset.mode = m; c.hidden = false; if (m === 'menu' && was !== 'menu') splitTitle(); };
 function renderPodium(res) {
   const ol = $('board'); ol.innerHTML = '';
   res.top.slice(0, 10).forEach((e, i) => {
@@ -1461,6 +1476,22 @@ function showNewCards(id) {
   el.hidden = false;
   if (id !== 'lvlCards') setTimeout(() => SFX.record(), 900);
 }
+let chT = 0, chDone = null;
+function cheer(done) { // "¡Venciste a los drones!" con papelitos; se cierra solo o tocando
+  const el = $('cheer'); chDone = done; let n = 0;
+  const title = '¡Venciste a los drones!'.split(' ').map(w => `<span class="w">${[...w].map(ch => `<i class="${w === 'drones!' ? 'g' : ''}" style="--i:${n++}">${ch}</i>`).join('')}</span>`).join(' ');
+  const cols = ['#74c0f5', '#ffffff', '#74c0f5', '#ffffff', '#ffc928'];
+  const conf = Array.from({ length: 70 }, (_, k) => `<i class="cf" style="left:${Math.random() * 100}%;--w:${6 + Math.random() * 7 | 0}px;--c:${cols[k % 5]};--x:${(Math.random() - .5) * 30 | 0}vw;--r:${(Math.random() - .5) * 1440 | 0}deg;--t:${2 + Math.random() * 1.6}s;--d:${Math.random() * .7}s"></i>`).join('');
+  el.innerHTML = `<i class="ring"></i>${conf}<span class="ch-k">RONDA ${wave} DE ${MAX_WAVE}</span><div class="ch-t">${title}</div><span class="ch-s">¡Defendiste el Monumental!</span>`;
+  el.hidden = false; requestAnimationFrame(() => el.classList.add('on'));
+  clearTimeout(chT); chT = setTimeout(closeCheer, 2600);
+}
+function closeCheer() {
+  if (!chDone) return; const d = chDone; chDone = null; clearTimeout(chT); const el = $('cheer'); el.classList.remove('on');
+  setTimeout(() => { if (!chDone) { el.hidden = true; el.innerHTML = ''; } }, 250); d();
+}
+$('cheer').addEventListener('click', () => { if (performance.now() - clearAt > 600) closeCheer(); });
+addEventListener('keydown', e => { if (!chDone) return; if (['Enter', 'Space', 'Escape'].includes(e.code)) { e.preventDefault(); e.stopImmediatePropagation(); if (performance.now() - clearAt > 600) closeCheer(); } }, true);
 let rvStep = 0, rvTimers = [], rvDone = null;
 function revealCard(i, done) { // develado: cae → tiembla → (toque o solo) se da vuelta con rayos y destellos; al cerrar, done()
   const r = $('reveal'), c = $('rvCard'); if (state !== 'clear') return; rvDone = done;
@@ -1704,9 +1735,8 @@ function showLevelResults(bonus, allies) {
     + row('Errores (drones nuestros)', waveAllyHits) + row('Respeto', Math.max(0, Math.round(respect)), '', '%')
     + row('Puntos totales', score, '', '', 'tot');
   const results = () => { clearAt = performance.now(); setMode('level'); countRows(); setShare(score, null, wave); };
-  SFX.clear(); showNewCards('lvlCards');
-  if (newCards.length) { const i = newCards[0]; newCards = []; $('card').hidden = true; setTimeout(() => revealCard(i, results), 500); }   // primero la figurita, después los números
-  else results();
+  showNewCards('lvlCards'); const card = newCards.length ? newCards[0] : -1; newCards = []; $('card').hidden = true;
+  cheer(card >= 0 ? () => revealCard(card, results) : results);   // festejo → figurita (si hay) → números
 }
 // CountUp (ReactBits): los números suben de 0 al valor, fila por fila de arriba hacia abajo, con un tic grave por cada uno
 let countTok = 0;
@@ -1733,7 +1763,7 @@ async function countRows() {
     prev = run(i);
   }
 }
-function nextLevel() { rvStep = 0; rvDone = null; $('reveal').hidden = true;
+function nextLevel() { rvStep = 0; rvDone = null; $('reveal').hidden = true; chDone = null; $('cheer').hidden = true;
   if (state !== 'clear') return; countTok++;
   $('card').hidden = true; state = 'play'; wave++; SFX.pad(.05); SFX.musicStart(...levelSong(wave)); bullets = []; buildWave(); $('pauseBtn').hidden = false;
 }
