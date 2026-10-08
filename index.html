@@ -50,6 +50,22 @@
   :root{--pink:#D62068;--pink-hi:#E8317B;--pink-dark:#3a0d22;--pink-dark-hi:#4f1230;--glass:rgba(8,13,36,.62);--line:rgba(116,192,245,.2);--muted:#8fa0d0;--radius:14px}
   #ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;container-type:inline-size}
   html.scene-menu #stage>canvas,html.scene-menu #stadium,html.scene-menu #hud{visibility:hidden}
+  /* novedad: pop-up único en el menú que presenta el álbum de figuritas */
+  #news{position:fixed;inset:0;z-index:21;pointer-events:auto;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:rgba(3,4,12,.72);opacity:0;transition:opacity .3s}
+  #news[hidden]{display:none} #news.on{opacity:1}
+  #news .nw{position:relative;width:min(420px,100%);max-height:100%;overflow:auto;box-sizing:border-box;padding:28px 24px 22px;border-radius:18px;background:linear-gradient(180deg,#0e1433,#080c22);border:1px solid rgba(255,201,40,.35);box-shadow:0 0 0 1px rgba(0,0,0,.4),0 20px 60px rgba(0,0,0,.6),0 0 60px rgba(255,201,40,.12);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;transform:translateY(24px) scale(.94);transition:transform .45s cubic-bezier(.3,1.5,.5,1)}
+  #news.on .nw{transform:none}
+  #news .nw-tag{font:700 11px/1 var(--body);letter-spacing:.24em;color:#1a1300;background:var(--gold);padding:6px 10px 5px;border-radius:999px;box-shadow:0 0 18px rgba(255,201,40,.5)}
+  #news h2{margin:0;font:400 clamp(34px,8vw,44px)/1 var(--display);text-transform:uppercase;color:var(--white)}
+  #news p{margin:0;font-size:15px;line-height:1.45;color:#c9d3f0} #news p b{color:#ffd77a;font-weight:700}
+  #news .nw-grid{display:grid;grid-template-columns:repeat(3,44px);gap:5px;margin:4px 0}
+  #news .nw-grid i{width:44px;height:58px;border-radius:6px;background:repeating-linear-gradient(135deg,#1a2148 0 6px,#121835 6px 12px);outline:1px solid rgba(116,192,245,.22);display:grid;place-items:center;font:400 20px/1 var(--display);font-style:normal;color:rgba(255,201,40,.55);animation:nwTile 3s calc(var(--i) * .18s) ease-in-out infinite}
+  @keyframes nwTile{0%,70%,100%{transform:none;outline-color:rgba(116,192,245,.22)}80%{transform:translateY(-4px) rotate(-3deg);outline-color:var(--gold)}}
+  #news ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px;text-align:left;font-size:14px;color:#c9d3f0;width:100%}
+  #news li{display:flex;gap:9px;align-items:flex-start} #news li::before{content:'';flex:none;width:7px;height:7px;margin-top:6px;border-radius:2px;background:var(--gold);transform:rotate(45deg)}
+  #news .nw-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:4px} #news .nw-btns>*{width:100%;box-sizing:border-box;text-align:center} #news .nw-btns .sb{display:flex} #news .nw-btns .sb .sb-in{width:100%;box-sizing:border-box}
+  #news .nw-x{position:absolute;top:10px;right:10px;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:22px;line-height:1;cursor:pointer} #news .nw-x:hover{color:#fff;background:rgba(255,255,255,.08)}
+  @media (max-width:420px){#news .nw-btns{grid-template-columns:1fr} #news .nw-btns .gh{order:1}}
   /* festejo al vencer a los drones: título que salta letra por letra + papelitos celestes y blancos */
   #cheer{position:fixed;inset:0;z-index:19;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6vw,16px);text-align:center;overflow:hidden;background:radial-gradient(circle at 50% 45%,rgba(116,192,245,.28),rgba(5,6,15,.55) 60%);opacity:0;transition:opacity .25s}
   #cheer[hidden]{display:none} #cheer.on{opacity:1} #cheer>span,#cheer>div{position:relative;z-index:1}
@@ -365,6 +381,17 @@
   <canvas id="bloom" width="300" height="225"></canvas>
   <div id="ui">
     <div id="banner"><span class="shiny" id="bannerText"></span><small id="bannerSub"></small></div>
+    <div id="news" hidden role="dialog" aria-modal="true" aria-labelledby="nwTitle">
+      <div class="nw">
+        <button class="nw-x" id="nwX" type="button" aria-label="Cerrar">×</button>
+        <span class="nw-tag">NOVEDAD</span>
+        <h2 id="nwTitle">¡Llegó el álbum!</h2>
+        <div class="nw-grid"><i style="--i:0">?</i><i style="--i:1">?</i><i style="--i:2">?</i><i style="--i:3">?</i><i style="--i:4">?</i><i style="--i:5">?</i><i style="--i:6">?</i><i style="--i:7">?</i><i style="--i:8">?</i></div>
+        <p>Ahora, además de defender el Monumental, tenés que <b>conseguir las 9 figuritas</b> para descubrir la imagen secreta.</p>
+        <ul><li>Cumplí logros mientras jugás.</li><li>La figurita te llega al terminar la ronda (una por ronda como máximo).</li><li>Creá tu cuenta para no perderlas nunca.</li></ul>
+        <div class="nw-btns"><button class="gh" id="nwAlb" type="button">Ver álbum</button><button class="sb" id="nwOk" type="button">¡A jugar!</button></div>
+      </div>
+    </div>
     <div id="cheer" hidden aria-live="polite"></div>
     <div id="reveal" hidden aria-live="polite">
       <div class="rv-stage"><div class="rv-rays"></div><div class="rv-glow"></div><div class="rv-card" id="rvCard"><div class="rv-face rv-back"><b>?</b></div><div class="rv-face rv-front" id="rvFront"></div></div><div id="rvSparks"></div></div>
@@ -1476,6 +1503,20 @@ function showNewCards(id) {
   el.hidden = false;
   if (id !== 'lvlCards') setTimeout(() => SFX.record(), 900);
 }
+// Novedad del álbum: se muestra una sola vez, en el menú
+function openNews() {
+  if (LS.get('sancor_news_album') || state !== 'menu' || $('card').dataset.mode !== 'menu') return;
+  const el = $('news'); el.hidden = false; requestAnimationFrame(() => el.classList.add('on')); SFX.ui('card');
+}
+function closeNews(thenAlbum) {
+  const el = $('news'); if (el.hidden) return; LS.set('sancor_news_album', '1'); el.classList.remove('on');
+  setTimeout(() => { el.hidden = true; }, 300); SFX.ui('click'); if (thenAlbum) openAlbum();
+}
+$('nwOk').addEventListener('click', () => closeNews(false));
+$('nwX').addEventListener('click', () => closeNews(false));
+$('nwAlb').addEventListener('click', () => closeNews(true));
+$('news').addEventListener('click', e => { if (e.target.id === 'news') closeNews(false); });
+addEventListener('keydown', e => { if ($('news').hidden) return; if (['Enter', 'Escape', 'Space'].includes(e.code)) { e.preventDefault(); e.stopImmediatePropagation(); closeNews(false); } }, true);
 let chT = 0, chDone = null;
 function cheer(done) { // "¡Venciste a los drones!" con papelitos; se cierra solo o tocando
   const el = $('cheer'); chDone = done; let n = 0;
@@ -2281,7 +2322,7 @@ const Intro = (() => {
   }
   function finish() {
     if (done) return; done = true; cancelAnimationFrame(raf); box.classList.add('out'); setTimeout(() => { box.hidden = true; }, 480);
-    state = 'menu'; SFX.ensure(); SFX.musicStart(112, 'menu'); splitTitle();
+    state = 'menu'; SFX.ensure(); SFX.musicStart(112, 'menu'); splitTitle(); setTimeout(openNews, 900);
   }
   box.addEventListener('click', e => { if (e.target.id === 'introSkip') return; begin(); });
   addEventListener('keydown', e => { if (done) return; if (e.key === 'Escape') finish(); else begin(); });
