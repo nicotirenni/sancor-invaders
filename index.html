@@ -120,6 +120,13 @@
   #pauseOv{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:rgba(3,4,12,.62);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
   .pbox{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:min(78vw,300px);padding:26px 30px;border-radius:22px;background:rgba(7,11,32,.7);border:1px solid rgba(116,192,245,.18)}
   .pbox .podTitle{display:block}
+  .pbox{width:min(86vw,360px)} .vols{display:flex;flex-direction:column;gap:14px;width:100%}
+  .vlab{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:2px;letter-spacing:.04em} .vlab b{color:#fff;font-weight:600;min-width:2.4em;text-align:right}
+  /* ElasticSlider (ReactBits), versión sin React: la pista se estira al arrastrar más allá de los extremos */
+  .es{display:flex;align-items:center;gap:12px;width:100%;color:#cfd6f0} .ei{display:grid;place-items:center;transition:transform .3s cubic-bezier(.34,1.56,.64,1);flex:none}
+  .et{flex:1;padding:14px 0;cursor:pointer;touch-action:none;transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+  .etr{height:8px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;transition:height .25s cubic-bezier(.34,1.56,.64,1),margin .25s}
+  .es.drag .etr{height:16px;margin:-4px 0} .ef{height:100%;width:100%;background:linear-gradient(90deg,#D62068,#E8317B);border-radius:99px;transform-origin:left;will-change:transform}
   #mute:hover,#mute:focus-visible{border-color:var(--pink);outline:none} #mute .x{display:none} #mute.off .x{display:inline} #mute.off .w{display:none} #mute.off{color:#6f7fb0}
   #sparks{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
   /* ShinyText (ReactBits) */
@@ -168,7 +175,12 @@
 <canvas id="bg"></canvas>
 <button id="mute" type="button" aria-label="Activar o silenciar el sonido" title="Sonido"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="w" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="x" d="M16 9l5 6M21 9l-5 6"/></svg></button>
 <button id="pauseBtn" type="button" aria-label="Pausar" title="Pausa (P)" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
-<div id="pauseOv" hidden><div class="pbox"><div class="podTitle">Pausa</div><button class="sb" id="resumeBtn" type="button">Continuar</button><button class="gh" id="quitBtn" type="button">Salir al menú</button></div></div>
+<div id="pauseOv" hidden><div class="pbox"><div class="podTitle">Pausa</div>
+  <div class="vols">
+    <div class="vol" data-k="sfx"><div class="vlab"><span>Efectos</span><b>100</b></div><div class="es"><span class="ei" data-s="l"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/></svg></span><div class="et"><div class="etr"><div class="ef"></div></div></div><span class="ei" data-s="r"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></span></div></div>
+    <div class="vol" data-k="mus"><div class="vlab"><span>Música</span><b>100</b></div><div class="es"><span class="ei" data-s="l"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span><div class="et"><div class="etr"><div class="ef"></div></div></div><span class="ei" data-s="r"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span></div></div>
+  </div>
+  <button class="sb" id="resumeBtn" type="button">Continuar</button><button class="gh" id="quitBtn" type="button">Salir al menú</button></div></div>
 <canvas id="sparks"></canvas>
 <div id="hud"><div id="hudRow">
   <div class="hl"><div class="k"><span>PUNTOS</span> · <span id="hWave">RONDA 1</span></div><b id="hScore">0</b></div>
@@ -633,7 +645,8 @@ function banner(t, sub) {
 const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
 // ---------- Sonido (WebAudio, graves y con cuerpo; todo sintetizado, sin archivos) ----------
 const SFX = (() => {
-  let ac = null, master, noiseBuf, padG = null, padNodes = [], muted = LS.get('sancor_muted', '0') === '1', lastHit = 0, lastShot = 0;
+  const vol = { sfx: +LS.get('sancor_vol_sfx', 1), mus: +LS.get('sancor_vol_mus', 1) };
+  let sfxBus, musBus, ac = null, master, noiseBuf, padG = null, padNodes = [], muted = LS.get('sancor_muted', '0') === '1', lastHit = 0, lastShot = 0;
   const now = () => ac.currentTime;
   function ensure() {
     if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
@@ -643,6 +656,8 @@ const SFX = (() => {
     const shelf = ac.createBiquadFilter(); shelf.type = 'lowshelf'; shelf.frequency.value = 180; shelf.gain.value = 5;       // cuerpo en graves
     const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4200; lp.Q.value = .5;                      // nada agudo ni chillón
     const comp = ac.createDynamicsCompressor(); comp.threshold.value = -20; comp.ratio.value = 4; comp.attack.value = .004; comp.release.value = .22;
+    sfxBus = ac.createGain(); musBus = ac.createGain(); sfxBus.connect(master); musBus.connect(master);
+    sfxBus.gain.value = vol.sfx; musBus.gain.value = vol.mus;
     master.connect(shelf); shelf.connect(lp); lp.connect(comp); comp.connect(ac.destination);
     noiseBuf = ac.createBuffer(1, ac.sampleRate * 1.5, ac.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     pad(.03);
@@ -652,13 +667,13 @@ const SFX = (() => {
     osc.type = type; osc.frequency.setValueAtTime(f0, t); if (f1 !== f0) osc.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
     if (o.lp) { const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; osc.connect(f); node = f; }
     g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + (o.attack || .008)); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-    node.connect(g); g.connect(master); osc.start(t); osc.stop(t + dur + .05);
+    node.connect(g); g.connect(sfxBus); osc.start(t); osc.stop(t + dur + .05);
   }
   function noise(dur, vol, lp, o = {}) {
     const t = now() + (o.delay || 0), src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
     src.buffer = noiseBuf; src.loop = true; f.type = 'lowpass'; f.frequency.setValueAtTime(o.lp0 || lp, t); if (o.lp0) f.frequency.exponentialRampToValueAtTime(lp, t + dur);
     g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + (o.attack || .006)); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-    src.connect(f); f.connect(g); g.connect(master); src.start(t, Math.random()); src.stop(t + dur + .05);
+    src.connect(f); f.connect(g); g.connect(sfxBus); src.start(t, Math.random()); src.stop(t + dur + .05);
   }
   function chord(freqs, step, dur, vol, lp = 1800) { freqs.forEach((f, i) => { tone('triangle', f, f, dur, vol, { delay: i * step, attack: .03, lp }); tone('sine', f / 2, f / 2, dur, vol * .8, { delay: i * step, attack: .04 }); }); }
   // ---- Música: cumbia en 16 bits (pulsos cuadrados, bajo triangular, percusión de ruido) ----
@@ -719,7 +734,7 @@ const SFX = (() => {
   function pad(level) { // colchón grave continuo, muy bajo
     if (!ac) return;
     if (!padG) {
-      padG = ac.createGain(); padG.gain.value = 0; const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 240; padG.connect(f); f.connect(master);
+      padG = ac.createGain(); padG.gain.value = 0; const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 240; padG.connect(f); f.connect(musBus);
       [[55, 'triangle', 0], [82.4, 'sine', 4], [110, 'sine', -5]].forEach(([fr, ty, det]) => { const o = ac.createOscillator(); o.type = ty; o.frequency.value = fr; o.detune.value = det; o.connect(padG); o.start(); padNodes.push(o); });
       const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = .08; lg.gain.value = .012; lfo.connect(lg); lg.connect(padG.gain); lfo.start();
     }
@@ -729,6 +744,8 @@ const SFX = (() => {
   return {
     ensure, pad,
     get muted() { return muted; },
+    getVol(k) { return vol[k]; },
+    setVol(k, v) { vol[k] = Math.max(0, Math.min(1, v)); LS.set('sancor_vol_' + k, String(vol[k])); const b = k === 'sfx' ? sfxBus : musBus; if (b) b.gain.setTargetAtTime(vol[k], ac.currentTime, .03); },
     toggle() { muted = !muted; LS.set('sancor_muted', muted ? '1' : '0'); if (master) master.gain.setTargetAtTime(muted ? 0 : .9, ac.currentTime, .03); ensure(); return muted; },
     shot() { if (!ok() || now() - lastShot < .06) return; lastShot = now(); tone('triangle', 250, 85, .16, .2, { lp: 1400 }); tone('sine', 120, 52, .2, .32); noise(.05, .07, 900); },
     hit(n) { if (!ok() || now() - lastHit < .05) return; lastHit = now(); tone('sine', 150, 44, .24, .5); noise(.14 + Math.min(.2, n * .012), .22, 1300, { lp0: 2600 }); if (n > 6) tone('triangle', 82, 38, .4, .35, { lp: 600 }); },
@@ -738,7 +755,7 @@ const SFX = (() => {
     clear() { if (ok()) chord([130.8, 164.8, 196, 261.6], .12, 1, .17, 1600); },
     over() { if (!ok()) return; tone('sawtooth', 130, 46, 1.3, .28, { lp: 320 }); tone('sine', 65, 30, 1.5, .55); },
     musicStart(bpm = 92, track = 'game') { if (!ac) ensure(); if (!ac) return; MU.bpm = bpm; if (MU.track !== track) { MU.track = track; MU.step = 0; if (MU.on) MU.next = now() + .08; }
-      if (!MU.g) { MU.g = ac.createGain(); MU.g.connect(master); MU.pulse = ac.createPeriodicWave(new Float32Array([0, ...Array.from({ length: 24 }, (_, n) => Math.sin(Math.PI * (n + 1) * .25) * 2 / (Math.PI * (n + 1)))]), new Float32Array(25)); }
+      if (!MU.g) { MU.g = ac.createGain(); MU.g.connect(musBus); MU.pulse = ac.createPeriodicWave(new Float32Array([0, ...Array.from({ length: 24 }, (_, n) => Math.sin(Math.PI * (n + 1) * .25) * 2 / (Math.PI * (n + 1)))]), new Float32Array(25)); }
       MU.g.gain.cancelScheduledValues(now()); MU.g.gain.setValueAtTime(.0001, now()); MU.g.gain.linearRampToValueAtTime(.24, now() + .6);
       if (MU.on) return; MU.on = true; MU.step = 0; MU.next = now() + .08; clearInterval(MU.timer); MU.timer = setInterval(musicTick, 60); },
     musicBpm(b) { MU.bpm = b; },
@@ -909,6 +926,24 @@ $('podBtn').addEventListener('click', openPodium);
 $('podBtn2').addEventListener('click', openPodium);
 $('backBtn').addEventListener('click', closePodium);
 $('card').addEventListener('click', e => { if (e.target.closest('button,a')) SFX.tick(); });
+// ---- Sliders elásticos de audio: efectos y música por separado ----
+document.querySelectorAll('.vol').forEach(box => {
+  const k = box.dataset.k, es = box.querySelector('.es'), tr = box.querySelector('.et'), fill = box.querySelector('.ef'), num = box.querySelector('b'), L = es.querySelector('[data-s=l]'), R = es.querySelector('[data-s=r]');
+  const STEP = .05; let dragging = false;
+  const show = v => { fill.style.transform = `scaleX(${v})`; num.textContent = Math.round(v * 100); L.style.transform = v <= .02 && dragging ? 'scale(1.4)' : ''; R.style.transform = v >= .98 && dragging ? 'scale(1.4)' : ''; };
+  const set = (e) => {
+    const r = tr.getBoundingClientRect(), raw = (e.clientX - r.left) / r.width, v = Math.max(0, Math.min(1, Math.round(raw / STEP) * STEP));
+    const over = raw < 0 ? -raw : raw > 1 ? raw - 1 : 0;                         // estiramiento elástico más allá de los extremos
+    tr.style.transformOrigin = raw < 0 ? 'right center' : 'left center'; tr.style.transform = over ? `scaleX(${1 + Math.min(over, .6) * .35}) scaleY(${1 - Math.min(over, .6) * .25})` : '';
+    SFX.setVol(k, v); show(v);
+  };
+  tr.addEventListener('pointerdown', e => { dragging = true; es.classList.add('drag'); tr.setPointerCapture(e.pointerId); set(e); });
+  tr.addEventListener('pointermove', e => { if (dragging) set(e); });
+  const end = () => { if (!dragging) return; dragging = false; es.classList.remove('drag'); tr.style.transform = ''; show(SFX.getVol(k)); if (k === 'sfx') SFX.shot(); };
+  tr.addEventListener('pointerup', end); tr.addEventListener('pointercancel', end);
+  tr.addEventListener('keydown', e => { /* sin foco: se usa con puntero */ });
+  show(SFX.getVol(k));
+});
 $('mute').addEventListener('click', () => { $('mute').classList.toggle('off', SFX.toggle()); });
 $('mute').classList.toggle('off', SFX.muted);
 $('nameInput').value = playerName;
