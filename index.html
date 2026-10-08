@@ -101,7 +101,7 @@
   .aStep{display:none;flex-direction:column;align-items:center;gap:12px;width:100%} .aStep.on{display:flex;animation:stepIn .35s ease-out} .aStep.on.back{animation-name:stepBack}
   @keyframes stepIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}} @keyframes stepBack{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
   .aStep .field{width:100%} .aHint{margin:0;text-align:center;color:#c9d2f0;font-size:clamp(13px,1.8cqw,16px);line-height:1.45}
-  .gBtn{min-height:44px;display:flex;justify-content:center;width:100%} .gBtn:empty{display:none}
+  .gBtn{min-height:44px;color-scheme:light;background:transparent;display:flex;justify-content:center;width:100%} .gBtn:empty{display:none} .gBtn iframe{color-scheme:light;background:transparent!important}
   .orLine{display:flex;align-items:center;gap:10px;width:100%;color:var(--muted);font-size:13px} .orLine::before,.orLine::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.12)}
   .aFoot{color:var(--muted);font-size:13px;text-underline-offset:3px;margin-top:4px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);width:100%;text-align:center} .aFoot:hover{color:#fff}
   .passWrap{position:relative;width:100%} .passWrap .field{padding-right:3.2em;padding-left:3.2em}
