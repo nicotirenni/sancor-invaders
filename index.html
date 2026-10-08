@@ -50,6 +50,7 @@
   :root{--pink:#D62068;--pink-hi:#E8317B;--pink-dark:#3a0d22;--pink-dark-hi:#4f1230;--glass:rgba(8,13,36,.62);--line:rgba(116,192,245,.2);--muted:#8fa0d0;--radius:14px}
   #ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;container-type:inline-size}
   html.scene-menu #stage>canvas,html.scene-menu #stadium,html.scene-menu #hud{visibility:hidden}
+  #hud{transition:opacity .25s} html:has(#card:not([hidden])) #hud{opacity:0}
   .card{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:max(10px,1.8cqw);text-align:center;box-sizing:border-box;max-width:min(92cqw,760px);max-height:96%;overflow:auto;
         padding:max(16px,2.8cqw) max(18px,4cqw);border-radius:20px;background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
         box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(116,192,245,.05)}
