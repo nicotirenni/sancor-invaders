@@ -1,4 +1,4 @@
-# Drone Invaders
+# Drones Invasores
 
 Juego estático (`index.html`) + una función serverless para el ranking global (`api/scores.js`).
 

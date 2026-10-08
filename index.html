@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>Drone Invaders</title>
+<title>Drones Invasores</title>
 <meta name="description" content="Destruí al invasor con un show de drones en el cielo nocturno. Cuidá lo nuestro y llegá al ranking.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Drone Invaders">
+<meta property="og:title" content="Drones Invasores">
 <meta property="og:description" content="Destruí al invasor con un show de drones en el cielo nocturno. ¿Cuántos puntos hacés?">
 <meta property="og:image" content="/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Drone Invaders">
+<meta name="twitter:title" content="Drones Invasores">
 <meta name="twitter:image" content="/og.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@500;700&display=swap">
 <style>
@@ -179,7 +179,7 @@
     <div id="banner"><span class="shiny" id="bannerText"></span><small id="bannerSub"></small></div>
     <div class="card" id="card" data-mode="menu">
       <div class="kicker" id="kicker">Destruí al invasor. Cuidá lo nuestro.</div>
-      <h1 class="title" id="title" aria-label="Drone Invaders"></h1>
+      <h1 class="title" id="title" aria-label="Drones Invasores"></h1>
       <div class="podTitle" id="podTitle">Ranking</div>
       <div class="row" id="menuBtns">
         <button class="sb" id="newBtn" type="button">Nueva partida</button>
@@ -779,7 +779,7 @@ function renderBoard(res, mine) {
 }
 function setShare(sc, res) {
   const url = location.origin === 'null' ? location.href : location.origin + location.pathname;
-  const text = res && !res.local ? `Hice ${sc} puntos en Drone Invaders y quedé #${res.rank} de ${res.total}. ¿Podés superarme?` : `Hice ${sc} puntos en Drone Invaders. ¿Podés superarme?`;
+  const text = res && !res.local ? `Hice ${sc} puntos en Drones Invasores y quedé #${res.rank} de ${res.total}. ¿Podés superarme?` : `Hice ${sc} puntos en Drones Invasores. ¿Podés superarme?`;
   $('shX').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
   $('shIn').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
   $('shCopy').onclick = async () => { const b = $('shCopy').querySelector('span'); try { await navigator.clipboard.writeText(text + ' ' + url); b.textContent = '¡Copiado!'; } catch { b.textContent = 'Copiá manual'; } setTimeout(() => b.textContent = 'Copiar texto', 1600); };
@@ -1180,7 +1180,7 @@ function loop(now) {
 }
 /* SplitText (ReactBits, sin GSAP): letras que suben escalonadas */
 const splitTitle = (() => {
-  const el = $('title'), txt = 'Drone Invaders';
+  const el = $('title'), txt = 'Drones Invasores';
   el.innerHTML = [...txt].map((c, i) => `<span class="ch" style="transition-delay:${i * .1}s">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
   const chars = [...el.children];
   // bandera argentina (franjas horizontales con degradé) con sol de mayo difuminado, extendida sobre las dos palabras
