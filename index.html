@@ -1394,11 +1394,12 @@ let newCards = []; // figuritas ganadas en esta partida
 const albN = () => album.got.filter(Boolean).length;
 function albSave() { LS.set('sancor_album', JSON.stringify(album)); $('albCount').textContent = `${albN()}/9`; acctSync(); }
 function award(i) { // el logro queda anotado en silencio: la figurita se entrega recién al terminar una ronda
+  album.pend = album.pend || [];
   if (album.got[i] || album.pend.includes(i)) return;
   album.pend.push(i); albSave();
 }
 function grantCard() { // al superar una ronda: como máximo UNA figurita nueva, la del logro más antiguo
-  album.pend = album.pend.filter(i => !album.got[i]);
+  album.pend = (album.pend || []).filter(i => !album.got[i]);
   if (!album.pend.length) return;
   const i = album.pend.shift(); album.got[i] = true; newCards = [i]; albSave();
 }
@@ -1421,7 +1422,7 @@ function renderAlbum() {
   g.innerHTML = ACH.map((a, i) => `<button type="button" class="tile${album.got[i] ? '' : ' off'}${i === albSel ? ' sel' : ''}" data-i="${i}" data-n="${i + 1}" aria-label="${a.n}: ${album.got[i] ? 'conseguida' : 'falta'}" style="background-position:${(i % 3) * 50}% ${Math.floor(i / 3) * 50}%"></button>`).join('');
   const i = albSel >= 0 ? albSel : album.got.findIndex(x => !x);
   if (i < 0) $('albInfo').innerHTML = '<b>¡Completaste el álbum!</b>Gracias por defender lo nuestro.';
-  else { const a = ACH[i], prog = a.k ? ` (${Math.min(album[a.k] || 0, a.goal)}/${a.goal})` : '', pend = !album.got[i] && album.pend.includes(i);
+  else { const a = ACH[i], prog = a.k ? ` (${Math.min(album[a.k] || 0, a.goal)}/${a.goal})` : '', pend = !album.got[i] && (album.pend || []).includes(i);
     $('albInfo').innerHTML = `<b>${i + 1}. ${a.n}${album.got[i] ? ' ✓' : ''}</b>${a.d}${album.got[i] ? '' : pend ? ' ¡Ya lo lograste! Se pega cuando superes tu próxima ronda.' : prog}`; }
   renderAccBox();
 }
@@ -1437,7 +1438,11 @@ async function accApi(body) {
     const j = await r.json().catch(() => ({})); if (j.notFound) return { notFound: true }; return r.ok ? j : { error: r.status === 501 || r.status === 404 ? 'Las cuentas funcionan en drones-invasores.vercel.app' : (j.error || 'No se pudo conectar. Probá de nuevo.'), status: r.status };
   } catch { return { error: 'No se pudo conectar. Probá de nuevo.' }; } finally { clearTimeout(to); }
 }
-function mergeAlbum(p) { if (!p) return; album = { got: album.got.map((g, i) => g || !!(p.got && p.got[i])), drones: Math.max(album.drones, p.drones || 0), powers: Math.max(album.powers, p.powers || 0), best: Math.max(album.best || 0, p.best || 0) }; LS.set('sancor_album', JSON.stringify(album)); $('albCount').textContent = `${albN()}/9`; }
+function mergeAlbum(p) { // une el álbum local con el de la cuenta sin perder nada (incluidos los logros por pegar)
+  if (!p) return;
+  const got = album.got.map((g, i) => g || !!(p.got && p.got[i]));
+  const pend = [...new Set([...(album.pend || []), ...(Array.isArray(p.pend) ? p.pend : [])])].filter(i => Number.isInteger(i) && i >= 0 && i < 9 && !got[i]);
+  album = { got, pend, drones: Math.max(album.drones || 0, p.drones || 0), powers: Math.max(album.powers || 0, p.powers || 0), best: Math.max(album.best || 0, p.best || 0) }; LS.set('sancor_album', JSON.stringify(album)); $('albCount').textContent = `${albN()}/9`; }
 let syncT = 0;
 function dropAcct() { acct = null; LS.set('sancor_acct', 'null'); renderAccBox(); }
 function acctSync() { if (!acct) return; clearTimeout(syncT); syncT = setTimeout(async () => { const r = await accApi({ action: 'sync', token: acct.token, progress: album }); if (r.progress) mergeAlbum(r.progress); else if (r.status === 401) dropAcct(); }, 1200); }

@@ -11,11 +11,13 @@ function cleanProgress(p) { // solo se guarda lo que el juego usa, con límites
   p = p && typeof p === 'object' ? p : {};
   const got = Array.from({ length: TILES }, (_, i) => !!(Array.isArray(p.got) && p.got[i]));
   const n = (v, max) => Math.max(0, Math.min(max, Math.floor(Number(v) || 0)));
-  return { got, drones: n(p.drones, 1e6), powers: n(p.powers, 1e6), best: n(p.best, 2e6) };
+  const pend = [...new Set((Array.isArray(p.pend) ? p.pend : []).map(Number))].filter(i => Number.isInteger(i) && i >= 0 && i < TILES && !got[i]);
+  return { got, pend, drones: n(p.drones, 1e6), powers: n(p.powers, 1e6), best: n(p.best, 2e6) };
 }
 function merge(a, b) { // nunca se pierde nada: une figuritas y se queda con los máximos
   a = cleanProgress(a); b = cleanProgress(b);
-  return { got: a.got.map((g, i) => g || b.got[i]), drones: Math.max(a.drones, b.drones), powers: Math.max(a.powers, b.powers), best: Math.max(a.best, b.best) };
+  const got = a.got.map((g, i) => g || b.got[i]);
+  return cleanProgress({ got, pend: [...a.pend, ...b.pend], drones: Math.max(a.drones, b.drones), powers: Math.max(a.powers, b.powers), best: Math.max(a.best, b.best) });
 }
 async function newToken(key) { const t = crypto.randomBytes(24).toString('base64url'); await redis([['SET', 'sancor:tok:' + t, key, 'EX', YEAR]]); return t; }
 const getUser = async key => { const [raw] = await redis([['GET', key]]); return raw ? JSON.parse(raw) : null; };
