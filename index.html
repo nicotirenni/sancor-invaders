@@ -773,7 +773,7 @@ function buildWave() {
   const dots = [];
   sancorPts().forEach(p => dots.push(p));
   const travel = Math.max(60, STADIUM_TOP - (SANCOR_Y0 + LOGO_D * K));
-  const slow = wave <= 4 ? .5 : 1; // niveles 1 a 4: el logo baja a la mitad de velocidad
+  const slow = .5; // el logo baja a la mitad de velocidad en todos los niveles
   const sancor = makeGroup(dots, 0, SANCOR_Y0, 45 * sp, 4 * .612 * sp * slow * travel / 124, false);
   sancor.x = (W - sancor.w) / 2; groups.push(sancor);
   if (wave >= 2) {
@@ -1111,15 +1111,13 @@ function showLevelResults(bonus, allies) {
 let countTok = 0;
 async function countRows() {
   const tok = ++countTok, els = [...document.querySelectorAll('#lvlStats b')], DUR = 750, GAP = 140;
-  const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if (reduce) { els.forEach(e => e.textContent = e.dataset.pre + e.dataset.v + e.dataset.suf); return; }
   await new Promise(r => setTimeout(r, 450));
   const run = (i) => { // anima una fila; "half" se resuelve al llegar al 50%, "done" al terminar
     const e = els[i], v = +e.dataset.v, t0 = performance.now(); let lastTick = 0, lastN = -1, half, done;
     const hp = new Promise(r => half = r), dp = new Promise(r => done = r);
     const step = now => {
       if (tok !== countTok) { half(); done(); return; }
-      const k = Math.min(1, (now - t0) / DUR), n = Math.round(v * (1 - Math.pow(1 - k, 3)));
+      const k = Math.max(0, Math.min(1, (now - t0) / DUR)), n = Math.round(v * (1 - Math.pow(1 - k, 3)));
       e.textContent = e.dataset.pre + n + e.dataset.suf;
       if (n !== lastN && now - lastTick > 55 && k < 1) { SFX.count(i); lastTick = now; }
       lastN = n; if ((now - t0) / DUR >= .5) half();
