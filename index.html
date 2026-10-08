@@ -1505,11 +1505,11 @@ function showNewCards(id) {
 }
 // Novedad del álbum: se muestra una sola vez, en el menú
 function openNews() {
-  if (LS.get('sancor_news_album') || state !== 'menu' || $('card').dataset.mode !== 'menu') return;
+  if (LS.get('sancor_news_v2') || state !== 'menu' || $('card').dataset.mode !== 'menu') return;
   const el = $('news'); el.hidden = false; requestAnimationFrame(() => el.classList.add('on')); SFX.ui('card');
 }
 function closeNews(thenAlbum) {
-  const el = $('news'); if (el.hidden) return; LS.set('sancor_news_album', '1'); el.classList.remove('on');
+  const el = $('news'); if (el.hidden) return; LS.set('sancor_news_v2', '1'); el.classList.remove('on');
   setTimeout(() => { el.hidden = true; }, 300); SFX.ui('click'); if (thenAlbum) openAlbum();
 }
 $('nwOk').addEventListener('click', () => closeNews(false));
