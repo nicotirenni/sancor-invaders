@@ -54,7 +54,8 @@
         box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(116,192,245,.05)}
   .card[data-mode=menu]{background:none;border-color:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;overflow:visible;gap:max(14px,2.4cqw)}
   .card>*{display:none}
-  .card[data-mode=menu]>#credLink{display:inline-block}  .card[data-mode=menu]>#menuBtns{margin-top:max(22px,3.4cqw)} .card[data-mode=credits]>#cred{display:flex}
+  .card[data-mode=menu]>#credLink{display:inline-block} .card[data-mode=menu]>#ver{display:block}
+  .ver{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:5;font:500 12px/1 var(--body);letter-spacing:.08em;color:var(--muted);opacity:.7;pointer-events:none}  .card[data-mode=menu]>#menuBtns{margin-top:max(22px,3.4cqw)} .card[data-mode=credits]>#cred{display:flex}
   .credLink{position:fixed;left:0;right:0;bottom:max(18px,env(safe-area-inset-bottom));margin:0 auto;width:max-content;z-index:5;pointer-events:auto;color:var(--muted);font-size:clamp(13px,1.6cqw,16px);text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(143,160,208,.4);letter-spacing:.04em}
   .credLink:hover,.credLink:focus-visible{color:#fff;text-decoration-color:var(--pink);outline:none}
   .cred{flex-direction:column;align-items:center;gap:6px;min-width:min(80vw,320px)}
@@ -249,6 +250,7 @@
         <button class="gh" id="podBtn" type="button">Ver ranking</button>
       </div>
       <a class="credLink" id="credLink" href="#creditos">Créditos</a>
+      <span class="ver" id="ver">v1.1.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
