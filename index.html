@@ -50,6 +50,75 @@
   :root{--pink:#D62068;--pink-hi:#E8317B;--pink-dark:#3a0d22;--pink-dark-hi:#4f1230;--glass:rgba(8,13,36,.62);--line:rgba(116,192,245,.2);--muted:#8fa0d0;--radius:14px}
   #ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;container-type:inline-size}
   html.scene-menu #stage>canvas,html.scene-menu #stadium,html.scene-menu #hud{visibility:hidden}
+  /* novedad: pop-up único en el menú que presenta el álbum de figuritas */
+  #news{position:fixed;inset:0;z-index:21;pointer-events:auto;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:rgba(3,4,12,.72);opacity:0;transition:opacity .3s}
+  #news[hidden]{display:none} #news.on{opacity:1}
+  #news .nw{position:relative;width:min(420px,100%);max-height:100%;overflow:auto;box-sizing:border-box;padding:28px 24px 22px;border-radius:18px;background:linear-gradient(180deg,#0e1433,#080c22);border:1px solid rgba(255,201,40,.35);box-shadow:0 0 0 1px rgba(0,0,0,.4),0 20px 60px rgba(0,0,0,.6),0 0 60px rgba(255,201,40,.12);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;transform:translateY(24px) scale(.94);transition:transform .45s cubic-bezier(.3,1.5,.5,1)}
+  #news.on .nw{transform:none}
+  #news .nw-tag{font:700 11px/1 var(--body);letter-spacing:.24em;color:#1a1300;background:var(--gold);padding:6px 10px 5px;border-radius:999px;box-shadow:0 0 18px rgba(255,201,40,.5)}
+  #news h2{margin:0;font:400 clamp(34px,8vw,44px)/1 var(--display);text-transform:uppercase;color:var(--white)}
+  #news p{margin:0;font-size:15px;line-height:1.45;color:#c9d3f0} #news p b{color:#ffd77a;font-weight:700}
+  #news .nw-grid{display:grid;grid-template-columns:repeat(3,44px);gap:5px;margin:4px 0}
+  #news .nw-grid i{width:44px;height:58px;border-radius:6px;background:repeating-linear-gradient(135deg,#1a2148 0 6px,#121835 6px 12px);outline:1px solid rgba(116,192,245,.22);display:grid;place-items:center;font:400 20px/1 var(--display);font-style:normal;color:rgba(255,201,40,.55);animation:nwTile 3s calc(var(--i) * .18s) ease-in-out infinite}
+  @keyframes nwTile{0%,70%,100%{transform:none;outline-color:rgba(116,192,245,.22)}80%{transform:translateY(-4px) rotate(-3deg);outline-color:var(--gold)}}
+  #news ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px;text-align:left;font-size:14px;color:#c9d3f0;width:100%}
+  #news li{display:flex;gap:9px;align-items:flex-start} #news li::before{content:'';flex:none;width:7px;height:7px;margin-top:6px;border-radius:2px;background:var(--gold);transform:rotate(45deg)}
+  #news .nw-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:4px} #news .nw-btns>*{width:100%;box-sizing:border-box;text-align:center} #news .nw-btns .sb{display:flex} #news .nw-btns .sb .sb-in{width:100%;box-sizing:border-box}
+  #news .nw-x{position:absolute;top:10px;right:10px;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:22px;line-height:1;cursor:pointer} #news .nw-x:hover{color:#fff;background:rgba(255,255,255,.08)}
+  @media (max-width:420px){#news .nw-btns{grid-template-columns:1fr} #news .nw-btns .gh{order:1}}
+  /* festejo al vencer a los drones: título que salta letra por letra + papelitos celestes y blancos */
+  #cheer{position:fixed;inset:0;z-index:19;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6vw,16px);text-align:center;overflow:hidden;background:radial-gradient(circle at 50% 45%,rgba(116,192,245,.28),rgba(5,6,15,.55) 60%);opacity:0;transition:opacity .25s}
+  #cheer[hidden]{display:none} #cheer.on{opacity:1} #cheer>span,#cheer>div{position:relative;z-index:1}
+  #cheer .ch-k{font:700 clamp(12px,1.5vw,15px)/1 var(--body);letter-spacing:.3em;color:var(--celeste);opacity:0;animation:chUp .5s .15s ease-out both}
+  #cheer .ch-t{font:400 clamp(44px,9vw,120px)/.95 var(--display);text-transform:uppercase;color:var(--white);max-width:92vw;text-shadow:0 0 30px rgba(116,192,245,.6),0 6px 0 rgba(0,0,0,.35)}
+  #cheer .ch-t .w{display:inline-block;white-space:nowrap} #cheer .ch-t i{display:inline-block;font-style:normal;animation:chPop .55s calc(.25s + var(--i) * .035s) cubic-bezier(.3,1.8,.5,1) both}
+  #cheer .ch-t i.g{color:var(--gold);text-shadow:0 0 30px rgba(255,201,40,.7),0 6px 0 rgba(0,0,0,.35)}
+  #cheer .ch-s{font:600 clamp(14px,1.9vw,20px)/1.2 var(--body);color:#ffd77a;opacity:0;animation:chUp .5s .9s ease-out both}
+  #cheer .cf{position:absolute;top:-4vh;width:var(--w);height:calc(var(--w) * 1.7);background:var(--c);border-radius:2px;animation:chFall var(--t) var(--d) linear both;pointer-events:none}
+  #cheer .ring{position:absolute;left:50%;top:50%;width:20vmin;aspect-ratio:1;margin:-10vmin;border-radius:50%;border:3px solid rgba(255,255,255,.8);animation:chRing .9s .2s ease-out both;pointer-events:none}
+  @keyframes chPop{0%{opacity:0;transform:translateY(.6em) scale(.3) rotate(-12deg)}100%{opacity:1;transform:none}}
+  @keyframes chUp{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:none}}
+  @keyframes chFall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(var(--x),110vh) rotate(var(--r))}}
+  @keyframes chRing{0%{opacity:1;transform:scale(.2)}100%{opacity:0;transform:scale(6)}}
+  /* develado de figurita (estilo Duolingo): cae, tiembla, se da vuelta con rayos y destellos */
+  #reveal{position:fixed;inset:0;z-index:20;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,2.4cqw,22px);background:radial-gradient(circle at 50% 42%,rgba(20,26,60,.9),rgba(3,4,12,.97) 70%);opacity:0;transition:opacity .3s;text-align:center;overflow:hidden}
+  #reveal[hidden]{display:none} #reveal.on{opacity:1}
+  #reveal .rv-stage{position:relative;width:clamp(150px,26cqw,210px);aspect-ratio:3/4;perspective:900px}
+  #reveal .rv-rays{position:absolute;left:50%;top:50%;width:min(200cqw,900px);aspect-ratio:1;translate:-50% -50%;background:repeating-conic-gradient(rgba(255,201,40,.22) 0 7deg,transparent 7deg 22.5deg);-webkit-mask:radial-gradient(circle,#000 8%,transparent 55%);mask:radial-gradient(circle,#000 8%,transparent 55%);opacity:0;scale:.3;transition:opacity .5s,scale .7s cubic-bezier(.2,1.4,.4,1);animation:rvSpin 14s linear infinite;pointer-events:none}
+  #reveal .rv-glow{position:absolute;inset:-30%;border-radius:50%;background:radial-gradient(circle,rgba(255,201,40,.55),transparent 62%);opacity:0;transition:opacity .4s;pointer-events:none}
+  #reveal.flipped .rv-rays{opacity:1;scale:1} #reveal.flipped .rv-glow{opacity:1}
+  #reveal .rv-card{position:absolute;inset:0;transform-style:preserve-3d;animation:rvDrop .7s cubic-bezier(.3,1.5,.5,1) both}
+  #reveal .rv-card.shake{animation:rvShake .5s ease-in-out both}
+  #reveal .rv-card.flip{animation:rvFlip .75s cubic-bezier(.4,1.6,.5,1) both}
+  #reveal .rv-face{position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+  #reveal .rv-back{background:repeating-linear-gradient(135deg,#141a3c 0 10px,#0f1430 10px 20px);border:2px solid rgba(255,201,40,.65);box-shadow:0 0 30px rgba(255,201,40,.25),inset 0 0 30px rgba(0,0,0,.5);display:grid;place-items:center}
+  #reveal .rv-back b{font:400 clamp(64px,12cqw,96px)/1 var(--display);color:var(--gold);text-shadow:0 0 18px rgba(255,201,40,.7)}
+  #reveal .rv-front{transform:rotateY(180deg);background-image:var(--alb);background-size:300% 300%;border:3px solid var(--gold);box-shadow:0 0 0 2px rgba(0,0,0,.4),0 0 50px rgba(255,201,40,.55)}
+  #reveal .rv-front::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.75) 50%,transparent 65%);translate:-120% 0}
+  #reveal.flipped .rv-front::after{animation:rvShine 1s .55s ease-out both}
+  #reveal .rv-spark{position:absolute;left:50%;top:50%;width:var(--s);height:var(--s);margin:calc(var(--s) / -2);background:var(--c);clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);opacity:0;pointer-events:none}
+  #reveal.flipped .rv-spark{animation:rvBurst 1.1s var(--d) cubic-bezier(.15,.8,.3,1) both}
+  #reveal .rv-txt{display:flex;flex-direction:column;gap:6px;opacity:0;translate:0 12px;transition:opacity .4s .25s,translate .4s .25s}
+  #reveal.flipped .rv-txt{opacity:1;translate:0 0}
+  #reveal .rv-k{font-size:12px;font-weight:700;letter-spacing:.22em;color:var(--gold)}
+  #reveal .rv-n{font:400 clamp(30px,5.4cqw,48px)/1 var(--display);text-transform:uppercase;color:var(--white)}
+  #reveal .rv-d{font-size:clamp(13px,1.8cqw,15px);color:var(--muted)}
+  #reveal .rv-mini{display:grid;grid-template-columns:repeat(3,22px);gap:3px;margin:4px auto 0}
+  #reveal .rv-mini i{width:22px;height:29px;border-radius:3px;background:repeating-linear-gradient(135deg,#1a2148 0 4px,#121835 4px 8px);outline:1px solid rgba(116,192,245,.2)}
+  #reveal .rv-mini i.g{background-image:var(--alb);background-size:300% 300%;outline:0}
+  #reveal .rv-mini i.new{outline:2px solid var(--gold);animation:pop .7s .5s ease-out both}
+  #reveal .rv-go{opacity:0;transition:opacity .3s .6s;width:min(300px,80vw);display:block} #reveal.flipped .rv-go{opacity:1}
+  #reveal .rv-go .sb-in{width:100%;box-sizing:border-box}
+  #reveal .rv-tap{font-size:12px;color:var(--muted);letter-spacing:.08em;animation:rvBlink 1.2s ease-in-out infinite}
+  #reveal.flipped .rv-tap{display:none}
+  @keyframes rvSpin{to{rotate:360deg}}
+  @keyframes rvDrop{0%{transform:translateY(-120cqh) rotate(-14deg)}100%{transform:none}}
+  @keyframes rvShake{0%,100%{transform:none}20%{transform:rotate(-7deg) scale(1.04)}40%{transform:rotate(6deg) scale(1.06)}60%{transform:rotate(-5deg) scale(1.08)}80%{transform:rotate(3deg) scale(1.1)}}
+  @keyframes rvFlip{0%{transform:scale(1.1) rotateY(0)}45%{transform:scale(1.25) rotateY(100deg)}100%{transform:scale(1) rotateY(180deg)}}
+  @keyframes rvShine{to{translate:120% 0}}
+  @keyframes rvBurst{0%{opacity:1;transform:translate(0,0) scale(.3) rotate(0)}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1) rotate(180deg)}}
+  @keyframes rvBlink{50%{opacity:.4}}
+  #hud{transition:opacity .25s} html:has(#card:not([hidden])) #hud,html:has(#reveal:not([hidden])) #hud,html:has(#cheer:not([hidden])) #hud{opacity:0}
   .card{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:max(10px,1.8cqw);text-align:center;box-sizing:border-box;max-width:min(92cqw,760px);max-height:96%;overflow:auto;
         padding:max(16px,2.8cqw) max(18px,4cqw);border-radius:20px;background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
         box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(116,192,245,.05)}
@@ -312,6 +381,24 @@
   <canvas id="bloom" width="300" height="225"></canvas>
   <div id="ui">
     <div id="banner"><span class="shiny" id="bannerText"></span><small id="bannerSub"></small></div>
+    <div id="news" hidden role="dialog" aria-modal="true" aria-labelledby="nwTitle">
+      <div class="nw">
+        <button class="nw-x" id="nwX" type="button" aria-label="Cerrar">×</button>
+        <span class="nw-tag">NOVEDAD</span>
+        <h2 id="nwTitle">¡Llegó el álbum!</h2>
+        <div class="nw-grid"><i style="--i:0">?</i><i style="--i:1">?</i><i style="--i:2">?</i><i style="--i:3">?</i><i style="--i:4">?</i><i style="--i:5">?</i><i style="--i:6">?</i><i style="--i:7">?</i><i style="--i:8">?</i></div>
+        <p>Ahora, además de defender al G.O.A.T., tenés que <b>conseguir las 9 figuritas</b> para descubrir la imagen secreta.</p>
+        <ul><li>Cumplí logros mientras jugás.</li><li>La figurita te llega al terminar la ronda (una por ronda como máximo).</li><li>Creá tu cuenta para no perderlas nunca.</li></ul>
+        <div class="nw-btns"><button class="gh" id="nwAlb" type="button">Ver álbum</button><button class="sb" id="nwOk" type="button">¡A jugar!</button></div>
+      </div>
+    </div>
+    <div id="cheer" hidden aria-live="polite"></div>
+    <div id="reveal" hidden aria-live="polite">
+      <div class="rv-stage"><div class="rv-rays"></div><div class="rv-glow"></div><div class="rv-card" id="rvCard"><div class="rv-face rv-back"><b>?</b></div><div class="rv-face rv-front" id="rvFront"></div></div><div id="rvSparks"></div></div>
+      <div class="rv-tap" id="rvTap">Tocá la figurita</div>
+      <div class="rv-txt"><span class="rv-k">¡NUEVA FIGURITA!</span><span class="rv-n" id="rvName"></span><span class="rv-d" id="rvDesc"></span><div class="rv-mini" id="rvMini"></div></div>
+      <button class="sb rv-go" id="rvGo" type="button">¡Genial!</button>
+    </div>
     <div class="card" id="card" data-mode="menu">
       <div class="kicker" id="kicker">Destruí al invasor. Cuidá lo nuestro.</div>
       <h1 class="title" id="title" aria-label="Drones Invasores"></h1>
@@ -322,7 +409,7 @@
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a></div>
-      <span class="ver" id="ver">v2.2.1</span>
+      <span class="ver" id="ver">v2.3.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -912,7 +999,7 @@ const LV_DRONES = [0, 0, 0, 0, 1, 1, 2, 2, 2, 3, 4, 3, 3, 4, 4, 5, 4, 5, 5, 6, 6
 const LV_FIRE   = [0, 0, 0, 0, 4, 4, 3.8, 3.6, 3.4, 3, 3, 3, 2.8, 2.8, 2.6, 2.6, 2.5, 2.4, 2, 2, 1.9];
 const LV_TIPS = { 4: '¡Cuidado! Los drones isotipo disparan', 6: 'Agarrá los corazones: recuperan un golpe', 7: 'Ahora los drones te apuntan', 8: 'Tiros más rápidos', 9: 'Disparan más seguido',
   10: 'Nivel especial: formación', 11: 'Los drones aguantan más tiros', 12: 'El invasor se mueve más rápido', 13: 'Tiros dobles', 14: 'Los drones suben y bajan', 15: 'Nivel especial: ráfagas',
-  16: 'Los nuestros pasan más rápido', 17: 'Ráfagas apuntadas', 18: 'Disparan cada 2 segundos', 19: 'Todo junto', 20: 'Final: defendé el Monumental' };
+  16: 'Los nuestros pasan más rápido', 17: 'Ráfagas apuntadas', 18: 'Disparan cada 2 segundos', 19: 'Todo junto', 20: 'Final: defendé al G.O.A.T.' };
 function lv(w) {
   w = Math.min(MAX_WAVE, w);
   return { allies: LV_ALLIES[w], drones: LV_DRONES[w], fire: LV_FIRE[w], aim: w >= 7, bspd: Math.min(250, 150 + Math.max(0, w - 7) * 9), hp: w >= 11 ? 5 : 3,
@@ -1200,6 +1287,8 @@ const SFX = (() => {
     combo(m = 2) { if (!ok()) return; const b = 262 * Math.pow(2, Math.min(m - 2, 3) * 2 / 12); seqT('pulse', [b, b * 1.26, b * 1.5], .055, .1, .08, { lp: 1800, wet: .35 }); tone('triangle', b / 2, b / 2, .3, .16); },
     clear() { if (!ok()) return; duck(2); seqT('pulse', [262, 330, 392, 523, 392, 523], .085, .11, .09, { lp: 1800, wet: .3 });   // fanfarria de ronda superada
       [[523, .09], [659, .05], [784, .04]].forEach(([f, v]) => tone('pulse', f, f, .6, v, { delay: .51, lp: 1800, wet: .45 })); chord([130.8, 164.8, 196, 261.6], .02, 1.1, .14, 1600); },
+    cardShake() { if (!ok()) return; [0, .12, .24].forEach((d, i) => tone('pulse', 392 + i * 98, 392 + i * 98, .07, .05, { delay: d, lp: 1600 })); },   // la figurita tiembla
+    cardFlip() { if (!ok()) return; duck(1.5); noise(.35, .05, 2400, { lp0: 500 }); seqT('pulse', [523, 659, 784, 1047], .05, .14, .08, { lp: 2000, wet: .4, delay: .05 }); chord([261.6, 329.6, 392, 523.2], .03, 1.2, .13, 1800); tone('pulse', 1568, 1568, .5, .03, { delay: .3, vib: 30, lp: 2400, wet: .6 }); },   // ¡se da vuelta!
     record() { if (!ok()) return; seqT('pulse', [330, 392, 494, 659], .06, .1, .08, { lp: 1800, wet: .35 }); tone('pulse', 988, 988, .35, .05, { delay: .24, vib: 25, lp: 1800, wet: .5 }); },   // nuevo récord
     beep(n) { if (!ok()) return; if (n > 0) { tone('pulse', 330, 330, .12, .08, { lp: 1500 }); tone('triangle', 165, 165, .12, .16); }   // cuenta regresiva 3-2-1
       else { tone('pulse', 659, 659, .4, .09, { lp: 1800, wet: .25 }); tone('pulse', 988, 988, .4, .04, { lp: 1800, wet: .3 }); tone('triangle', 330, 330, .45, .18); } },   // ¡Ya!
@@ -1355,7 +1444,7 @@ async function submitScore() {
   try { const res = await api('POST', { name, score: sc, wave: w, token: acct && acct.token }); if (res && res.reserved) { if (state === 'over') $('rank').innerHTML = `“${cleanName(name).replace(/&/g, '&amp;')}” tiene cuenta: <a data-acc>iniciá sesión</a> o usá otro nombre para entrar al ranking global`; } else if (res) show(res); } catch (e) {}   // si hay ranking global, lo reemplaza
 }
 let lastRes = null, cardBefore = 'menu';
-const setMode = m => { const c = $('card'); const was = c.dataset.mode; c.dataset.mode = m; c.hidden = false; if (m === 'menu' && was !== 'menu') splitTitle(); };
+const setMode = m => { if (m !== 'level' && typeof rvStep !== 'undefined') { rvStep = 0; rvDone = null; $('reveal').hidden = true; chDone = null; clearTimeout(chT); $('cheer').hidden = true; } const c = $('card'); const was = c.dataset.mode; c.dataset.mode = m; c.hidden = false; if (m === 'menu' && was !== 'menu') splitTitle(); };
 function renderPodium(res) {
   const ol = $('board'); ol.innerHTML = '';
   res.top.slice(0, 10).forEach((e, i) => {
@@ -1411,8 +1500,65 @@ function showNewCards(id) {
   const el = $(id); if (!newCards.length) { el.hidden = true; return; }
   const i = newCards[0];
   el.innerHTML = `<i class="mini" style="background-position:${(i % 3) * 50}% ${Math.floor(i / 3) * 50}%"></i><span>¡Nueva figurita! <b>${ACH[i].n}</b> · ${albN()}/9</span>`;
-  el.hidden = false; setTimeout(() => SFX.record(), 900);
+  el.hidden = false;
+  if (id !== 'lvlCards') setTimeout(() => SFX.record(), 900);
 }
+// Novedad del álbum: se muestra una sola vez, en el menú
+function openNews() {
+  if (LS.get('sancor_news_v2') || state !== 'menu' || $('card').dataset.mode !== 'menu') return;
+  const el = $('news'); el.hidden = false; requestAnimationFrame(() => el.classList.add('on')); SFX.ui('card');
+}
+function closeNews(thenAlbum) {
+  const el = $('news'); if (el.hidden) return; LS.set('sancor_news_v2', '1'); el.classList.remove('on');
+  setTimeout(() => { el.hidden = true; }, 300); SFX.ui('click'); if (thenAlbum) openAlbum();
+}
+$('nwOk').addEventListener('click', () => closeNews(false));
+$('nwX').addEventListener('click', () => closeNews(false));
+$('nwAlb').addEventListener('click', () => closeNews(true));
+$('news').addEventListener('click', e => { if (e.target.id === 'news') closeNews(false); });
+addEventListener('keydown', e => { if ($('news').hidden) return; if (['Enter', 'Escape', 'Space'].includes(e.code)) { e.preventDefault(); e.stopImmediatePropagation(); closeNews(false); } }, true);
+let chT = 0, chDone = null;
+function cheer(done) { // "¡Venciste a los drones!" con papelitos; se cierra solo o tocando
+  const el = $('cheer'); chDone = done; let n = 0;
+  const title = '¡Venciste a los drones!'.split(' ').map(w => `<span class="w">${[...w].map(ch => `<i class="${w === 'drones!' ? 'g' : ''}" style="--i:${n++}">${ch}</i>`).join('')}</span>`).join(' ');
+  const cols = ['#74c0f5', '#ffffff', '#74c0f5', '#ffffff', '#ffc928'];
+  const conf = Array.from({ length: 70 }, (_, k) => `<i class="cf" style="left:${Math.random() * 100}%;--w:${6 + Math.random() * 7 | 0}px;--c:${cols[k % 5]};--x:${(Math.random() - .5) * 30 | 0}vw;--r:${(Math.random() - .5) * 1440 | 0}deg;--t:${2 + Math.random() * 1.6}s;--d:${Math.random() * .7}s"></i>`).join('');
+  el.innerHTML = `<i class="ring"></i>${conf}<span class="ch-k">RONDA ${wave} DE ${MAX_WAVE}</span><div class="ch-t">${title}</div><span class="ch-s">¡Defendiste al G.O.A.T.!</span>`;
+  el.hidden = false; requestAnimationFrame(() => el.classList.add('on'));
+  clearTimeout(chT); chT = setTimeout(closeCheer, 2600);
+}
+function closeCheer() {
+  if (!chDone) return; const d = chDone; chDone = null; clearTimeout(chT); const el = $('cheer'); el.classList.remove('on');
+  setTimeout(() => { if (!chDone) { el.hidden = true; el.innerHTML = ''; } }, 250); d();
+}
+$('cheer').addEventListener('click', () => { if (performance.now() - clearAt > 600) closeCheer(); });
+addEventListener('keydown', e => { if (!chDone) return; if (['Enter', 'Space', 'Escape'].includes(e.code)) { e.preventDefault(); e.stopImmediatePropagation(); if (performance.now() - clearAt > 600) closeCheer(); } }, true);
+let rvStep = 0, rvTimers = [], rvDone = null;
+function revealCard(i, done) { // develado: cae → tiembla → (toque o solo) se da vuelta con rayos y destellos; al cerrar, done()
+  const r = $('reveal'), c = $('rvCard'); if (state !== 'clear') return; rvDone = done;
+  rvTimers.forEach(clearTimeout); rvTimers = []; rvStep = 1;
+  $('rvFront').style.backgroundPosition = `${(i % 3) * 50}% ${Math.floor(i / 3) * 50}%`;
+  $('rvName').textContent = ACH[i].n; $('rvDesc').textContent = `${ACH[i].d.replace(/\.$/, '')} · ${albN()}/9`;
+  $('rvMini').innerHTML = album.got.map((g, k) => `<i class="${g ? 'g' : ''}${k === i ? ' new' : ''}" style="${g ? `background-position:${(k % 3) * 50}% ${Math.floor(k / 3) * 50}%` : ''}"></i>`).join('');
+  $('rvSparks').innerHTML = Array.from({ length: 18 }, (_, k) => { const a = k / 18 * Math.PI * 2 + Math.random() * .3, d = 110 + Math.random() * 120; return `<i class="rv-spark" style="--x:${Math.cos(a) * d | 0}px;--y:${Math.sin(a) * d | 0}px;--s:${10 + Math.random() * 14 | 0}px;--c:${['#ffc928', '#fff3c4', '#74c0f5', '#ff9fc4'][k % 4]};--d:${Math.random() * .15}s"></i>`; }).join('');
+  r.classList.remove('on', 'flipped'); c.className = 'rv-card'; r.hidden = false;
+  requestAnimationFrame(() => r.classList.add('on')); SFX.ui('card');
+  rvTimers.push(setTimeout(() => { c.className = 'rv-card shake'; SFX.cardShake(); }, 750));
+  rvTimers.push(setTimeout(revealFlip, 1500));
+}
+function revealFlip() {
+  if (rvStep !== 1) return; rvStep = 2; rvTimers.forEach(clearTimeout); rvTimers = [];
+  $('rvCard').className = 'rv-card flip'; $('reveal').classList.add('flipped'); SFX.cardFlip();
+}
+function closeReveal() {
+  if (rvStep === 1) return revealFlip();
+  if (rvStep !== 2) return; rvStep = 0; const r = $('reveal'); r.classList.remove('on');
+  setTimeout(() => { r.hidden = true; r.classList.remove('flipped'); }, 300);
+  const d = rvDone; rvDone = null; if (d) d();
+}
+$('reveal').addEventListener('click', e => { if (rvStep === 1) revealFlip(); else if (e.target.closest('#rvGo')) closeReveal(); });
+addEventListener('keydown', e => { if (!rvStep) return; if (['Enter', 'Space', 'Escape'].includes(e.code)) { e.preventDefault(); e.stopImmediatePropagation(); closeReveal(); } }, true);
+
 let albSel = -1;
 function openAlbum() { setMode('album'); SFX.ui('card'); albSel = -1; renderAlbum(); }
 function renderAlbum() {
@@ -1629,7 +1775,9 @@ function showLevelResults(bonus, allies) {
     + row('Bonus por cuidar lo nuestro', bonus, '+') + row('Mejor combo', waveCombo)
     + row('Errores (drones nuestros)', waveAllyHits) + row('Respeto', Math.max(0, Math.round(respect)), '', '%')
     + row('Puntos totales', score, '', '', 'tot');
-  setMode('level'); SFX.clear(); countRows(); setShare(score, null, wave); showNewCards('lvlCards'); newCards = [];
+  const results = () => { clearAt = performance.now(); setMode('level'); countRows(); setShare(score, null, wave); };
+  showNewCards('lvlCards'); const card = newCards.length ? newCards[0] : -1; newCards = []; $('card').hidden = true;
+  cheer(card >= 0 ? () => revealCard(card, results) : results);   // festejo → figurita (si hay) → números
 }
 // CountUp (ReactBits): los números suben de 0 al valor, fila por fila de arriba hacia abajo, con un tic grave por cada uno
 let countTok = 0;
@@ -1656,7 +1804,7 @@ async function countRows() {
     prev = run(i);
   }
 }
-function nextLevel() {
+function nextLevel() { rvStep = 0; rvDone = null; $('reveal').hidden = true; chDone = null; $('cheer').hidden = true;
   if (state !== 'clear') return; countTok++;
   $('card').hidden = true; state = 'play'; wave++; SFX.pad(.05); SFX.musicStart(...levelSong(wave)); bullets = []; buildWave(); $('pauseBtn').hidden = false;
 }
@@ -1898,7 +2046,7 @@ function update(dt) {
     say(bonus ? `¡Sancor destruido! +${bonus} por cuidar lo nuestro` : '¡Sancor destruido!'); SFX.clear();
     bullets = []; ebullets = [];
     albWave(wave, lv(wave).allies > 0 && waveAllyHits === 0); grantCard();
-    if (wave >= MAX_WAVE) { foes = []; endGame('¡Defendiste el Monumental!', true); } else showLevelResults(bonus, allies);
+    if (wave >= MAX_WAVE) { foes = []; endGame('¡Defendiste al G.O.A.T.!', true); } else showLevelResults(bonus, allies);
   } else if (lowest + STEP / 2 > STADIUM_TOP) endGame('Sancor llegó al Monumental');
   else if (respect <= 0) endGame('Se perdió el respeto');
   danger = lowest + STEP / 2 > STADIUM_TOP - 90;
@@ -2167,7 +2315,7 @@ const Intro = (() => {
   }
   function finish() {
     if (done) return; done = true; cancelAnimationFrame(raf); box.classList.add('out'); setTimeout(() => { box.hidden = true; }, 480);
-    state = 'menu'; SFX.ensure(); SFX.musicStart(112, 'menu'); splitTitle();
+    state = 'menu'; SFX.ensure(); SFX.musicStart(112, 'menu'); splitTitle(); setTimeout(openNews, 900);
   }
   box.addEventListener('click', e => { if (e.target.id === 'introSkip') return; begin(); });
   addEventListener('keydown', e => { if (done) return; if (e.key === 'Escape') finish(); else begin(); });
