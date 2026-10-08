@@ -741,6 +741,7 @@ const SFX = (() => {
       if (MU.on) return; MU.on = true; MU.step = 0; MU.next = now() + .08; clearInterval(MU.timer); MU.timer = setInterval(musicTick, 60); },
     musicBpm(b) { MU.bpm = b; },
     musicStop() { if (!MU.on || !ac) return; MU.on = false; clearInterval(MU.timer); MU.g.gain.cancelScheduledValues(now()); MU.g.gain.setTargetAtTime(.0001, now(), .25); },
+    count(i, last) { if (!ok()) return; const f = 220 * Math.pow(2, i * 2 / 12); tone('triangle', f, f * .94, last ? .12 : .06, last ? .24 : .15, { lp: 1500 }); if (last) tone('sine', f / 2, f / 2, .14, .3); },
     tick() { if (!ok()) return; tone('sine', 196, 180, .18, .32); },
     hold(p) { if (ac) { try { p ? ac.suspend() : ac.resume(); } catch (e) {} } },
     start() { if (!ok()) return; tone('sine', 110, 220, .38, .4); tone('triangle', 165, 330, .32, .14, { delay: .08, lp: 1400 }); },
@@ -837,15 +838,38 @@ let clearAt = 0;
 function showLevelResults(bonus, allies) {
   state = 'clear'; clearAt = performance.now(); touching = false; for (const k in keys) keys[k] = false; $('pauseBtn').hidden = true; $('banner').classList.remove('on');
   $('kicker').textContent = 'Ronda completada'; $('lvlTitle').textContent = `Ronda ${wave}`;
-  const row = (a, b, c = '') => `<li class="${c}"><span>${a}</span><b>${b}</b></li>`;
-  $('lvlStats').innerHTML = row('Puntos de la ronda', '+' + Math.max(0, score - waveScore0))
-    + row('Bonus por cuidar lo nuestro', '+' + bonus) + row('Mejor combo', waveCombo)
-    + row('Errores (drones nuestros)', waveAllyHits) + row('Respeto', Math.max(0, Math.round(respect)) + '%')
-    + row('Puntos totales', score, 'tot');
-  setMode('level'); SFX.clear();
+  const row = (a, v, pre = '', suf = '', c = '') => `<li class="${c}"><span>${a}</span><b data-v="${v}" data-pre="${pre}" data-suf="${suf}">${pre}0${suf}</b></li>`;
+  $('lvlStats').innerHTML = row('Puntos de la ronda', Math.max(0, score - waveScore0), '+')
+    + row('Bonus por cuidar lo nuestro', bonus, '+') + row('Mejor combo', waveCombo)
+    + row('Errores (drones nuestros)', waveAllyHits) + row('Respeto', Math.max(0, Math.round(respect)), '', '%')
+    + row('Puntos totales', score, '', '', 'tot');
+  setMode('level'); SFX.clear(); countRows();
+}
+// CountUp (ReactBits): los números suben de 0 al valor, fila por fila de arriba hacia abajo, con un tic grave por cada uno
+let countTok = 0;
+async function countRows() {
+  const tok = ++countTok, els = [...document.querySelectorAll('#lvlStats b')], DUR = 750, GAP = 140;
+  const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if (reduce) { els.forEach(e => e.textContent = e.dataset.pre + e.dataset.v + e.dataset.suf); return; }
+  await new Promise(r => setTimeout(r, 450));
+  for (let i = 0; i < els.length; i++) {
+    const e = els[i], v = +e.dataset.v, t0 = performance.now(); let lastTick = 0, lastN = -1;
+    await new Promise(res => {
+      const step = now => {
+        if (tok !== countTok) return res();
+        const k = Math.min(1, (now - t0) / DUR), n = Math.round(v * (1 - Math.pow(1 - k, 3)));
+        e.textContent = e.dataset.pre + n + e.dataset.suf;
+        if (n !== lastN && now - lastTick > 55 && k < 1) { SFX.count(i); lastTick = now; }
+        lastN = n; if (k < 1) requestAnimationFrame(step); else res();
+      };
+      requestAnimationFrame(step);
+    });
+    if (tok !== countTok) return;
+    SFX.count(i, true); await new Promise(r => setTimeout(r, GAP));
+  }
 }
 function nextLevel() {
-  if (state !== 'clear') return;
+  if (state !== 'clear') return; countTok++;
   $('card').hidden = true; state = 'play'; wave++; SFX.musicBpm(Math.min(120, 92 + (wave - 1) * 4)); bullets = []; buildWave(); $('pauseBtn').hidden = false;
 }
 $('nextBtn').onclick = nextLevel;
