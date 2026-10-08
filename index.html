@@ -54,7 +54,14 @@
         box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(116,192,245,.05)}
   .card[data-mode=menu]{background:none;border-color:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;overflow:visible;gap:max(14px,2.4cqw)}
   .card>*{display:none}
-  .card[data-mode=menu]>#credLink{display:inline-block}
+  .card[data-mode=menu]>#credLink{display:inline-block} .card[data-mode=menu]>#visSw{display:flex}
+  .visSw{flex-direction:column;align-items:center;gap:8px;margin-top:6px}
+  .visLbl{font:600 12px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .seg{display:inline-flex;border:1px solid #2b3256;border-radius:10px;overflow:hidden;background:rgba(10,14,32,.6)}
+  .seg button{font:600 14px/1 var(--body);color:#aab4d6;background:none;border:0;padding:.65em 1.1em;cursor:pointer;transition:background .2s,color .2s}
+  .seg button+button{border-left:1px solid #2b3256} .seg button:hover{color:#fff}
+  .seg button[aria-pressed=true]{background:#1a2040;color:#fff;box-shadow:inset 0 -2px 0 var(--pink)}
+  #stage #visPrev{position:static;display:block;inset:auto;width:300px;height:76px;pointer-events:none}
   .card[data-mode=menu]>#menuBtns{margin-top:max(22px,3.4cqw)} .card[data-mode=credits]>#cred{display:flex}
   .credLink{position:fixed;left:0;right:0;bottom:max(18px,env(safe-area-inset-bottom));margin:0 auto;width:max-content;z-index:5;pointer-events:auto;color:var(--muted);font-size:clamp(13px,1.6cqw,16px);text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(143,160,208,.4);letter-spacing:.04em}
   .credLink:hover,.credLink:focus-visible{color:#fff;text-decoration-color:var(--pink);outline:none}
@@ -241,6 +248,11 @@
       <div class="row" id="menuBtns">
         <button class="sb" id="newBtn" type="button">Nueva partida</button>
         <button class="gh" id="podBtn" type="button">Ver ranking</button>
+      </div>
+      <div class="visSw" id="visSw">
+        <span class="visLbl">Estilo visual (prueba)</span>
+        <div class="seg" role="group" aria-label="Estilo visual"><button type="button" data-vis="dots">Drones 3D</button><button type="button" data-vis="icon">Íconos</button></div>
+        <canvas id="visPrev" aria-hidden="true"></canvas>
       </div>
       <a class="credLink" id="credLink" href="#creditos">Créditos</a>
       <div class="cred" id="cred">
@@ -575,6 +587,35 @@ function outlineText(txt, w, h, gap, color) {
   g.letterSpacing = sp + 'px'; g.fillText(txt, 0, h / 2 + 3);
   return ringPts(g.getImageData(0, 0, w, h).data, w, h, gap, color);
 }
+function skeletonText(txt, w, h, gap, color) { // letras de un solo trazo (esqueleto de la tipografía): se leen mucho mejor en drones
+  const o = document.createElement('canvas'); o.width = w; o.height = h; const g = o.getContext('2d');
+  g.fillStyle = '#000'; g.textBaseline = 'middle'; g.textAlign = 'left';
+  const size = h - 2; g.font = `700 ${size}px Arial, Helvetica, sans-serif`;
+  const base = g.measureText(txt).width, sp = Math.max(2, (w - base) / (txt.length - 1));
+  g.letterSpacing = sp + 'px'; g.fillText(txt, 0, h / 2 + 3);
+  const d = g.getImageData(0, 0, w, h).data, m = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) m[i] = d[i * 4 + 3] > 127 ? 1 : 0;
+  for (let changed = true, it = 0; changed && it < 40; it++) { changed = false; // adelgazamiento Zhang-Suen
+    for (const step of [0, 1]) { const del = [];
+      for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) { const i = y * w + x; if (!m[i]) continue;
+        const P = [m[i - w], m[i - w + 1], m[i + 1], m[i + w + 1], m[i + w], m[i + w - 1], m[i - 1], m[i - w - 1]];
+        const B = P.reduce((a, b) => a + b, 0); if (B < 2 || B > 6) continue;
+        let A = 0; for (let k = 0; k < 8; k++) if (!P[k] && P[(k + 1) % 8]) A++; if (A !== 1) continue;
+        if (step === 0 ? (P[0] * P[2] * P[4] || P[2] * P[4] * P[6]) : (P[0] * P[2] * P[6] || P[0] * P[4] * P[6])) continue;
+        del.push(i); }
+      for (const i of del) m[i] = 0; if (del.length) changed = true; } }
+  const out = [], cols = Math.ceil(w / gap) + 1, grid = new Map();
+  // primero las puntas y cruces (así las letras no quedan cortas), después el resto del trazo
+  const nb = i => m[i - w] + m[i - w + 1] + m[i + 1] + m[i + w + 1] + m[i + w] + m[i + w - 1] + m[i - 1] + m[i - w - 1];
+  const order = []; for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) { const i = y * w + x; if (m[i]) order.push([x, y, nb(i) === 1 ? 0 : nb(i) > 2 ? 1 : 2]); }
+  order.sort((a, b) => a[2] - b[2]);
+  for (const [x, y] of order) {
+    const gx = Math.floor(x / gap), gy = Math.floor(y / gap); let ok = true;
+    for (let j = gy - 1; j <= gy + 1 && ok; j++) for (let i = gx - 1; i <= gx + 1 && ok; i++) { const l = grid.get(j * cols + i); if (l) for (const p of l) if ((p.x - x) ** 2 + (p.y - y) ** 2 < gap * gap) { ok = false; break; } }
+    if (ok) { const p = { x, y, c: color }; out.push(p); const k = gy * cols + gx; (grid.get(k) || grid.set(k, []).get(k)).push(p); }
+  }
+  return out;
+}
 const LOGO_D = 150;
 const logoSprite = () => { // isologotipo solo con contorno: anillo, línea central y dos triángulos (sin relleno)
   const pts = [], f = LOGO_D / 136, put = (x, y) => pts.push({ x: x * f, y: y * f, c: RED });
@@ -611,6 +652,187 @@ const starSprite = () => sample(72, 72, (g, w, h) => {
   g.fill();
 });
 const ALLY_SPRITES = [flagSprite, ballSprite, tenSprite, starSprite];
+
+// ---------- Estilo visual de prueba: 'dots' (drones con profundidad 3D) o 'icon' (íconos sólidos que se agujerean) ----------
+let visMode = (() => { try { return localStorage.getItem('sancor_vis') || 'dots'; } catch { return 'dots'; } })();
+const ALLY_KINDS = ['flag', 'ball', 'ten', 'star'];
+const allyM = () => mobileView ? 1.45 : 1, allyGap = () => mobileView ? 4.1 : 2.6;
+function maskPts(w, h, draw, gap, fill, edge) { // relleno en grilla hexagonal + borde de otro color, sin superposición
+  const o = document.createElement('canvas'); o.width = w; o.height = h; const g = o.getContext('2d'); draw(g, w, h);
+  const m = g.getImageData(0, 0, w, h).data, on = (x, y) => m[(Math.floor(y) * w + Math.floor(x)) * 4 + 3] > 127;
+  const out = ringPts(m, w, h, gap, edge), ring = out.slice(), rh = gap * .87;
+  for (let y = gap / 2, r = 0; y < h; y += rh, r++) for (let x = gap / 2 + (r & 1) * gap / 2; x < w; x += gap)
+    if (on(x, y) && ring.every(p => (p.x - x) ** 2 + (p.y - y) ** 2 >= (gap * .8) ** 2)) out.push({ x, y, c: fill });
+  return out;
+}
+// Pelota: icosaedro truncado (12 pentágonos negros, el resto blanco)
+const BALL = (() => {
+  const f = (1 + Math.sqrt(5)) / 2, V = [], nrm = v => { const l = Math.hypot(...v); return v.map(a => a / l); };
+  for (const a of [-1, 1]) for (const b of [-f, f]) V.push(nrm([0, a, b]), nrm([a, b, 0]), nrm([b, 0, a]));
+  const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], cr = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  const near = Math.max(...V.slice(1).map(v => dot3(V[0], v)));
+  const pents = V.map(v => {
+    const ns = V.filter(n => n !== v && dot3(v, n) > near - 1e-6), ux = nrm(cr(v, Math.abs(v[0]) < .9 ? [1, 0, 0] : [0, 1, 0])), uy = cr(v, ux);
+    const ps = ns.map(n => nrm(v.map((a, i) => a + (n[i] - a) / 3))).sort((p, q) => Math.atan2(dot3(p, uy), dot3(p, ux)) - Math.atan2(dot3(q, uy), dot3(q, ux)));
+    return { c: v, ps, ns };
+  });
+  const seams = []; pents.forEach((P, i) => P.ns.forEach(n => { const j = V.indexOf(n); if (j > i) seams.push([nrm(P.c.map((a, k) => a + (n[k] - a) / 3)), nrm(n.map((a, k) => a + (P.c[k] - a) / 3))]); }));
+  const inPent = p => pents.some(P => dot3(p, P.c) > .78 && P.ps.every((a, i) => dot3(p, cr(a, P.ps[(i + 1) % 5])) * dot3(P.c, cr(a, P.ps[(i + 1) % 5])) >= 0));
+  return { pents, seams, inPent };
+})();
+function rotBall(g, u, o) { // gira la pelota: eje vertical + inclinación
+  const a = g.age * 1.5 * (g.dir || 1), b = .38, ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(b), sb = Math.sin(b);
+  const x1 = u[0] * ca + u[2] * sa, z1 = -u[0] * sa + u[2] * ca;
+  o[0] = x1; o[1] = u[1] * cb - z1 * sb; o[2] = u[1] * sb + z1 * cb; return o;
+}
+function makeAlly(kind) {
+  const M = allyM(), gap = allyGap(), pts = []; let w, h, extra = {};
+  if (kind === 'flag') {
+    const rows = mobileView ? 12 : 15, cols = Math.round(rows * 1.6), per = rows / 3, px = gap * 2.2;
+    const FW = cols * gap, FH = rows * gap, scx = px + FW / 2, scy = FH / 2 + gap;
+    const sunR = gap * per * .42;
+    for (let r = 0; r < rows; r++) for (let q = 0; q < cols; q++) {
+      const x = px + (q + .5) * gap, y = gap + (r + .5) * gap;
+      if (Math.hypot(x - scx, y - scy) < sunR + gap * .55) continue;
+      pts.push({ x, y, c: r >= per && r < 2 * per ? '#ffffff' : '#6cb4ee' });
+    }
+    pts.push({ x: scx, y: scy, c: GOLD });
+    const ring = n => { for (let i = 0; i < n; i++) { const a = i / n * 2 * Math.PI; pts.push({ x: scx + Math.cos(a) * sunR * .55, y: scy + Math.sin(a) * sunR * .55, c: GOLD }); } };
+    ring(mobileView ? 4 : 6);
+    const nr = mobileView ? 8 : 12; for (let i = 0; i < nr; i++) { const a = i / nr * 2 * Math.PI + .26; pts.push({ x: scx + Math.cos(a) * sunR * 1.12, y: scy + Math.sin(a) * sunR * 1.12, c: '#ffdc6e' }); }
+    for (let y = 0; y <= FH + gap * 4; y += gap) pts.push({ x: gap * .6, y: y + gap * .5, c: '#d9e1ec', pole: 1 });  // mástil
+    pts.push({ x: gap * .6, y: -gap * .4, c: GOLD, pole: 1 });
+    w = px + FW + gap; h = FH + gap * 6; extra = { fx: px, fw: FW, fh: FH, fy: gap, sunR, scx, scy };
+  } else if (kind === 'ball') {
+    const BR = 20 * M, gb = gap * 1.08, N = Math.round(4 * Math.PI * BR * BR / (gb * gb * .87)), ga = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < N; i++) {
+      const y = 1 - 2 * (i + .5) / N, r = Math.sqrt(1 - y * y), u = [Math.cos(ga * i) * r, y, Math.sin(ga * i) * r];
+      if (!BALL.inPent(u)) pts.push({ x: 0, y: 0, u, c: '#ffffff' });
+    }
+    w = h = BR * 2 + 4; extra = { BR };
+  } else if (kind === 'ten') {
+    const TW = Math.round(50 * M), TH = Math.round(42 * M);
+    maskPts(TW, TH, (g, w, h) => { g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.font = `${Math.round(h * 1.22)}px Anton, Impact, "Arial Black", sans-serif`; g.fillStyle = '#fff'; g.fillText('10', w / 2, h - 1); }, gap, '#ffffff', CELESTE).forEach(p => pts.push(p));
+    w = TW; h = TH;
+  } else {
+    const S = Math.round(44 * M);
+    maskPts(S, S, (g, w, h) => { g.fillStyle = '#fff'; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? w * .2 : w * .48; g.lineTo(w / 2 + Math.cos(a) * r, h / 2 + 1 + Math.sin(a) * r); } g.fill(); }, gap, GOLD, '#fff1a6').forEach(p => pts.push(p));
+    w = h = S;
+  }
+  const g = { x: -999, y: 0, vx: 0, vy: 0, ally: true, kind, w, h, gap, ph: Math.random() * 6, age: 0, ...extra,
+    dots: pts.map(p => ({ x: p.x, y: p.y, bx: p.x, by: p.y, u: p.u, pole: p.pole, c: p.c, rs: ALLY_DOT, alive: true, delay: Math.random() * .9, sx: rnd(-40, W + 40), sy: rnd(H * .55, H + 80), sc: 1, al: 1 })) };
+  animGroup(g); return g;
+}
+const _r3 = [0, 0, 0];
+const flagWave = (g, x) => { const k = Math.max(0, (x - g.fx) / g.fw), ph = (x - g.fx) * .16 / allyM() - g.age * 5; return [Math.sin(ph) * 3.2 * allyM() * k, .8 + .2 * Math.cos(ph)]; };
+function animGroup(g) { // posiciones 3D -> 2D de cada frame (las colisiones usan estas mismas posiciones)
+  if (!g.ally) {
+    if (visMode !== 'dots' || !g.cw) return;
+    const a = Math.sin(g.age * .9) * .2, ca = Math.cos(a), sa = Math.sin(a), cx = g.cw / 2;
+    for (const d of g.dots) { const z = (d.bx - cx) / cx * sa; d.x = cx + (d.bx - cx) * ca; d.sc = 1 + .22 * z; d.al = .84 + .16 * z; }
+    return;
+  }
+  const k = g.kind;
+  if (k === 'flag') for (const d of g.dots) { if (d.pole) continue; const [dy, sh] = flagWave(g, d.bx); d.y = d.by + dy; d.al = sh; d.sc = .9 + .15 * sh; }
+  else if (k === 'ball') {
+    const R0 = g.w / 2; for (const d of g.dots) {
+      const p = rotBall(g, d.u, _r3); d.x = R0 + p[0] * g.BR; d.y = R0 + p[1] * g.BR; d.back = p[2] < .08;
+      const l = Math.max(0, -.42 * p[0] - .5 * p[1] + .76 * p[2]); d.al = .3 + .7 * l; d.sc = .7 + .35 * p[2];
+    }
+  } else {
+    const spin = k === 'star', a = spin ? g.age * 2.2 : Math.sin(g.age * 1.6) * .55, ca = Math.cos(a), sa = Math.sin(a), cx = g.w / 2;
+    for (const d of g.dots) { const z = (d.bx - cx) / cx * sa; d.x = cx + (d.bx - cx) * ca; d.sc = 1 + .2 * z; d.al = spin ? .45 + .55 * Math.abs(ca) : .82 + .18 * ca + .1 * z; }
+  }
+}
+// --- modo ícono: arte vectorial cacheado; cada drone destruido abre un agujero ---
+function iconBuf(g, key, w, h, k) {
+  let o = g[key]; const cw = Math.ceil(w * k), ch = Math.ceil(h * k);
+  if (!o || o.width !== cw || o.height !== ch) { o = g[key] = document.createElement('canvas'); o.width = cw; o.height = ch; g[key + 'n'] = -1; }
+  return o;
+}
+function holes(c, g, pad, use3d) {
+  c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000';
+  const hr = g.ally ? Math.max(g.gap * 1.25, 3.4) : ogap() * K * 1.05;
+  for (const d of g.dots) if (!d.alive && (!use3d || !d.back)) { c.beginPath(); c.arc((use3d ? d.x : d.bx) + pad, (use3d ? d.y : d.by) + pad, hr, 0, 7); c.fill(); }
+  c.globalCompositeOperation = 'source-over';
+}
+const PAD = 8;
+function flatArt(g, k) { // dibujo plano (sin animar) + agujeros; se rehace solo si murió algún drone o cambió la escala
+  const o = iconBuf(g, 'flat', g.w + PAD * 2, g.h + PAD * 2, k), n = g.dots.reduce((s, d) => s + d.alive, 0);
+  if (g.flatn === n && g.flatk === k) return o; g.flatn = n; g.flatk = k;
+  const c = o.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, o.width, o.height); c.setTransform(k, 0, 0, k, PAD * k, PAD * k);
+  if (!g.ally) { // invasor: tubo de neón sobre el contorno del logo y las letras
+    const f = LOGO_D / 136, path = (c) => {
+      c.beginPath(); c.arc(68 * f, 68 * f, 62 * f, 0, 7); c.moveTo(8 * f, 68 * f); c.lineTo(128 * f, 68 * f);
+      c.moveTo(36 * f, 56 * f); c.lineTo(82 * f, 14 * f); c.lineTo(82 * f, 56 * f); c.closePath();
+      c.moveTo(54 * f, 80 * f); c.lineTo(54 * f, 122 * f); c.lineTo(100 * f, 80 * f); c.closePath();
+    };
+    c.save(); c.scale(K, K); c.lineJoin = 'round'; c.lineCap = 'round';
+    const txt = (s, y) => { c.font = '700 68px Arial, Helvetica, sans-serif'; c.textBaseline = 'middle'; c.textAlign = 'left'; c.letterSpacing = '0px'; const base = c.measureText(s).width, sp = Math.max(2, (440 - base) / (s.length - 1)); c.letterSpacing = sp + 'px'; c.strokeText(s, LOGO_D + 20, y + 35 + 3); c.letterSpacing = '0px'; };
+    for (const [col, lw, blur] of [[RED, 3.4, 7], ['#ffe1e7', 1.1, 0]]) {
+      c.strokeStyle = col; c.lineWidth = lw; c.shadowColor = RED; c.shadowBlur = blur * k;
+      path(c); c.stroke(); txt('SANCOR', 2); txt('SEGUROS', 76);
+    }
+    c.restore();
+  } else if (g.kind === 'flag') {
+    const { fx, fy, fw, fh, scx, scy, sunR } = g;
+    { const gr = c.createLinearGradient(0, 0, g.gap * 1.2, 0); gr.addColorStop(0, '#8d97a8'); gr.addColorStop(.5, '#ffffff'); gr.addColorStop(1, '#7c8698'); c.fillStyle = gr; c.fillRect(0, -g.gap * .2, g.gap * 1.2, g.h); }
+    c.fillStyle = GOLD; c.beginPath(); c.arc(g.gap * .6, -g.gap * .4, g.gap * .9, 0, 7); c.fill();
+    c.fillStyle = '#6cb4ee'; c.fillRect(fx, fy, fw, fh); c.fillStyle = '#ffffff'; c.fillRect(fx, fy + fh / 3, fw, fh / 3);
+    c.save(); c.translate(scx, scy); c.fillStyle = '#e8a417';
+    for (let i = 0; i < 32; i++) { c.rotate(Math.PI / 16); c.beginPath(); if (i % 2) { c.moveTo(-sunR * .12, 0); c.lineTo(0, -sunR * 1.45); c.lineTo(sunR * .12, 0); } else { c.moveTo(-sunR * .1, 0); c.quadraticCurveTo(sunR * .25, -sunR * .8, 0, -sunR * 1.3); c.quadraticCurveTo(sunR * .05, -sunR * .8, sunR * .1, 0); } c.fill(); }
+    const sg = c.createRadialGradient(-sunR * .2, -sunR * .2, 0, 0, 0, sunR * .62); sg.addColorStop(0, '#fff2b0'); sg.addColorStop(1, '#f2b416'); c.fillStyle = sg; c.beginPath(); c.arc(0, 0, sunR * .62, 0, 7); c.fill();
+    c.strokeStyle = '#a8740c'; c.lineWidth = .5; c.stroke(); c.restore();
+  } else if (g.kind === 'ten') {
+    c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.font = `${Math.round(g.h * 1.22)}px Anton, Impact, "Arial Black", sans-serif`; c.lineJoin = 'round';
+    c.shadowColor = CELESTE; c.shadowBlur = 8 * k; c.strokeStyle = CELESTE; c.lineWidth = 3.2 * allyM(); c.strokeText('10', g.w / 2, g.h - 1); c.shadowBlur = 0;
+    const gr = c.createLinearGradient(0, 0, 0, g.h); gr.addColorStop(0, '#ffffff'); gr.addColorStop(1, '#d6e6f7'); c.fillStyle = gr; c.fillText('10', g.w / 2, g.h - 1);
+  } else { // estrella dorada con biselado (cada punta en dos caras de luz)
+    const cx = g.w / 2, cy = g.h / 2 + 1, P = i => { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? g.w * .2 : g.w * .48; return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]; };
+    c.shadowColor = GOLD; c.shadowBlur = 10 * k; c.fillStyle = GOLD; c.beginPath(); for (let i = 0; i < 10; i++) c.lineTo(...P(i)); c.fill(); c.shadowBlur = 0;
+    for (let i = 0; i < 10; i++) { const a = P(i), b = P((i + 1) % 10); c.fillStyle = i % 2 ? '#c98a06' : '#ffe58a'; if (i >= 5) c.fillStyle = i % 2 ? '#a86f04' : '#f5c63a'; c.beginPath(); c.moveTo(cx, cy); c.lineTo(...a); c.lineTo(...b); c.fill(); }
+    c.strokeStyle = '#fff4c2'; c.lineWidth = .6; c.beginPath(); for (let i = 0; i < 10; i++) c.lineTo(...P(i)); c.closePath(); c.stroke();
+  }
+  c.setTransform(k, 0, 0, k, PAD * k, PAD * k); holes(c, g, 0, false);
+  return o;
+}
+const _p0 = [0, 0, 0], _p1 = [0, 0, 0];
+function ballArt(g, k) { // la pelota se dibuja en 3D cada cuadro
+  const o = iconBuf(g, 'ballc', g.w + PAD * 2, g.h + PAD * 2, k), c = o.getContext('2d'), R0 = g.w / 2, BR = g.BR;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, o.width, o.height); c.setTransform(k, 0, 0, k, (PAD + R0) * k, (PAD + R0) * k);
+  c.save(); c.beginPath(); c.arc(0, 0, BR, 0, 7); c.clip();
+  c.fillStyle = '#f4f7fb'; c.fillRect(-BR, -BR, BR * 2, BR * 2);
+  c.strokeStyle = '#8f9bb0'; c.lineWidth = .7; c.beginPath();
+  for (const [a, b] of BALL.seams) { const p = rotBall(g, a, _p0), q = rotBall(g, b, _p1); if (p[2] > -.1 && q[2] > -.1) { c.moveTo(p[0] * BR, p[1] * BR); c.lineTo(q[0] * BR, q[1] * BR); } }
+  c.stroke(); c.fillStyle = '#141a26'; c.strokeStyle = '#8f9bb0';
+  for (const P of BALL.pents) { const cz = rotBall(g, P.c, _p0)[2]; if (cz < -.3) continue; c.beginPath(); for (const v of P.ps) { const p = rotBall(g, v, _p1); c.lineTo(p[0] * BR, p[1] * BR); } c.closePath(); c.fill(); c.stroke(); }
+  const sh = c.createRadialGradient(-BR * .4, -BR * .45, BR * .1, 0, 0, BR * 1.02); sh.addColorStop(0, 'rgba(255,255,255,.35)'); sh.addColorStop(.55, 'rgba(20,30,60,0)'); sh.addColorStop(1, 'rgba(10,16,40,.6)');
+  c.fillStyle = sh; c.fillRect(-BR, -BR, BR * 2, BR * 2); c.restore();
+  c.strokeStyle = 'rgba(160,210,255,.55)'; c.lineWidth = 1; c.beginPath(); c.arc(0, 0, BR - .3, 0, 7); c.stroke();
+  c.setTransform(k, 0, 0, k, PAD * k, PAD * k); holes(c, g, 0, true);
+  return o;
+}
+function drawIcon(c, g, k) { // dibuja un grupo en modo ícono en el contexto c (k = píxeles por unidad lógica)
+  const fade = g.ally ? 1 : Math.max(0, Math.min(1, (g.age - .3) / 1.1));
+  if (!fade) return;
+  c.save(); c.globalCompositeOperation = 'source-over'; c.globalAlpha = fade;
+  if (g.kind === 'ball') c.drawImage(ballArt(g, k), g.x - PAD, g.y - PAD, g.w + PAD * 2, g.h + PAD * 2);
+  else {
+    const o = flatArt(g, k), ow = g.w + PAD * 2, oh = g.h + PAD * 2;
+    if (g.kind === 'flag') { // la tela flamea en tiras verticales; el mástil queda fijo
+      const sw = 1.5, x0 = g.fx; c.drawImage(o, 0, 0, (x0 + PAD) * k, o.height, g.x - PAD, g.y - PAD, x0 + PAD, oh);
+      for (let x = x0; x < g.fx + g.fw + PAD; x += sw) {
+        const [dy, s] = flagWave(g, x); c.globalAlpha = .55 + .45 * s;
+        c.drawImage(o, (x + PAD) * k, 0, Math.min(sw * k + 1, o.width - (x + PAD) * k), o.height, g.x + x, g.y - PAD + dy, sw + .05, oh);
+      }
+    } else if (g.kind === 'ten' || g.kind === 'star') {
+      const a = g.kind === 'star' ? g.age * 2.2 : Math.sin(g.age * 1.6) * .55, ca = Math.cos(a);
+      c.globalAlpha = g.kind === 'star' ? .55 + .45 * Math.abs(ca) : .85 + .15 * ca;
+      c.translate(g.x + g.w / 2, g.y + g.h / 2); c.scale(ca, 1); c.drawImage(o, -ow / 2, -oh / 2, ow, oh);
+    } else c.drawImage(o, g.x - PAD, g.y - PAD, ow, oh);
+  }
+  c.restore();
+}
 
 // ---------- Glow sprites (aditivos) ----------
 const glowCache = {};
@@ -719,7 +941,7 @@ function makeGroup(pts, x, y, vx, vy, ally) {
   pts = pts.map(p => ({ ...p, x: p.x * k, y: p.y * k })); if (ally) pts = thin(pts, mobileView ? 4.2 : 2.3);
   let w = 0, h = 0; pts.forEach(p => { w = Math.max(w, p.x + STEP * k / 2); h = Math.max(h, p.y + STEP * k / 2); });
   return { x, y, vx, vy, ally, w, h, ph: Math.random() * 6, age: 0,
-    dots: pts.map(p => ({ x: p.x, y: p.y, c: p.c, rs: ally ? ALLY_DOT : 1, alive: true, delay: Math.random() * .9,
+    cw: w, dots: pts.map(p => ({ x: p.x, y: p.y, bx: p.x, by: p.y, c: p.c, rs: ally ? ALLY_DOT : 1, sc: 1, al: 1, alive: true, delay: Math.random() * .9,
       sx: rnd(-40, W + 40), sy: rnd(H * .55, H + 80) })) };
 }
 function dpos(g, d, o) { // los drones vuelan a su lugar al comenzar la ronda (o: arreglo reutilizable, evita basura por cuadro)
@@ -735,16 +957,16 @@ function buildWave() {
   const sp = 1 + (wave - 1) * .18;
   const dots = [];
   logoSprite().forEach(p => dots.push(p));
-  outlineText('SANCOR', 440, 70, ogap(), RED).forEach(p => dots.push({ ...p, x: p.x + LOGO_D + 20, y: p.y + 2 }));
-  outlineText('SEGUROS', 440, 70, ogap(), RED).forEach(p => dots.push({ ...p, x: p.x + LOGO_D + 20, y: p.y + 76 }));
+  const letters = visMode === 'icon' ? (t) => outlineText(t, 440, 70, ogap(), RED) : (t) => skeletonText(t, 440, 70, 8, RED); // íconos: drones sobre el contorno del neón; drones: sobre el trazo central
+  letters('SANCOR').forEach(p => dots.push({ ...p, x: p.x + LOGO_D + 20, y: p.y + 2 }));
+  letters('SEGUROS').forEach(p => dots.push({ ...p, x: p.x + LOGO_D + 20, y: p.y + 76 }));
   const travel = Math.max(60, STADIUM_TOP - (SANCOR_Y0 + LOGO_D * K));
   const sancor = makeGroup(dots, 0, SANCOR_Y0, 45 * sp, 4 * .612 * sp * travel / 124, false);
   sancor.x = (W - sancor.w) / 2; groups.push(sancor);
   if (wave >= 2) {
     const n = wave - 1; // ronda 2: 1 elemento, ronda 3: 2, ... uno más por nivel
     for (let i = 0; i < n; i++) { // pasan de lado a lado, desaparecen y vuelven (no están todo el tiempo en pantalla)
-      curStep = mobileView ? 5 : 3.8;                       // en desktop los dibujos se muestrean más fino: más detalle con dots más chicos
-      const a = makeGroup(ALLY_SPRITES[i % ALLY_SPRITES.length](), -999, 0, 0, 0, true); curStep = STEP;
+      const a = makeAlly(ALLY_KINDS[i % ALLY_KINDS.length]);
       a.age = 3; a.hidden = true; a.wait = rnd(.6, 2.2) + i * .9; a.dir = i % 2 ? 1 : -1; a.sp = sp; groups.push(a);
     }
   }
@@ -1022,6 +1244,30 @@ async function submitScore() {
   try { const res = await api('POST', { name, score: sc, wave: w }); if (res) show(res); } catch (e) {}   // si hay ranking global, lo reemplaza
 }
 let lastRes = null, cardBefore = 'menu';
+function setVis(m) {
+  visMode = m; try { localStorage.setItem('sancor_vis', m); } catch {}
+  document.querySelectorAll('#visSw [data-vis]').forEach(b => b.setAttribute('aria-pressed', b.dataset.vis === m));
+  for (const g of groups) { g.flat = g.ballc = null; if (!g.ally) for (const d of g.dots) { d.x = d.bx; d.sc = d.al = 1; } }
+}
+document.querySelectorAll('#visSw [data-vis]').forEach(b => b.addEventListener('click', () => { setVis(b.dataset.vis); SFX.ui && SFX.ui('card'); }));
+setVis(visMode);
+// muestra animada de los 4 elementos "nuestros" en el menú, con el estilo elegido
+const visPrev = (() => {
+  const cv = $('visPrev'), c = cv.getContext('2d'), LW = 300, LH = 76; let gs = null, last = 0;
+  return t => {
+    if (!gs) { const mv = mobileView; mobileView = false; let x = 6; gs = ALLY_KINDS.map(k => { const g = makeAlly(k); g.x = x; g.y = (LH - g.h) / 2 + (k === 'flag' ? 3 : 0); x += g.w + 14; return g; }); mobileView = mv; const off = (LW - x + 14) / 2 - 6; gs.forEach(g => g.x += off); }
+    const dpr = Math.min(devicePixelRatio || 1, 2), k = dpr; if (cv.width !== LW * dpr) { cv.width = LW * dpr; cv.height = LH * dpr; }
+    const dt = Math.min(.05, t - (last || t)); last = t;
+    c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(k, 0, 0, k, 0, 0);
+    for (const g of gs) {
+      g.age += dt; animGroup(g);
+      if (visMode === 'icon') { drawIcon(c, g, k); continue; }
+      c.globalCompositeOperation = 'lighter';
+      for (const d of g.dots) if (!d.back) { c.globalAlpha = .95 * d.al; sdot(c, g.x + d.x, g.y + d.y, d.c, R * d.rs * .525 * d.sc); }
+      c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
+    }
+  };
+})();
 const setMode = m => { const c = $('card'); const was = c.dataset.mode; c.dataset.mode = m; c.hidden = false; if (m === 'menu' && was !== 'menu') splitTitle(); };
 function renderPodium(res) {
   const ol = $('board'); ol.innerHTML = '';
@@ -1274,7 +1520,7 @@ function update(dt) {
 
   let enemies = 0, allies = 0, lowest = -1e9;
   for (const g of groups) {
-    g.age += dt;
+    g.age += dt; animGroup(g);
     if (g.ally) {
       if (g.hidden) { g.wait -= dt; if (g.wait <= 0) { // sale otra vez, desde el lado contrario y a otra altura
         const yMin = SANCOR_Y0 + 120, yMax = Math.max(yMin + 20, STADIUM_TOP - 70); g.dir = -g.dir; g.y = rnd(yMin, yMax);
@@ -1296,7 +1542,7 @@ function update(dt) {
     let best = null, bd = HIT * HIT, bg = null, bp;
     const sx = b.x - x0, sy = b.y - y0, sl = sx * sx + sy * sy || 1; // colisión sobre todo el tramo recorrido (no se salta drones)
     for (const g of groups) if (!g.hidden) for (const d of g.dots) {
-      if (!d.alive) continue; const p = dpos(g, d); if (!d.ready) continue;
+      if (!d.alive || d.back) continue; const p = dpos(g, d); if (!d.ready) continue;
       const t = Math.max(0, Math.min(1, ((p[0] - x0) * sx + (p[1] - y0) * sy) / sl));
       const dx = p[0] - (x0 + sx * t), dy = p[1] - (y0 + sy * t), q = dx * dx + dy * dy;
       if (q < bd) { bd = q; best = d; bg = g; bp = p; }
@@ -1353,11 +1599,12 @@ function draw(t) {
 
   // barrido de brillo sobre los drones (estilo ShinyText)
   const sweep = ((t * 260) % (W + 600)) - 300;
-  for (const g of groups) if (!g.hidden) for (const d of g.dots) if (d.alive) {
+  if (visMode === 'icon') { for (const g of groups) if (!g.hidden) drawIcon(ctx, g, SC); ctx.globalCompositeOperation = 'lighter'; }
+  else for (const g of groups) if (!g.hidden) for (const d of g.dots) if (d.alive && !d.back) {
     const p = dpos(g, d, _dp);
-    let a = .95, r = R * d.rs * (mobileView ? 1.15 : .525);
-    const q = Math.abs(p[0] + p[1] * .6 - sweep); if (q < 60 && d.ready) { const k = 1 - q / 60; r = R * d.rs * (mobileView ? 1.15 : .525) * (1 + .5 * k); a = 1; }
-    dot(p[0], p[1] + Math.sin(t * 2 + g.ph + d.x * .05) * .9, q < 40 && d.ready ? '#ffffff' : d.c, r, a);
+    let a = .95 * d.al, r = R * d.rs * (mobileView ? 1.15 : .525) * d.sc;
+    const q = Math.abs(p[0] + p[1] * .6 - sweep); if (q < 60 && d.ready) { const k = 1 - q / 60; r *= 1 + .5 * k; a = Math.min(1, a + .1); }
+    dot(p[0], p[1] + Math.sin(t * 2 + g.ph + d.bx * .05) * .9, q < 40 && d.ready ? '#ffffff' : d.c, r, a);
   }
   for (const p of parts) dot(p.x, p.y, p.c, p.s * 2.2, Math.max(0, p.l / p.m));
   for (const r of rings) { ctx.globalAlpha = Math.max(0, r.l * 1.8); ctx.strokeStyle = r.c; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, 7); ctx.stroke(); }
@@ -1410,6 +1657,7 @@ function loop(now) {
   // el fondo se anima a 30fps (20 si el equipo va justo); el juego solo se redibuja cuando algo cambia
   if (frameN % (perf ? 3 : 2) === 0) drawBg(now / 1000);
   const key = state + paused; if (key !== lastKey) { lastKey = key; settle = 4; }
+  if (state === 'menu' && $('card').dataset.mode === 'menu' && !$('card').hidden) visPrev(now / 1000);
   if (playing) draw(now / 1000); else if (settle > 0 && state !== 'menu') { settle--; draw(now / 1000); }
   requestAnimationFrame(loop);
 }
