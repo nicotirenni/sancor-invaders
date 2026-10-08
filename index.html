@@ -38,6 +38,7 @@
   #hScore{display:block;font-family:var(--display);font-size:28px;line-height:1.1;font-weight:400;letter-spacing:.02em}
   #hud .hr{text-align:right} #hud .bar{width:min(170px,40vw);height:8px;margin-top:6px;background:rgba(116,192,245,.18);overflow:hidden;border-radius:8px}
   #hBar{display:block;height:100%;width:100%;background:linear-gradient(90deg,#74c0f5,#fff)} #hBar.low{background:#ff5a78}
+  #hud .lives{display:flex;justify-content:flex-end;gap:6px;margin-top:8px} #hud .lives i{width:16px;height:14px;background:#ff5a78;clip-path:path('M8 14 L1.2 7.2 A3.7 3.7 0 0 1 8 2.4 A3.7 3.7 0 0 1 14.8 7.2 Z');filter:drop-shadow(0 0 4px rgba(255,90,120,.7));transition:background .25s,transform .25s} #hud .lives i.off{background:rgba(255,255,255,.16);filter:none;transform:scale(.85)}
   #hudSub{margin-top:5px;font-size:12px;font-weight:700;display:flex;flex-direction:column;gap:3px}
   #bg{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0}
   #wrap{position:absolute;inset:0;z-index:1;display:flex;align-items:flex-end;justify-content:center;container-type:size}
@@ -239,7 +240,7 @@
 <canvas id="sparks"></canvas>
 <div id="hud"><div id="hudRow">
   <div class="hl"><div class="k"><span>PUNTOS</span> · <span id="hWave">RONDA 1</span></div><b id="hScore">0</b></div>
-  <div class="hr"><div class="k">RESPETO</div><div class="bar"><i id="hBar"></i></div></div>
+  <div class="hr"><div class="k">RESPETO</div><div class="bar"><i id="hBar"></i></div><div class="lives" id="hLives" aria-label="Vidas"><i></i><i></i><i></i></div></div>
 </div><div id="hudSub"></div></div>
 <div id="wrap"><canvas id="stadium"></canvas><div id="stage">
     <canvas id="game" width="1200" height="900"></canvas>
@@ -758,10 +759,11 @@ const POWERS = {
   triple: { label: 'x3', name: 'DISPARO TRIPLE', c: '#74c0f5' },
   rapid:  { label: '»',  name: 'FUEGO RÁPIDO',   c: '#7fffd4' },
   heal:   { label: '+',  name: 'RESPETO +25',    c: '#ffffff' },
-  bomb:   { label: '★',  name: '¡GOLAZO!',       c: '#ffc928' }
+  bomb:   { label: '★',  name: '¡GOLAZO!',       c: '#ffc928' },
+  life:   { label: '♥',  name: 'VIDA +1',        c: '#ff5a78' }
 };
 
-const ship = { x: W / 2, y: 310, cd: 0, vx: 0, tilt: 0 };
+const ship = { x: W / 2, y: 310, cd: 0, vx: 0, tilt: 0, inv: 0 };
 const keys = {}; let touching = false;
 const rnd = (a, b) => a + Math.random() * (b - a);
 const ease = k => 1 - Math.pow(1 - k, 3);
@@ -786,22 +788,118 @@ function dpos(g, d, o) { // los drones vuelan a su lugar al comenzar la ronda (o
   const e = ease(k); o[0] = d.sx + (g.x + d.x - d.sx) * e; o[1] = d.sy + (g.y + d.y - d.sy) * e; return o;
 }
 const _dp = [0, 0];
+// Niveles: qué aparece y qué tan difícil es cada uno (20 en total; al superar el 20 se gana)
+const MAX_WAVE = 20;
+const LV_ALLIES = [0, 0, 1, 2, 2, 3, 3, 3, 4, 4, 3, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4];
+const LV_DRONES = [0, 0, 0, 0, 1, 1, 2, 2, 2, 3, 4, 3, 3, 4, 4, 5, 4, 5, 5, 6, 6];
+const LV_FIRE   = [0, 0, 0, 0, 4, 4, 3.8, 3.6, 3.4, 3, 3, 3, 2.8, 2.8, 2.6, 2.6, 2.5, 2.4, 2, 2, 1.9];
+const LV_TIPS = { 4: '¡Cuidado! Los drones isotipo disparan', 6: 'Agarrá los corazones: recuperan un golpe', 7: 'Ahora los drones te apuntan', 8: 'Tiros más rápidos', 9: 'Disparan más seguido',
+  10: 'Nivel especial: formación', 11: 'Los drones aguantan más tiros', 12: 'El invasor se mueve más rápido', 13: 'Tiros dobles', 14: 'Los drones suben y bajan', 15: 'Nivel especial: ráfagas',
+  16: 'Los nuestros pasan más rápido', 17: 'Ráfagas apuntadas', 18: 'Disparan cada 2 segundos', 19: 'Todo junto', 20: 'Final: defendé el Monumental' };
+function lv(w) {
+  w = Math.min(MAX_WAVE, w);
+  return { allies: LV_ALLIES[w], drones: LV_DRONES[w], fire: LV_FIRE[w], aim: w >= 7, bspd: Math.min(250, 150 + Math.max(0, w - 7) * 9), hp: w >= 11 ? 5 : 3,
+    shots: w >= 15 ? 3 : w >= 13 ? 2 : 1, bob: w >= 14, formation: w === 10, allySp: w >= 16 ? 1.25 : 1, tip: LV_TIPS[w] };
+}
+// Drones isotipo: el círculo de Sancor armado con drones; flotan, disparan y aguantan varios tiros
+let foes = [], ebullets = [], lives = 3;
+const FOE_R = 23;
+let foeShape = null, foeShapeMv = null;
+function foePts() {
+  if (foeShape && foeShapeMv === mobileView) return foeShape;
+  const D = FOE_R * 2, S = 3, w = D * S + 4, o = document.createElement('canvas'); o.width = o.height = w; const g = o.getContext('2d');
+  g.setTransform(D * S / 185.27, 0, 0, D * S / 185.27, 2, 2); g.fill(SANCOR_ISO);
+  const pts = ringPts(g.getImageData(0, 0, w, w).data, w, w, (mobileView ? 4.4 : 2.9) * S, RED);
+  foeShapeMv = mobileView; return foeShape = pts.map(p => ({ x: (p.x - w / 2) / S, y: (p.y - w / 2) / S }));
+}
+function makeFoes() {
+  const L = lv(wave), n = L.drones; foes = []; ebullets = [];
+  for (let i = 0; i < n; i++) {
+    const slot = (i + .5) / n;
+    const lane = (W - 80) / n, hx = 40 + lane * (i + .5);                     // cada drone tiene su carril: nunca se pisan
+    foes.push({ i, n, hx, x: hx, y: -60 - i * 30, ty: 0, amp: Math.max(0, lane / 2 - FOE_R - 8), spd: rnd(.5, .8) * (1 + wave * .02), ph: Math.random() * 6,
+      hp: L.hp, max: L.hp, t: rnd(1.5, 3) + i * .5, flash: 0, burst: 0, burstT: 0, age: 0, row: i % 2 });
+  }
+}
+function foeFire(f, L) {
+  const ang0 = L.aim ? Math.atan2(ship.y - f.y, ship.x - f.x) : Math.PI / 2;
+  const shoot = a => { ebullets.push({ x: f.x, y: f.y + 10, vx: Math.cos(a) * L.bspd, vy: Math.sin(a) * L.bspd }); };
+  if (L.shots === 2) { shoot(ang0 - .16); shoot(ang0 + .16); } else shoot(ang0);
+  SFX.eshot(f.x);
+}
+function updateFoes(dt) {
+  if (!foes.length && !ebullets.length) return;
+  const L = lv(wave), logo = groups.find(g => !g.ally);
+  const top = logo ? logo.y + logo.h + 36 : SANCOR_Y0 + 150, bandMax = STADIUM_TOP - 95;
+  const form = L.formation ? Math.sin(performance.now() / 1000 * .7) * 90 : 0;
+  for (const f of foes) {
+    f.age += dt; f.flash = Math.max(0, f.flash - dt);
+    const base = Math.min(bandMax, Math.max(top, SANCOR_Y0 + 170)) + (f.n > 3 ? f.row * 40 : 0);
+    f.ty = Math.min(bandMax, base) + (L.bob ? Math.sin(f.age * 1.6 + f.ph) * 22 : 0);
+    f.y += (f.ty - f.y) * Math.min(1, dt * (f.age < 2 ? 2.5 : 4));
+    if (L.formation) f.x += (f.hx + form - f.x) * Math.min(1, dt * 3);
+    else f.x = f.hx + Math.sin(f.age * f.spd + f.ph) * f.amp;
+    if (f.age < 1.6) continue;                                              // recién llegando: todavía no dispara
+    if (f.burst > 0) { f.burstT -= dt; if (f.burstT <= 0) { f.burst--; f.burstT = .16; foeFire(f, L); } continue; }
+    f.t -= dt;
+    if (f.t <= 0) { f.t = L.fire * rnd(.75, 1.3); if (L.shots === 3) { f.burst = 3; f.burstT = 0; } else foeFire(f, L); }
+  }
+  const hitR = mobileView ? 15 : 12;
+  for (const b of ebullets) {
+    b.x += b.vx * dt; b.y += b.vy * dt;
+    if (ship.inv <= 0 && Math.abs(b.x - ship.x) < hitR && b.y > ship.y - 24 && b.y < ship.y + 18) { b.y = 1e9; hurtShip(); }
+  }
+  ebullets = ebullets.filter(b => b.y < H + 20 && b.x > -20 && b.x < W + 20);
+}
+function hurtShip() {
+  lives--; ship.inv = 1.6; flash = .45; shake = 12; combo = 0; mult = 1;
+  burst(ship.x, ship.y, '#ff5a78', 22, 190); rings.push({ x: ship.x, y: ship.y, r: 6, l: .6, c: '#ff3040' }); SFX.hurt(ship.x);
+  say(lives > 0 ? `¡Te dieron! Te quedan ${lives}` : '¡Te derribaron!');
+  if (lives <= 0) endGame('Te derribaron');
+}
+function hitFoes(x0, y0, x1, y1) { // ¿la bala pegó en un drone isotipo? (colisión sobre todo el tramo)
+  const sx = x1 - x0, sy = y1 - y0, sl = sx * sx + sy * sy || 1, R2 = (FOE_R * (mobileView ? 1.1 : 1) + 3) ** 2;
+  for (const f of foes) {
+    if (f.age < .8) continue;
+    const t = Math.max(0, Math.min(1, ((f.x - x0) * sx + (f.y - y0) * sy) / sl)), dx = f.x - (x0 + sx * t), dy = f.y - (y0 + sy * t);
+    if (dx * dx + dy * dy > R2) continue;
+    f.hp--; f.flash = .12; burst(f.x + dx * -.5, f.y + dy * -.5, RED, 5, 120); SFX.hit(1, f.x, combo);
+    if (f.hp <= 0) {
+      const pts = 150 * mult; score += pts; combo += 3; comboT = 1.6; mult = Math.min(5, 1 + Math.floor(combo / 12));
+      burst(f.x, f.y, RED, 34, 230); burst(f.x, f.y, '#ffffff', 10, 160); rings.push({ x: f.x, y: f.y, r: 8, l: .6, c: '#ffd0da' });
+      pops.push({ x: f.x, y: f.y, t: '+' + pts, l: 1 }); shake = Math.min(6, shake + 3); SFX.boom(f.x); f.dead = true;
+    }
+    foes = foes.filter(q => !q.dead); return true;
+  }
+  return false;
+}
+function drawFoes(t) {
+  const sh = foePts(), r = R * (mobileView ? 1.05 : .5), sc = mobileView ? 1.1 : 1;
+  for (const f of foes) {
+    const dmg = f.hp / f.max, wob = Math.sin(t * 3 + f.ph) * .06;
+    for (const p of sh) dot(f.x + (p.x * Math.cos(wob) - p.y * Math.sin(wob)) * sc, f.y + (p.x * Math.sin(wob) + p.y * Math.cos(wob)) * sc, f.flash > 0 ? '#ffffff' : RED, r, .55 + .45 * dmg);
+    if (f.t < .45 && f.age >= 1.6 && !f.burst) dot(f.x, f.y + 4, '#ffe1e7', 2.2 + (.45 - f.t) * 9, .9);   // aviso: está por disparar
+  }
+  for (const b of ebullets) { dot(b.x - b.vx * .02, b.y - b.vy * .02, '#ff3040', 2.4, .5); dot(b.x, b.y, '#ff3040', 3.6, 1); dot(b.x, b.y, '#ffffff', 1.4, 1); }
+}
 function buildWave() {
   groups = []; if (state === 'play') SFX.whoosh();
-  const sp = 1 + (wave - 1) * .18;
+  const sp = 1 + (Math.min(wave, MAX_WAVE) - 1) * .09, L = lv(wave);
+  const big = wave >= MAX_WAVE ? 1.12 : 1;                                       // final: el invasor es más grande
   const dots = [];
-  sancorPts().forEach(p => dots.push(p));
+  sancorPts().forEach(p => dots.push(big === 1 ? p : { ...p, x: p.x * big, y: p.y * big }));
   const travel = Math.max(60, STADIUM_TOP - (SANCOR_Y0 + LOGO_D * K));
   const slow = .5; // el logo baja a la mitad de velocidad en todos los niveles
   const sancor = makeGroup(dots, 0, SANCOR_Y0, 45 * sp, 4 * .612 * sp * slow * travel / 124, false);
   sancor.x = (W - sancor.w) / 2; groups.push(sancor);
-  if (wave >= 2) {
-    const n = wave - 1; // ronda 2: 1 elemento, ronda 3: 2, ... uno más por nivel
+  if (L.allies) {
+    const n = L.allies; // cuántos de los nuestros pasan (máximo 4)
     for (let i = 0; i < n; i++) { // pasan de lado a lado, desaparecen y vuelven (no están todo el tiempo en pantalla)
       const a = makeAlly(ALLY_KINDS[i % ALLY_KINDS.length]);
-      a.age = 3; a.hidden = true; a.wait = rnd(.6, 2.2) + i * .9; a.dir = i % 2 ? 1 : -1; a.sp = sp; groups.push(a);
+      a.age = 3; a.hidden = true; a.wait = rnd(.6, 2.2) + i * .9; a.dir = i % 2 ? 1 : -1; a.sp = sp * L.allySp; groups.push(a);
     }
   }
+  makeFoes();
   if (state === 'play') { waveScore0 = score; waveCombo = 0; waveAllyHits = 0; countT = 3.2; countN = 0; clearTimeout(banner.t); $('banner').classList.remove('on'); }
   else banner(`Ronda ${wave}`, wave === 1 ? 'Destruí a Sancor' : 'No toques lo nuestro');
 }
@@ -1018,6 +1116,9 @@ const SFX = (() => {
     hold(p) { if (!ac) return; clearTimeout(this._h); if (p) this._h = setTimeout(() => { try { ac.suspend(); } catch (e) {} }, 260); else { try { ac.resume(); } catch (e) {} } },   // deja sonar el efecto de pausa antes de congelar el audio
     start() { if (!ok()) return; tone('sine', 110, 220, .38, .4); seqT('pulse', [262, 330, 392, 523], .07, .1, .07, { lp: 1700, wet: .25 }); tone('pulse', 659, 659, .35, .05, { delay: .28, vib: 20, lp: 1800, wet: .4 }); },
     whoosh() { if (ok()) noise(1.3, .13, 1000, { lp0: 150, attack: .5 }); },
+    eshot(x) { if (!ok()) return; const p = at(x); tone('pulse', 740, 330, .16, .035, { lp: 1600, pan: p, wet: .2 }); },                            // dispara un drone isotipo
+    hurt(x) { if (!ok()) return; const p = at(x); duck(.6); tone('sawtooth', 220, 70, .45, .22, { lp: 700, pan: p }); tone('sine', 90, 40, .5, .5); noise(.35, .2, 900, { pan: p }); },   // le dieron a la nave
+    boom(x) { if (!ok()) return; const p = at(x); tone('sine', 140, 40, .5, .45); noise(.5, .2, 1400, { lp0: 300, pan: p, wet: .3 }); tone('pulse', 523, 784, .12, .05, { delay: .05, lp: 1800, pan: p }); },   // cae un drone isotipo
     danger() { if (ok()) { tone('sine', 72, 46, .3, .6); tone('pulse', 196, 185, .14, .04, { lp: 900 }); } }
   };
 })();
@@ -1167,15 +1268,15 @@ let startWave = 1; // las partidas siempre arrancan en la ronda 1
 function start() {
   $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true; $('rank').textContent = '';
   wave = startWave; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
-  itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; $('pauseOv').hidden = true;
+  itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; $('pauseOv').hidden = true; lives = 3; ship.inv = 0; foes = []; ebullets = [];
   document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(...levelSong(startWave)); buildWave(); $('pauseBtn').hidden = false;
 }
 let clearAt = 0;
 function showLevelResults(bonus, allies) {
   state = 'clear'; clearAt = performance.now(); SFX.musicStop(); SFX.pad(0);
-  groups = []; items = []; bullets = []; parts = []; rings = []; pops = []; hudMsgT = 0; flash = 0; shake = 0;   // pantalla limpia al superar el nivel
+  groups = []; items = []; bullets = []; parts = []; rings = []; pops = []; foes = []; ebullets = []; hudMsgT = 0; flash = 0; shake = 0;   // pantalla limpia al superar el nivel
   touching = false; for (const k in keys) keys[k] = false; $('pauseBtn').hidden = true; $('banner').classList.remove('on');
-  $('kicker').textContent = 'Ronda completada'; $('lvlTitle').textContent = `Ronda ${wave}`;
+  $('kicker').textContent = 'Ronda completada'; $('lvlTitle').textContent = `Ronda ${wave} de ${MAX_WAVE}`;
   const row = (a, v, pre = '', suf = '', c = '') => `<li class="${c}"><span>${a}</span><b data-v="${v}" data-pre="${pre}" data-suf="${suf}">${pre}0${suf}</b></li>`;
   $('lvlStats').innerHTML = row('Puntos de la ronda', Math.max(0, score - waveScore0), '+')
     + row('Bonus por cuidar lo nuestro', bonus, '+') + row('Mejor combo', waveCombo)
@@ -1223,13 +1324,14 @@ $('resumeBtn').onclick = () => setPause(false);
 $('quitBtn').onclick = () => { paused = false; $('pauseOv').hidden = true; backToMenu(); };
 addEventListener('keydown', e => { if ((e.code === 'KeyP' || e.code === 'Escape') && state === 'play' && !(e.target && e.target.id === 'nameInput')) { setPause(!paused); e.preventDefault(); } });
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play' && !paused) setPause(true); });
-function endGame(why = 'Fin del show') {
+function endGame(why = 'Fin del show', won = false) {
   state = 'over'; countT = 0; paused = false; $('pauseOv').hidden = true; $('pauseBtn').hidden = true; overAt = performance.now(); touching = false; for (const k in keys) keys[k] = false;
   setMode('over'); $('banner').classList.remove('on'); $('kicker').textContent = why;
   $('finalScore').textContent = score;
   $('finalSub').textContent = `puntos · ${playerName} · Ronda ${wave}` + (best > score ? ` · Tu mejor: ${best}` : '');
   $('nameInput').value = playerName;
-  SFX.over(); SFX.pad(.03); SFX.musicStop();
+  if (won) { $('finalSub').textContent = `puntos · ${playerName} · ¡Superaste las ${MAX_WAVE} rondas!`; SFX.clear(); setTimeout(() => SFX.record(), 700); } else SFX.over();
+  SFX.pad(.03); SFX.musicStop();
   submitScore();
 }
 $('newBtn').addEventListener('click', openName);
@@ -1303,10 +1405,11 @@ function layoutAll() {
   layoutStadium();
 }
 let lastHud = '';
-const hudC = { s: -1, w: -1, r: -1 };
+const hudC = { s: -1, w: -1, r: -1, l: -1 };
 function updateHud() {
   if (score !== hudC.s) { hudC.s = score; $('hScore').textContent = score; }
-  if (wave !== hudC.w) { hudC.w = wave; $('hWave').textContent = 'RONDA ' + wave; }
+  if (wave !== hudC.w) { hudC.w = wave; $('hWave').textContent = `RONDA ${wave}/${MAX_WAVE}`; }
+  if (lives !== hudC.l) { hudC.l = lives; [...$('hLives').children].forEach((h, i) => h.classList.toggle('off', i >= lives)); }
   const rp = Math.max(0, Math.round(respect));
   if (rp !== hudC.r) { hudC.r = rp; const b = $('hBar'); b.style.width = rp + '%'; b.classList.toggle('low', rp < 30); }
   let h = '';
@@ -1326,6 +1429,14 @@ addEventListener('keydown', e => {
   else if ((e.code === 'Space' || e.code === 'Enter') && state === 'over' && $('card').dataset.mode === 'over' && performance.now() - overAt > 1200) tryStart();
 });
 addEventListener('keyup', e => keys[e.code] = false);
+// DEBUG (no llevar a producción): la tecla T pasa de nivel al instante
+addEventListener('keydown', e => {
+  if (e.code !== 'KeyT' || (e.target && e.target.id === 'nameInput')) return;
+  if (state === 'clear') { nextLevel(); return; }
+  if (state !== 'play' || paused) return;
+  countT = 0; $('banner').classList.remove('on');
+  for (const g of groups) { g.age = Math.max(g.age, 2); if (!g.ally) for (const d of g.dots) d.alive = false; }
+});
 const stage = $('stage');
 function toLogical(e) { const r = stage.getBoundingClientRect(); return (e.clientX - r.left) / r.width * W; }
 stage.addEventListener('pointerdown', e => { if (state === 'play' && !paused) { touching = true; ship.x = toLogical(e); } });
@@ -1345,6 +1456,7 @@ function collect(it) {
   if (it.type === 'triple') buffs.triple = 10;
   else if (it.type === 'rapid') buffs.rapid = 8;
   else if (it.type === 'heal') respect = Math.min(100, respect + 25);
+  else if (it.type === 'life') lives = Math.min(3, lives + 1);
   else { // golazo: borra al azar buena parte de Sancor
     let n = 0;
     for (const g of groups) if (!g.ally) for (const d of g.dots) if (d.alive && d.ready && Math.random() < .4) { d.alive = false; n++; burst(g.x + d.x, g.y + d.y, d.c, 3); }
@@ -1361,7 +1473,7 @@ function update(dt) {
   if (countT > 0) { // cuenta regresiva: la nave se mueve, el resto espera
     for (const g of groups) g.age += dt;
     countT -= dt; const n = Math.ceil(countT);
-    if (n !== countN && n > 0) { countN = n; $('bannerText').textContent = n; $('bannerSub').textContent = `Ronda ${wave} · ` + (wave === 1 ? 'Destruí al invasor' : 'No toques lo nuestro'); $('banner').classList.add('on'); SFX.beep(n); }
+    if (n !== countN && n > 0) { countN = n; $('bannerText').textContent = n; $('bannerSub').textContent = `Ronda ${wave} de ${MAX_WAVE} · ` + (lv(wave).tip || (wave === 1 ? 'Destruí al invasor' : 'No toques lo nuestro')); $('banner').classList.add('on'); SFX.beep(n); }
     if (countT <= 0) { SFX.beep(0); banner('¡Ya!', '♪ ' + SFX.trackName(levelSong(wave)[1])); }
     return;
   }
@@ -1371,8 +1483,9 @@ function update(dt) {
     ship.cd = buffs.rapid > 0 ? .085 : .2;
   }
   for (const k in buffs) buffs[k] = Math.max(0, buffs[k] - dt);
+  ship.inv = Math.max(0, ship.inv - dt); updateFoes(dt); if (state !== 'play') return;
   itemT -= dt; // los power-ups caen al azar durante toda la partida
-  if (itemT <= 0) { const k = Object.keys(POWERS); const ix = rnd(40, W - 40); items.push({ type: k[Math.floor(Math.random() * k.length)], x: ix, y: -20, ph: Math.random() * 6 }); SFX.drop(ix); itemT = rnd(7, 13); }
+  if (itemT <= 0) { const k = Object.keys(POWERS).filter(t => t !== 'life' || (wave >= 6 && lives < 3)); const ix = rnd(40, W - 40); items.push({ type: k[Math.floor(Math.random() * k.length)], x: ix, y: -20, ph: Math.random() * 6 }); SFX.drop(ix); itemT = rnd(7, 13); }
   for (const it of items) {
     it.y += 85 * dt;
     const dx = it.x - ship.x, dy = it.y - ship.y;
@@ -1402,6 +1515,7 @@ function update(dt) {
   for (const b of bullets) {
     const x0 = b.x, y0 = b.y;
     b.y -= 640 * dt; b.x += (b.vx || 0) * dt; if (b.x < -10 || b.x > W + 10) b.y = -99;
+    if (foes.length && hitFoes(x0, y0, b.x, b.y)) { b.y = -99; continue; }
     let best = null, bd = HIT * HIT, bg = null, bp;
     const sx = b.x - x0, sy = b.y - y0, sl = sx * sx + sy * sy || 1; // colisión sobre todo el tramo recorrido (no se salta drones)
     for (const g of groups) if (!g.hidden) for (const d of g.dots) {
@@ -1440,7 +1554,8 @@ function update(dt) {
     const bonus = allies * 4; score += bonus;
     for (const g of groups) if (g.ally) for (const d of g.dots) if (d.alive && Math.random() < .3) burst(g.x + d.x, g.y + d.y, d.c, 2, 60);
     say(bonus ? `¡Sancor destruido! +${bonus} por cuidar lo nuestro` : '¡Sancor destruido!'); SFX.clear();
-    bullets = []; showLevelResults(bonus, allies);
+    bullets = []; ebullets = [];
+    if (wave >= MAX_WAVE) { foes = []; endGame('¡Defendiste el Monumental!', true); } else showLevelResults(bonus, allies);
   } else if (lowest + STEP / 2 > STADIUM_TOP) endGame('Sancor llegó al Monumental');
   else if (respect <= 0) endGame('Se perdió el respeto');
   danger = lowest + STEP / 2 > STADIUM_TOP - 90;
@@ -1482,7 +1597,9 @@ function draw(t) {
     dot(0, 0, P.c, 5, .55);
     ctx.restore();
   }
-  // nave elegida por el jugador
+  drawFoes(t);
+  // nave elegida por el jugador (parpadea mientras es invulnerable después de un golpe)
+  if (ship.inv > 0 && Math.floor(t * 14) % 2) ctx.globalAlpha = .3;
   ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.tilt * .35); if (mobileView) ctx.scale(1.15, 1.15);
   drawShip(ctx, shipType, t);
   ctx.restore();
