@@ -55,7 +55,7 @@
         box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(116,192,245,.05)}
   .card[data-mode=menu]{background:none;border-color:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;overflow:visible;gap:max(14px,2.4cqw)}
   .card>*{display:none}
-  .card[data-mode=menu]>#credLink{display:inline-block} .card[data-mode=menu]>#ver{display:block}
+  .card[data-mode=menu]>#credLink{display:flex} .card[data-mode=menu]>#ver{display:block}
   .ver{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:5;font:500 12px/1 var(--body);letter-spacing:.08em;color:var(--muted);opacity:.7;pointer-events:none}  .card[data-mode=menu]>#menuBtns{margin-top:max(22px,3.4cqw)} .card[data-mode=credits]>#cred{display:flex}
   .credLink{position:fixed;left:0;right:0;bottom:max(18px,env(safe-area-inset-bottom));margin:0 auto;width:max-content;z-index:5;pointer-events:auto;color:var(--muted);font-size:clamp(13px,1.6cqw,16px);text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(143,160,208,.4);letter-spacing:.04em}
   .credLink:hover,.credLink:focus-visible{color:#fff;text-decoration-color:var(--pink);outline:none}
@@ -64,7 +64,19 @@
   .credRole{color:#9fd4fa;font-weight:600;font-size:clamp(14px,1.8cqw,17px)} .credLoc{color:var(--muted);font-size:clamp(12px,1.6cqw,15px)}
   .credSoc{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:12px 0 6px} .credSoc .soc{flex:1 1 140px;justify-content:center}
   .card[data-mode=menu]>:is(#kicker,#title){display:block} .card[data-mode=menu]>#menuBtns{display:flex}
-  .card[data-mode=name]>#nameStep{display:flex}
+  .card[data-mode=name]>#nameStep{display:flex} .card[data-mode=tuto]>#tuto{display:flex}
+  .credLink{gap:.7em;align-items:center} .credLink a{color:inherit;text-decoration:inherit;text-underline-offset:4px} .credLink a:hover,.credLink a:focus-visible{color:#fff;text-decoration-color:var(--pink);outline:none} .credLink span{opacity:.5;text-decoration:none}
+  .tuto{flex-direction:column;align-items:center;gap:max(8px,1.2cqw);width:min(100%,460px);text-align:center;touch-action:pan-y}
+  .tStep{font:600 12px/1 var(--body);letter-spacing:.16em;color:var(--muted)}
+  #stage #tutoCv{position:static;display:block;inset:auto;width:min(100%,360px);aspect-ratio:320/150;height:auto;pointer-events:none;border-radius:14px;background:radial-gradient(ellipse at 50% 120%,rgba(116,192,245,.12),rgba(7,11,32,.5) 70%);box-shadow:inset 0 0 0 1px rgba(116,192,245,.14)}
+  .tTitle{margin:6px 0 0;font:400 clamp(26px,4.4cqw,40px)/1 var(--display);letter-spacing:.02em;color:var(--white)}
+  .tText{margin:0;color:#c9d2f0;font-size:clamp(14px,2cqw,18px);line-height:1.4;max-width:34ch}
+  .tExtra{display:flex;flex-wrap:wrap;gap:8px 10px;justify-content:center;min-height:1.8em;font-size:clamp(12px,1.7cqw,15px);color:var(--muted)}
+  .tExtra .chip{display:inline-flex;align-items:center;gap:.45em;padding:.3em .7em .3em .35em;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)}
+  .tExtra .chip b{display:inline-flex;align-items:center;justify-content:center;width:1.6em;height:1.6em;border-radius:50%;font-size:.85em;color:#fff;border:1.5px solid var(--c);box-shadow:0 0 8px var(--c)}
+  .tExtra .kc{display:inline-flex;gap:.3em}
+  .tDots{display:flex;gap:6px;margin-top:2px} .tDots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.18);transition:background .2s,width .2s} .tDots i.on{width:20px;border-radius:4px;background:var(--pink)}
+  .tBtns{width:100%;justify-content:center}
   .card[data-mode=podium]>:is(#podTitle,#boardNote){display:block} .card[data-mode=podium]>#board{display:flex} .card[data-mode=podium]>#backBtn{display:inline-block}
   .card[data-mode=over]>:is(#kicker,#final,#rank,#boardNote){display:block} .card[data-mode=over]>#board{display:flex} .card[data-mode=over]>:is(#share,#overBtns){display:flex}
   .card[data-mode=level]>:is(#kicker,#lvlTitle){display:block} .card[data-mode=level]>#lvlStats{display:flex} .card[data-mode=level]>#nextBtn{display:inline-block}
@@ -198,7 +210,7 @@
   .card[data-mode=over] #overBtns{width:100%;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px} .card[data-mode=over] #overBtns>*{width:100%;box-sizing:border-box;text-align:center} .card[data-mode=over] #overBtns .sb-in{width:100%;box-sizing:border-box}
   @media (max-width:699px){
     .card:not([data-mode=menu]){width:calc(100cqw - 32px);max-width:none;padding:18px 16px;gap:12px}
-    .card[data-mode=name]{width:calc(100cqw - 32px)} .nameStep{width:100%}
+    .card[data-mode=name],.card[data-mode=tuto]{width:calc(100cqw - 32px)} .nameStep,.tuto{width:100%}
     .card[data-mode=over] #overBtns{grid-template-columns:1fr 1fr} .card[data-mode=over] #againBtn{grid-column:1 / -1}
     .lvlStats{font-size:clamp(13px,3.6cqw,17px)} .lvlStats li{padding:.6em .9em}
     .card[data-mode=podium]{width:calc(100cqw - 32px)}
@@ -255,7 +267,7 @@
         <button class="sb" id="newBtn" type="button">Nueva partida</button>
         <button class="gh" id="podBtn" type="button">Ver ranking</button>
       </div>
-      <a class="credLink" id="credLink" href="#creditos">Créditos</a>
+      <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a></div>
       <span class="ver" id="ver">v1.1.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
@@ -276,16 +288,21 @@
           <button class="shipOpt" type="button" data-ship="obelisco" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Obelisco</span></button>
           <button class="shipOpt" type="button" data-ship="copa" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Copa del Mundo</span></button>
         </div>
-        <div class="how">
-          <div class="hrow only-desk"><span class="kc"><i>←</i><i>→</i></span><span>Mover la nave</span></div>
-          <div class="hrow only-desk"><span class="kc"><i class="wide">Espacio</i></span><span>Disparar</span></div>
-          <div class="hrow only-mob"><span class="kc"><i class="wide">Dedo</i></span><span>Arrastrá para mover la nave; dispara sola</span></div>
-          <div class="hrow"><span class="kc"><i class="dot r"></i></span><span>Destruí al invasor</span></div>
-          <div class="hrow"><span class="kc"><i class="dot c"></i></span><span>No toques bandera, pelota, 10 ni estrellas</span></div>
-        </div>
         <div class="row">
           <button class="sb" id="playBtn" type="button">Empezar</button>
           <button class="gh" id="nameBack" type="button">Volver</button>
+        </div>
+      </div>
+      <div class="tuto" id="tuto" role="group" aria-roledescription="carrusel" aria-label="Cómo jugar">
+        <div class="tStep" id="tStep">1 / 3</div>
+        <canvas id="tutoCv" aria-hidden="true"></canvas>
+        <h2 class="tTitle" id="tTitle"></h2>
+        <p class="tText" id="tText"></p>
+        <div class="tExtra" id="tExtra"></div>
+        <div class="tDots" id="tDots"><i></i><i></i><i></i></div>
+        <div class="row tBtns">
+          <button class="sb" id="tNext" type="button">Siguiente</button>
+          <button class="gh" id="tSkip" type="button">Saltar</button>
         </div>
       </div>
       <div class="final" id="final"><div class="big" id="finalScore"></div><div class="sub" id="finalSub"></div></div>
@@ -839,7 +856,9 @@ function updateFoes(dt) {
     f.y += (f.ty - f.y) * Math.min(1, dt * (f.age < 2 ? 2.5 : 4));
     if (L.formation) f.x += (f.hx + form - f.x) * Math.min(1, dt * 3);
     else f.x = f.hx + Math.sin(f.age * f.spd + f.ph) * f.amp;
+    if (f.tag > 0) f.tag -= dt;
     if (f.age < 1.6) continue;                                              // recién llegando: todavía no dispara
+    if (f.tag === undefined) { f.tag = LS.get('sancor_tag_foe', '') !== '1' ? 3.5 : 0; if (f.tag) LS.set('sancor_tag_foe', '1'); }
     if (f.burst > 0) { f.burstT -= dt; if (f.burstT <= 0) { f.burst--; f.burstT = .16; foeFire(f, L); } continue; }
     f.t -= dt;
     if (f.t <= 0) { f.t = L.fire * rnd(.75, 1.3); if (L.shots === 3) { f.burst = 3; f.burstT = 0; } else foeFire(f, L); }
@@ -1256,10 +1275,75 @@ function closePodium() {
 }
 function openName() { setMode('name'); SFX.ui('card'); drawShipPreviews(); pickShip(shipType); $('nameInput').value = playerName; setTimeout(() => $('nameInput').focus(), 30); }
 function backToMenu() { state = 'menu'; SFX.musicStart(112, 'menu'); countT = 0; paused = false; $('pauseOv').hidden = true; $('pauseBtn').hidden = true; SFX.hold(false); $('kicker').textContent = 'Destruí al invasor. Cuidá lo nuestro.'; document.documentElement.classList.add('scene-menu'); $('banner').classList.remove('on'); setMode('menu'); }
+// ---------- Onboarding: 3 tarjetas con los elementos reales del juego (la primera vez, o desde "Cómo jugar") ----------
+const TUTO = [
+  { t: 'Destruí al invasor', p: 'Disparale a los drones rojos. Si el logo llega al Monumental, perdés.',
+    x: () => matchMedia('(pointer:coarse)').matches || innerWidth < 700 ? '<span class="kc"><i class="wide">Dedo</i></span> Arrastrá para mover · dispara sola'
+      : '<span class="kc"><i>←</i><i>→</i></span> Mover &nbsp; <span class="kc"><i class="wide">Espacio</i></span> Disparar &nbsp; <span class="kc"><i>P</i></span> Pausa' },
+  { t: 'Cuidá lo nuestro', p: 'La bandera, la pelota, el 10 y la estrella pasan cada tanto. No les dispares: te restan puntos y respeto.', x: () => '' },
+  { t: 'Esquivá y sobreviví', p: 'Los drones isotipo te disparan. Tenés 3 vidas. Agarrá los power-ups que caen:',
+    x: () => Object.values(POWERS).map(P => `<span class="chip" style="--c:${P.c}"><b>${P.label}</b>${P.name.charAt(0) + P.name.slice(1).toLowerCase()}</span>`).join('') }
+];
+let tutoI = 0, tutoDone = null, tutoT0 = 0, tutoScene = null;
+function openTuto(done) { tutoDone = done; tutoI = 0; tutoScene = null; setMode('tuto'); showTuto(); SFX.ui('card'); }
+function showTuto() {
+  const T = TUTO[tutoI]; tutoT0 = performance.now();
+  $('tStep').textContent = `${tutoI + 1} / ${TUTO.length}`; $('tTitle').textContent = T.t; $('tText').textContent = T.p; $('tExtra').innerHTML = T.x();
+  [...$('tDots').children].forEach((d, i) => d.classList.toggle('on', i === tutoI));
+  ($('tNext').querySelector('.sb-in') || $('tNext')).textContent = tutoI === TUTO.length - 1 ? '¡A jugar!' : 'Siguiente';
+}
+function tutoGo(d) {
+  const n = tutoI + d; if (n < 0) return;
+  if (n >= TUTO.length) { endTuto(); return; }
+  tutoI = n; showTuto(); SFX.ui('place');
+}
+function endTuto() { LS.set('sancor_tuto', '1'); const f = tutoDone; tutoDone = null; if (f) f(); }
+$('tNext').addEventListener('click', () => tutoGo(1));
+$('tSkip').addEventListener('click', endTuto);
+{ let sx = null; const el = $('tuto');
+  el.addEventListener('pointerdown', e => { sx = e.clientX; });
+  el.addEventListener('pointerup', e => { if (sx !== null && Math.abs(e.clientX - sx) > 50) tutoGo(e.clientX < sx ? 1 : -1); sx = null; }); }
+addEventListener('keydown', e => { if ($('card').dataset.mode !== 'tuto' || $('card').hidden) return;
+  if (e.code === 'ArrowRight' || e.code === 'Enter') { tutoGo(1); e.preventDefault(); } else if (e.code === 'ArrowLeft') tutoGo(-1); else if (e.code === 'Escape') endTuto(); });
+function drawTuto(now) { // escenas animadas con los mismos elementos del juego
+  const cv = $('tutoCv'), c = cv.getContext('2d'), LW = 320, LH = 150, dpr = Math.min(devicePixelRatio || 1, 2);
+  if (cv.width !== LW * dpr) { cv.width = LW * dpr; cv.height = LH * dpr; }
+  if (!tutoScene) { const mv = mobileView; mobileView = false;
+    tutoScene = { logo: sancorPts().map(p => ({ x: p.x * .34, y: p.y * .34, off: 0 })), allies: ALLY_KINDS.map(k => makeAlly(k)), foe: foePts(), shots: [], ebs: [], last: now };
+    mobileView = mv; }
+  const S = tutoScene, t = (now - tutoT0) / 1000, dt = Math.min(.05, (now - S.last) / 1000); S.last = now;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const ship = (x, y, k = 1) => { c.save(); c.translate(x, y); c.scale(k, k); drawShip(c, shipType, now / 1000); c.restore(); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; };
+  c.globalCompositeOperation = 'lighter';
+  if (tutoI === 0) {
+    const lx = (LW - 618 * .34) / 2, ly = 14, sx = LW / 2 + Math.sin(t * 1.3) * 90;
+    for (const p of S.logo) { p.off = Math.max(0, p.off - dt); if (p.off > 0) continue; c.globalAlpha = .95; sdot(c, lx + p.x, ly + p.y, RED, .9); }
+    if (Math.floor(t * 4) !== S.k) { S.k = Math.floor(t * 4); S.shots.push({ x: sx, y: 112 }); }
+    for (const b of S.shots) { b.y -= 260 * dt; c.globalAlpha = 1; sdot(c, b.x, b.y, '#ffffff', 1.6);
+      if (b.y < ly + 50) { b.y = -99; for (const p of S.logo) if (Math.abs(lx + p.x - b.x) < 7 && !p.off) { p.off = 1.4; c.globalAlpha = .9; sdot(c, lx + p.x, ly + p.y, '#ffd0da', 2.4); } } }
+    S.shots = S.shots.filter(b => b.y > -10);
+    ship(sx, 128, .85);
+  } else if (tutoI === 1) {
+    let x = 14; for (const g of S.allies) { g.age += dt; animGroup(g); const gy = (LH - 20 - g.h) / 2 + Math.sin(t * 2 + x) * 4;
+      for (const d of g.dots) if (!d.back) { c.globalAlpha = .95 * d.al; sdot(c, x + d.x, gy + d.y, d.c, R * d.rs * .525 * d.sc); } x += g.w + 16; }
+    c.globalAlpha = 1; c.globalCompositeOperation = 'source-over'; c.font = '600 11px "Chakra Petch", sans-serif'; c.fillStyle = '#74c0f5'; c.textAlign = 'center'; c.fillText('NO DISPARAR', LW / 2, LH - 10);
+  } else {
+    const fx = LW / 2 + Math.sin(t * .9) * 70, fy = 34, sx = LW / 2 + Math.sin(t * 1.7 + 1) * 110;
+    for (const p of S.foe) { c.globalAlpha = .95; sdot(c, fx + p.x * .8, fy + p.y * .8, RED, .9); }
+    if (Math.floor(t / 1.1) !== S.k) { S.k = Math.floor(t / 1.1); const a = Math.atan2(128 - fy, sx - fx); S.ebs.push({ x: fx, y: fy + 8, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120 }); }
+    for (const b of S.ebs) { b.x += b.vx * dt; b.y += b.vy * dt; c.globalAlpha = 1; sdot(c, b.x, b.y, '#ff3040', 2.4); sdot(c, b.x, b.y, '#ffffff', 1); }
+    S.ebs = S.ebs.filter(b => b.y < LH + 10);
+    ship(sx, 128, .85);
+    c.globalCompositeOperation = 'source-over'; c.fillStyle = '#ff5a78';
+    for (let i = 0; i < 3; i++) { c.save(); c.translate(LW - 52 + i * 15, 12); c.scale(.7, .7); c.fill(new Path2D('M8 14 L1.2 7.2 A3.7 3.7 0 0 1 8 2.4 A3.7 3.7 0 0 1 14.8 7.2 Z')); c.restore(); }
+  }
+  c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
+}
 function tryStart() {
   const inp = $('nameInput'), name = cleanName(inp.value);
   if (!name) { inp.classList.add('bad'); inp.focus(); setTimeout(() => inp.classList.remove('bad'), 600); return; }
-  playerName = name; LS.set('sancor_name', name); inp.blur(); start();
+  playerName = name; LS.set('sancor_name', name); inp.blur();
+  if (LS.get('sancor_tuto', '') !== '1') openTuto(start); else start();   // la primera vez: onboarding antes de jugar
 }
 // Música por nivel: un tema distinto en cada ronda; cuanto más fácil la ronda, más lento el tempo
 const LEVEL_SONGS = ['cumbia', 'murga', 'cuarteto', 'rock', 'malambo', 'electro'], LEVEL_BPM = [80, 88, 96, 104, 112, 120];
@@ -1336,7 +1420,8 @@ function endGame(why = 'Fin del show', won = false) {
 }
 $('newBtn').addEventListener('click', openName);
 document.querySelectorAll('.shipOpt').forEach(b => b.addEventListener('click', () => { pickShip(b.dataset.ship); SFX.ui('place'); }));
-$('credLink').addEventListener('click', e => { e.preventDefault(); setMode('credits'); SFX.ui('card'); });
+$('credA').addEventListener('click', e => { e.preventDefault(); setMode('credits'); SFX.ui('card'); });
+$('howLink').addEventListener('click', e => { e.preventDefault(); openTuto(() => setMode('menu')); });
 $('credBack').addEventListener('click', () => setMode('menu'));
 $('playBtn').addEventListener('click', tryStart);
 $('nameBack').addEventListener('click', () => setMode('menu'));
@@ -1500,7 +1585,8 @@ function update(dt) {
     if (g.ally) {
       if (g.hidden) { g.wait -= dt; if (g.wait <= 0) { // sale otra vez, desde el lado contrario y a otra altura
         const yMin = SANCOR_Y0 + 120, yMax = Math.max(yMin + 20, STADIUM_TOP - 70); g.dir = -g.dir; g.y = rnd(yMin, yMax);
-        g.vx = g.dir * rnd(110, 170) * g.sp; g.x = g.dir > 0 ? -g.w - 10 : W + 10; g.hidden = false; SFX.swish(g.dir); } }
+        g.vx = g.dir * rnd(110, 170) * g.sp; g.x = g.dir > 0 ? -g.w - 10 : W + 10; g.hidden = false; SFX.swish(g.dir);
+        if (LS.get('sancor_tag_ally', '') !== '1') { g.tag = 3.5; LS.set('sancor_tag_ally', '1'); } } }
       else { g.x += g.vx * dt; if ((g.vx > 0 && g.x > W + 10) || (g.vx < 0 && g.x + g.w < -10)) { g.hidden = true; g.wait = rnd(1.4, 4); } }
     } else {
       if (g.age > 1.2) { g.x += g.vx * dt; g.y += g.vy * dt; }
@@ -1610,6 +1696,12 @@ function draw(t) {
   ctx.font = '700 15px "Chakra Petch", system-ui';
   for (const it of items) { ctx.fillStyle = '#fff'; ctx.font = `700 ${mobileView ? 26 : 13}px "Chakra Petch", system-ui`; ctx.fillText(POWERS[it.type].label, it.x, it.y + (mobileView ? 9 : 4.5)); }
   ctx.font = '700 15px "Chakra Petch", system-ui';
+  const tag = (x, y, txt, col, a) => { ctx.font = '700 12px "Chakra Petch", system-ui'; const w = ctx.measureText(txt).width + 16; ctx.globalAlpha = a; const px = x; x = Math.max(w / 2 + 6, Math.min(W - w / 2 - 6, x));
+    ctx.fillStyle = 'rgba(7,11,32,.85)'; ctx.beginPath(); ctx.roundRect(x - w / 2, y - 18, w, 20, 10); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = col; ctx.fillText(txt, x, y - 4); ctx.beginPath(); ctx.moveTo(px - 4, y + 2); ctx.lineTo(px + 4, y + 2); ctx.lineTo(px, y + 7); ctx.fill(); };
+  for (const g of groups) if (g.ally && g.tag > 0 && !g.hidden) { g.tag -= 1 / 60; tag(g.x + g.w / 2, g.y - 8, '¡De los nuestros! No disparar', '#74c0f5', Math.min(1, g.tag)); }
+  for (const f of foes) if (f.tag > 0) tag(f.x, f.y - FOE_R - 8, '¡Te dispara! Esquivalo', '#ff5a78', Math.min(1, f.tag));
+  ctx.globalAlpha = 1;
   for (const p of pops) { ctx.globalAlpha = Math.min(1, p.l * 2); ctx.fillStyle = p.bad ? '#ff4d5e' : '#ffe3e8'; ctx.fillText(p.t, p.x, p.y - 10); }
   ctx.globalAlpha = 1;
   updateHud(); if (state === 'play') hud();
@@ -1636,6 +1728,7 @@ function loop(now) {
   // el fondo se anima a 30fps (20 si el equipo va justo); el juego solo se redibuja cuando algo cambia
   if (frameN % (perf ? 3 : 2) === 0) drawBg(now / 1000);
   const key = state + paused; if (key !== lastKey) { lastKey = key; settle = 4; }
+  if ($('card').dataset.mode === 'tuto' && !$('card').hidden) drawTuto(now);
   if (playing) draw(now / 1000); else if (settle > 0 && state !== 'menu') { settle--; draw(now / 1000); }
   requestAnimationFrame(loop);
 }
