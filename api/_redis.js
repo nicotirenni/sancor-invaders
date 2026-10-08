@@ -10,11 +10,12 @@ async function redis(cmds) {
 }
 const ready = () => !!(URL_ && TOKEN);
 const cleanName = n => String(n || '').replace(/[\u0000-\u001f\u007f<>]/g, '').trim().slice(0, 16);
-const nameKey = n => 'sancor:user:' + cleanName(n).toLowerCase();
+const nickKey = n => 'sancor:nick:' + cleanName(n).toLowerCase();       // nick reservado → cuenta dueña
+const acctKey = email => 'sancor:acct:' + String(email).trim().toLowerCase();
 const ipOf = req => String(req.headers['x-forwarded-for'] || 'x').split(',')[0].trim();
 function bodyOf(req) { let b = req.body; if (typeof b === 'string') { try { b = JSON.parse(b); } catch { b = {}; } } return b || {}; }
-async function userOfToken(token) { // devuelve la clave del usuario dueño del token (o null)
+async function userOfToken(token) { // devuelve la clave de la cuenta dueña del token (o null)
   if (typeof token !== 'string' || !/^[\w-]{20,64}$/.test(token)) return null;
   const [k] = await redis([['GET', 'sancor:tok:' + token]]); return k || null;
 }
-module.exports = { redis, ready, cleanName, nameKey, ipOf, bodyOf, userOfToken };
+module.exports = { redis, ready, cleanName, nickKey, acctKey, ipOf, bodyOf, userOfToken };

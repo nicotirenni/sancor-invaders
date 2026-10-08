@@ -1,6 +1,6 @@
 // Ranking global de Drones Invasores (función serverless de Vercel).
 // Guarda los puntajes en Upstash Redis (integración gratuita de Vercel). Sin esas variables, responde 501 y el juego usa un ranking local.
-const { redis, ready, cleanName, nameKey, ipOf, bodyOf, userOfToken } = require('./_redis');
+const { redis, ready, cleanName, nickKey, ipOf, bodyOf, userOfToken } = require('./_redis');
 const KEY = 'sancor:scores';
 const MAX_SCORE = 1500000;      // tope de plausibilidad (20 rondas)
 const MAX_PER_HOUR = 40;        // envíos por IP por hora
@@ -23,9 +23,9 @@ module.exports = async (req, res) => {
       const body = bodyOf(req);
       const name = cleanName(body && body.name), score = Math.floor(Number(body && body.score));
       if (!name || !Number.isFinite(score) || score < 0 || score > MAX_SCORE) return res.status(400).json({ error: 'datos inválidos' });
-      // los nombres con cuenta están reservados: solo su dueño (con sesión iniciada) suma con ese nombre
-      const [owner] = await redis([['EXISTS', nameKey(name)]]);
-      if (owner && (await userOfToken(body.token)) !== nameKey(name)) return res.status(403).json({ error: 'nombre reservado' });
+      // los nicks con cuenta están reservados: solo su dueño (con sesión iniciada) suma con ese nombre
+      const [owner] = await redis([['GET', nickKey(name)]]);
+      if (owner && (await userOfToken(body.token)) !== owner) return res.status(403).json({ error: 'nombre reservado' });
       const ip = ipOf(req);
       const [count] = await redis([['INCR', `sancor:rl:${ip}`], ['EXPIRE', `sancor:rl:${ip}`, 3600]]);
       if (count > MAX_PER_HOUR) return res.status(429).json({ error: 'demasiados envíos' });

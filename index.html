@@ -89,9 +89,19 @@
   .nameAcc{font-size:clamp(12px,1.7cqw,15px);color:var(--muted);text-align:center}
   .perks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;text-align:left;font-size:clamp(13px,1.8cqw,16px);color:#c9d2f0;width:100%}
   .perks li{display:flex;gap:.6em;align-items:flex-start} .perks b{color:#7fffd4;flex:none}
-  .acctForm{display:flex;flex-direction:column;gap:10px;width:100%;align-items:center} .acctForm .field{width:100%}
-  .acctErr{min-height:1.2em;color:#ff8da1;font-size:14px;text-align:center}
-  .acct.in .acctForm,.acct:not(.in) .acctIn{display:none} .acctIn{text-align:center;color:#c9d2f0;display:flex;flex-direction:column;gap:8px}
+  .acctErr{min-height:1.2em;color:#ff8da1;font-size:14px;text-align:center} .acctErr.ok{color:#7fffd4}
+  .steps{display:flex;align-items:center;gap:6px} .steps i{font-style:normal;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:700 13px/1 var(--body);color:var(--muted);background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);transition:all .3s}
+  .steps b{width:34px;height:2px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden;position:relative} .steps b::after{content:"";position:absolute;inset:0;background:var(--pink);transform:scaleX(0);transform-origin:left;transition:transform .35s}
+  .steps i.on{color:#fff;box-shadow:inset 0 0 0 2px var(--pink);transform:scale(1.08)} .steps i.ok{background:var(--pink);color:#fff;box-shadow:none} .steps b.ok::after{transform:none}
+  .acct.done .steps{display:none}
+  .aStep{display:none;flex-direction:column;align-items:center;gap:12px;width:100%} .aStep.on{display:flex;animation:stepIn .35s ease-out} .aStep.on.back{animation-name:stepBack}
+  @keyframes stepIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}} @keyframes stepBack{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+  .aStep .field{width:100%} .aHint{margin:0;text-align:center;color:#c9d2f0;font-size:clamp(13px,1.8cqw,16px);line-height:1.45}
+  .gBtn{min-height:44px;display:flex;justify-content:center;width:100%} .gBtn:empty{display:none}
+  .orLine{display:flex;align-items:center;gap:10px;width:100%;color:var(--muted);font-size:13px} .orLine::before,.orLine::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.12)}
+  .aLink,.aFoot{color:var(--muted);font-size:13px;text-underline-offset:3px} .aLink:hover,.aFoot:hover{color:#fff}
+  .okMark{width:56px;height:56px} .okMark circle{fill:none;stroke:#7fffd4;stroke-width:3;stroke-dasharray:145;stroke-dashoffset:145;animation:draw .5s ease-out forwards}
+  .okMark path{fill:none;stroke:#7fffd4;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:draw .35s .4s ease-out forwards} @keyframes draw{to{stroke-dashoffset:0}}
   .newCards{flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;font-size:clamp(13px,1.8cqw,16px);color:#ffd77a}
   .newCards .mini{width:36px;height:48px;border-radius:5px;background-image:var(--alb);background-size:300% 300%;box-shadow:0 0 0 2px #ffc928,0 0 12px rgba(255,201,40,.5)}
   .credLink{gap:.7em;align-items:center} .credLink a{color:inherit;text-decoration:inherit;text-underline-offset:4px} .credLink a:hover,.credLink a:focus-visible{color:#fff;text-decoration-color:var(--pink);outline:none} .credLink span{opacity:.5;text-decoration:none}
@@ -309,6 +319,7 @@
           <a class="soc soc-in" href="https://linkedin.com/in/nicotirenni" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg><span>LinkedIn</span></a>
           <a class="soc soc-x" href="https://x.com/nicotirenni" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>@nicotirenni</span></a>
         </div>
+        <a class="aFoot" href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>
         <button class="gh" id="credBack" type="button">Volver</button>
       </div>
       <div class="nameStep" id="nameStep">
@@ -336,18 +347,36 @@
       </div>
       <div class="acct" id="acct">
         <div class="podTitle" id="acctTitle">Tu cuenta</div>
-        <ul class="perks">
-          <li><b>✓</b>Tu álbum queda guardado y lo ves en cualquier dispositivo</li>
-          <li><b>✓</b>Tu nombre queda reservado en el ranking: nadie más puede usarlo</li>
-          <li><b>✓</b>No perdés tu progreso si borrás el navegador o cambiás de celu</li>
-        </ul>
-        <form class="acctForm" id="acctForm" autocomplete="on">
-          <input id="acctName" class="field" type="text" maxlength="16" placeholder="Nombre" autocomplete="username" autocapitalize="words">
+        <div class="steps" id="acctSteps" aria-hidden="true"><i data-s="1">1</i><b></b><i data-s="2">2</i><b></b><i data-s="3">3</i></div>
+        <div class="aStep" data-s="1">
+          <ul class="perks">
+            <li><b>✓</b>Tu álbum queda guardado y lo ves en cualquier dispositivo</li>
+            <li><b>✓</b>Tu nick queda reservado en el ranking: nadie más puede usarlo</li>
+            <li><b>✓</b>No perdés tu progreso si borrás el navegador o cambiás de celu</li>
+          </ul>
+          <div class="gBtn" id="gBtn"></div>
+          <div class="orLine"><span>o con tu mail</span></div>
+          <input id="acctEmail" class="field" type="email" maxlength="254" placeholder="tu@mail.com" autocomplete="email" inputmode="email" autocapitalize="off">
+          <button class="sb" id="aNext1" type="button">Continuar</button>
+        </div>
+        <div class="aStep" data-s="2">
+          <p class="aHint" id="aEmailShow"></p>
           <input id="acctPass" class="field" type="password" maxlength="64" placeholder="Contraseña (mínimo 6)" autocomplete="current-password">
-          <div class="acctErr" id="acctErr" role="alert"></div>
-          <div class="row"><button class="sb" id="acctReg" type="submit">Crear cuenta</button><button class="gh" id="acctLogin" type="button">Ya tengo cuenta</button></div>
-        </form>
-        <div class="acctIn" id="acctIn"></div>
+          <div class="row"><button class="sb" id="aLogin" type="button">Entrar</button><button class="gh" id="aReg" type="button">Crear cuenta nueva</button></div>
+          <a class="aLink" id="aBack1" href="#">Usar otro mail</a>
+        </div>
+        <div class="aStep" data-s="3">
+          <p class="aHint">Elegí cómo te van a ver en el ranking. Es opcional y tu mail nunca se muestra.</p>
+          <input id="acctNick" class="field" type="text" maxlength="16" placeholder="Tu nick" autocomplete="nickname" autocapitalize="words">
+          <div class="row"><button class="sb" id="aNickSave" type="button">Guardar nick</button><button class="gh" id="aNickSkip" type="button">Saltar</button></div>
+        </div>
+        <div class="aStep" data-s="4">
+          <svg class="okMark" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="23"/><path d="M15 27l7 7 15-16"/></svg>
+          <p class="aHint" id="acctIn"></p>
+          <div class="row"><button class="gh" id="aEditNick" type="button">Cambiar nick</button><button class="gh" id="acctOut" type="button">Cerrar sesión</button></div>
+        </div>
+        <div class="acctErr" id="acctErr" role="alert"></div>
+        <a class="aFoot" href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>
         <button class="gh" id="acctBack" type="button">Volver</button>
       </div>
       <div class="tuto" id="tuto" role="group" aria-roledescription="carrusel" aria-label="Cómo jugar">
@@ -1382,49 +1411,105 @@ function renderAlbum() {
 $('albGrid').addEventListener('click', e => { const t = e.target.closest('.tile'); if (!t) return; albSel = +t.dataset.i; renderAlbum(); SFX.ui('place'); });
 $('albBtn').addEventListener('click', openAlbum);
 $('albBack').addEventListener('click', () => setMode('menu'));
-// ---------- Cuenta (opcional): guarda el álbum en la nube y reserva el nombre en el ranking ----------
-let acct = (() => { try { return JSON.parse(LS.get('sancor_acct', 'null')); } catch { return null; } })();   // { token, name }
+// ---------- Cuenta (opcional): Google o mail + contraseña, con nick opcional. Guarda el álbum y reserva el nick ----------
+const GOOGLE_CLIENT_ID = '673518924318-4ht3mfa852s6vh3q84jfukul79oae93k.apps.googleusercontent.com';
+let acct = (() => { try { const a = JSON.parse(LS.get('sancor_acct', 'null')); return a && a.token ? { ...a, nick: a.nick || a.name } : null; } catch { return null; } })();   // { token, nick, email }
 async function accApi(body) {
-  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 8000);
+  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 9000);
   try { const r = await fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal });
-    const j = await r.json().catch(() => ({})); return r.ok ? j : { error: j.error || 'No se pudo conectar. Probá de nuevo.', status: r.status };
+    const j = await r.json().catch(() => ({})); return r.ok ? j : { error: r.status === 501 || r.status === 404 ? 'Las cuentas funcionan en drones-invasores.vercel.app' : (j.error || 'No se pudo conectar. Probá de nuevo.'), status: r.status };
   } catch { return { error: 'No se pudo conectar. Probá de nuevo.' }; } finally { clearTimeout(to); }
 }
 function mergeAlbum(p) { if (!p) return; album = { got: album.got.map((g, i) => g || !!(p.got && p.got[i])), drones: Math.max(album.drones, p.drones || 0), powers: Math.max(album.powers, p.powers || 0), best: Math.max(album.best || 0, p.best || 0) }; LS.set('sancor_album', JSON.stringify(album)); $('albCount').textContent = `${albN()}/9`; }
 let syncT = 0;
-function acctSync() { if (!acct) return; clearTimeout(syncT); syncT = setTimeout(async () => { const r = await accApi({ action: 'sync', token: acct.token, progress: album }); if (r.progress) mergeAlbum(r.progress); else if (r.status === 401) { acct = null; LS.set('sancor_acct', 'null'); } }, 1200); }
-function setAcct(r) { acct = { token: r.token, name: r.name }; LS.set('sancor_acct', JSON.stringify(acct)); playerName = r.name; LS.set('sancor_name', r.name); mergeAlbum(r.progress); }
-let acctBack = 'menu';
+function dropAcct() { acct = null; LS.set('sancor_acct', 'null'); renderAccBox(); }
+function acctSync() { if (!acct) return; clearTimeout(syncT); syncT = setTimeout(async () => { const r = await accApi({ action: 'sync', token: acct.token, progress: album }); if (r.progress) mergeAlbum(r.progress); else if (r.status === 401) dropAcct(); }, 1200); }
+function setAcct(r) {
+  acct = { token: r.token || (acct && acct.token), nick: r.nick, email: r.email }; LS.set('sancor_acct', JSON.stringify(acct));
+  if (r.nick) { playerName = r.nick; LS.set('sancor_name', r.nick); } mergeAlbum(r.progress);
+}
+const escH = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// --- stepper (estilo Stepper de React Bits): 1 mail o Google · 2 contraseña · 3 nick · 4 listo ---
+let acctBack = 'menu', aStep = 1, aMode = '', pending = null;
+function goStep(n) {
+  const back = n < aStep; aStep = n;
+  document.querySelectorAll('#acct .aStep').forEach(el => { const on = +el.dataset.s === n; el.classList.toggle('on', on); el.classList.toggle('back', on && back); });
+  document.querySelectorAll('#acctSteps i').forEach(el => { const k = +el.dataset.s; el.classList.toggle('on', k === n); el.classList.toggle('ok', k < n); el.textContent = k < n ? '✓' : k; });
+  document.querySelectorAll('#acctSteps b').forEach((el, i) => el.classList.toggle('ok', i + 1 < n));
+  $('acct').classList.toggle('done', n === 4); $('acctErr').textContent = ''; $('acctErr').classList.remove('ok');
+  $('acctTitle').textContent = n === 4 ? 'Tu cuenta' : n === 3 ? 'Tu nick' : 'Creá tu cuenta';
+  const f = { 1: 'acctEmail', 2: 'acctPass', 3: 'acctNick' }[n]; if (f && matchMedia('(pointer:fine)').matches) setTimeout(() => $(f).focus(), 60);
+}
 function openAcct(back) { acctBack = back || $('card').dataset.mode; setMode('account'); SFX.ui('card'); renderAcct(); }
 function renderAcct() {
-  const a = $('acct'); a.classList.toggle('in', !!acct); $('acctErr').textContent = '';
-  $('acctTitle').textContent = acct ? 'Tu cuenta' : 'Creá tu cuenta';
-  if (acct) $('acctIn').innerHTML = `<span>Conectado como <b>${cleanName(acct.name).replace(/&/g, '&amp;')}</b>. Tu álbum se guarda solo.</span><a id="acctOut">Cerrar sesión</a>`;
-  else { $('acctName').value = playerName || ''; }
+  if (acct) { $('acctIn').innerHTML = `Conectado como <b>${escH(acct.nick || 'sin nick')}</b>${acct.email ? `<br><span style="color:var(--muted)">${escH(acct.email)}</span>` : ''}<br>Tu álbum se guarda solo.`; goStep(4); return; }
+  goStep(1); if (!$('acctEmail').value) $('acctEmail').value = ''; loadGoogle();
 }
+let gsi = 0;
+function loadGoogle() { // botón oficial de Google (Google Identity Services)
+  const draw = () => { try { $('gBtn').innerHTML = ''; google.accounts.id.renderButton($('gBtn'), { theme: 'filled_black', size: 'large', shape: 'pill', text: 'continue_with', locale: 'es', width: Math.min(320, $('gBtn').clientWidth || 300) }); } catch (e) {} };
+  if (gsi === 2) { draw(); return; } if (gsi === 1) return; gsi = 1;
+  const sc = document.createElement('script'); sc.src = 'https://accounts.google.com/gsi/client?hl=es'; sc.async = true;
+  sc.onload = () => { try { google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogle, ux_mode: 'popup', auto_select: false, cancel_on_tap_outside: true }); gsi = 2; draw(); } catch (e) { gsi = 0; } };
+  sc.onerror = () => { gsi = 0; }; document.head.appendChild(sc);
+}
+async function onGoogle(resp) {
+  aErr('Entrando con Google…');
+  const r = await accApi({ action: 'google', credential: resp && resp.credential, progress: album });
+  if (r.error) { aErr(r.error); return; }
+  setAcct(r); SFX.ui('save'); renderAccBox();
+  if (r.isNew) { aMode = 'nick'; $('acctNick').value = r.nick || ''; goStep(3); } else { renderAcct(); aOk('¡Hola de nuevo!'); }
+}
+const aErr = t => { const e = $('acctErr'); e.textContent = t; e.classList.remove('ok'); };
+const aOk = t => { const e = $('acctErr'); e.textContent = t; e.classList.add('ok'); };
+const EMAIL_OK = e => /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/.test(e);
+$('aNext1').addEventListener('click', () => { const e = $('acctEmail').value.trim(); if (!EMAIL_OK(e)) { aErr('Revisá el mail: parece que no es válido.'); return; } $('aEmailShow').innerHTML = `Mail: <b>${escH(e)}</b>`; goStep(2); SFX.ui('place'); });
+$('acctEmail').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aNext1').click(); } });
+$('aBack1').addEventListener('click', e => { e.preventDefault(); goStep(1); });
+$('acctPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aLogin').click(); } });
+$('aLogin').addEventListener('click', async () => {
+  const email = $('acctEmail').value.trim(), pass = $('acctPass').value;
+  if (pass.length < 6) { aErr('La contraseña tiene que tener al menos 6 caracteres.'); return; }
+  aErr('Entrando…');
+  const r = await accApi({ action: 'login', email, pass, progress: album });
+  if (r.error) { aErr(r.error); return; }
+  $('acctPass').value = ''; setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox(); aOk('¡Hola de nuevo!');
+});
+$('aReg').addEventListener('click', () => { // primero el nick (opcional) y recién ahí se crea la cuenta
+  const pass = $('acctPass').value;
+  if (pass.length < 6) { aErr('La contraseña tiene que tener al menos 6 caracteres.'); return; }
+  pending = { email: $('acctEmail').value.trim(), pass }; aMode = 'register';
+  $('acctNick').value = playerName || cleanName($('acctEmail').value.split('@')[0]); goStep(3); SFX.ui('place');
+});
+async function finishNick(nick) {
+  const err = $('acctErr');
+  if (aMode === 'register') {
+    aErr('Creando tu cuenta…');
+    const r = await accApi({ action: 'register', email: pending.email, pass: pending.pass, nick, progress: album });
+    if (r.error) { aErr(r.error); if (r.status === 409) goStep(2); return; }
+    pending = null; $('acctPass').value = ''; setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox();
+    aOk(r.nickTaken ? `Ese nick ya estaba tomado: te quedó “${r.nick}”. Podés cambiarlo cuando quieras.` : '¡Listo! Tu cuenta está creada.');
+    return;
+  }
+  if (nick) { aErr('Guardando…'); const r = await accApi({ action: 'nick', token: acct.token, nick }); if (r.error) { aErr(r.error); return; } setAcct(r); }
+  SFX.ui('save'); renderAcct(); renderAccBox(); aOk('¡Listo!');
+}
+$('aNickSave').addEventListener('click', () => { const n = cleanName($('acctNick').value); if (n.length < 2) { aErr('El nick tiene que tener al menos 2 letras.'); return; } finishNick(n); });
+$('acctNick').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aNickSave').click(); } });
+$('aNickSkip').addEventListener('click', () => finishNick(''));
+$('aEditNick').addEventListener('click', () => { aMode = 'nick'; $('acctNick').value = acct.nick || ''; goStep(3); });
+$('acctOut').addEventListener('click', () => { const t = acct && acct.token; dropAcct(); if (t) accApi({ action: 'logout', token: t }); try { google.accounts.id.disableAutoSelect(); } catch (e) {} renderAcct(); });
 function renderAccBox() {
-  const n = $('nameAcc'), b = $('albAcc'), esc = t => cleanName(t).replace(/&/g, '&amp;');
-  if (acct) { b.innerHTML = `<span>☁️ Tu álbum está guardado en tu cuenta (<b>${esc(acct.name)}</b>).</span><a data-acc>Ver cuenta</a>`; n.innerHTML = `Jugando con tu cuenta · <a data-acc>cambiar</a>`; }
-  else { b.innerHTML = `<span><b>Guardá tu álbum para siempre.</b> Creá una cuenta gratis y no lo perdés aunque cambies de celu. También reservás tu nombre en el ranking.</span><a data-acc>Crear cuenta o iniciar sesión</a>`;
-    n.innerHTML = `¿Querés guardar tu álbum y reservar tu nombre? <a data-acc>Creá tu cuenta</a>`; }
-  $('nameInput').disabled = !!acct; if (acct) $('nameInput').value = acct.name;
+  const n = $('nameAcc'), b = $('albAcc');
+  if (acct) { b.innerHTML = `<span>☁️ Tu álbum está guardado en tu cuenta (<b>${escH(acct.nick)}</b>).</span><a data-acc>Ver cuenta</a>`; n.innerHTML = `Jugando con tu cuenta · <a data-acc>ver</a>`; }
+  else { b.innerHTML = `<span><b>Guardá tu álbum para siempre.</b> Entrá con Google o con tu mail y no lo perdés aunque cambies de celu. También reservás tu nick en el ranking.</span><a data-acc>Crear cuenta o iniciar sesión</a>`;
+    n.innerHTML = `¿Querés guardar tu álbum y reservar tu nick? <a data-acc>Creá tu cuenta</a>`; }
+  $('nameInput').disabled = !!(acct && acct.nick); if (acct && acct.nick) $('nameInput').value = acct.nick;
 }
-document.addEventListener('click', e => { if (e.target.closest('[data-acc]')) { e.preventDefault(); openAcct(); } else if (e.target.id === 'acctOut') { e.preventDefault(); const t = acct && acct.token; acct = null; LS.set('sancor_acct', 'null'); if (t) accApi({ action: 'logout', token: t }); renderAcct(); renderAccBox(); } });
-async function acctDo(action) {
-  const name = cleanName($('acctName').value), pass = $('acctPass').value, err = $('acctErr');
-  if (name.length < 2) { err.textContent = 'Escribí un nombre (mínimo 2 letras).'; return; }
-  if (pass.length < 6) { err.textContent = 'La contraseña tiene que tener al menos 6 caracteres.'; return; }
-  err.textContent = action === 'register' ? 'Creando tu cuenta…' : 'Entrando…';
-  const r = await accApi({ action, name, pass, progress: album });
-  if (r.error) { err.textContent = r.status === 501 || !r.status ? 'Las cuentas todavía no están disponibles acá. Probá en drones-invasores.vercel.app' : r.error; return; }
-  $('acctPass').value = ''; setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox();
-  err.textContent = action === 'register' ? '¡Listo! Tu cuenta está creada.' : '¡Hola de nuevo!';
-}
-$('acctForm').addEventListener('submit', e => { e.preventDefault(); acctDo('register'); });
-$('acctLogin').addEventListener('click', () => acctDo('login'));
+document.addEventListener('click', e => { if (e.target.closest('[data-acc]')) { e.preventDefault(); openAcct(); } });
 $('acctBack').addEventListener('click', () => { if (acctBack === 'album') renderAlbum(); setMode(acctBack === 'account' ? 'menu' : acctBack); renderAccBox(); });
 $('albCount').textContent = `${albN()}/9`;
-if (acct) accApi({ action: 'me', token: acct.token }).then(r => { if (r.progress) { mergeAlbum(r.progress); acctSync(); } else if (r.status === 401) { acct = null; LS.set('sancor_acct', 'null'); renderAccBox(); } });
+if (acct) accApi({ action: 'me', token: acct.token }).then(r => { if (r.progress) { setAcct(r); renderAccBox(); acctSync(); } else if (r.status === 401) dropAcct(); });
 setTimeout(renderAccBox, 0);
 // ---------- Onboarding: 3 tarjetas con los elementos reales del juego (la primera vez, o desde "Cómo jugar") ----------
 const TUTO = [
