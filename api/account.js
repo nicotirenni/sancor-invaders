@@ -83,7 +83,7 @@ module.exports = async (req, res) => {
         return res.status(200).json(await out(key, u, { isNew: true, nickTaken: want.length >= 2 && u.nick !== want }));
       }
       const u = await getUser(key), bad = () => res.status(401).json({ error: 'Mail o contraseña incorrectos.' });
-      if (!u) return bad();
+      if (!u) return res.status(404).json({ notFound: true });   // mail sin cuenta: el juego ofrece crearla
       if (!u.hash) return res.status(401).json({ error: 'Esa cuenta se creó con Google: tocá "Continuar con Google".' });
       const a = Buffer.from(hash(pass, u.salt), 'hex'), c = Buffer.from(u.hash, 'hex');
       if (a.length !== c.length || !crypto.timingSafeEqual(a, c)) return bad();

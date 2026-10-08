@@ -99,7 +99,11 @@
   .aStep .field{width:100%} .aHint{margin:0;text-align:center;color:#c9d2f0;font-size:clamp(13px,1.8cqw,16px);line-height:1.45}
   .gBtn{min-height:44px;display:flex;justify-content:center;width:100%} .gBtn:empty{display:none}
   .orLine{display:flex;align-items:center;gap:10px;width:100%;color:var(--muted);font-size:13px} .orLine::before,.orLine::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.12)}
-  .aLink,.aFoot{color:var(--muted);font-size:13px;text-underline-offset:3px} .aLink:hover,.aFoot:hover{color:#fff}
+  .aFoot{color:var(--muted);font-size:13px;text-underline-offset:3px;margin-top:4px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);width:100%;text-align:center} .aFoot:hover{color:#fff}
+  .passWrap{position:relative;width:100%} .passWrap .field{padding-right:3.2em;padding-left:3.2em}
+  .eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;border-radius:10px;background:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .eye:hover,.eye:focus-visible{color:#fff;background:rgba(255,255,255,.06);outline:none} .eye[aria-pressed=true] .slash{display:none}
+  .aSmall{font-size:13px;color:var(--muted)} .acct.s2 #acctBack{display:none}
   .okMark{width:56px;height:56px} .okMark circle{fill:none;stroke:#7fffd4;stroke-width:3;stroke-dasharray:145;stroke-dashoffset:145;animation:draw .5s ease-out forwards}
   .okMark path{fill:none;stroke:#7fffd4;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:draw .35s .4s ease-out forwards} @keyframes draw{to{stroke-dashoffset:0}}
   .newCards{flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;font-size:clamp(13px,1.8cqw,16px);color:#ffd77a}
@@ -361,9 +365,9 @@
         </div>
         <div class="aStep" data-s="2">
           <p class="aHint" id="aEmailShow"></p>
-          <input id="acctPass" class="field" type="password" maxlength="64" placeholder="Contraseña (mínimo 6)" autocomplete="current-password">
-          <div class="row"><button class="sb" id="aLogin" type="button">Entrar</button><button class="gh" id="aReg" type="button">Crear cuenta nueva</button></div>
-          <a class="aLink" id="aBack1" href="#">Usar otro mail</a>
+          <div class="passWrap"><input id="acctPass" class="field" type="password" maxlength="64" placeholder="Contraseña (mínimo 6)" autocomplete="current-password"><button class="eye" id="aEye" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path class="slash" d="M4 4l16 16"/></svg></button></div>
+          <p class="aHint aSmall">Si ya tenés cuenta, entrás. Si es la primera vez, la creamos con esta contraseña.</p>
+          <div class="row"><button class="sb" id="aLogin" type="button">Confirmar</button><button class="gh" id="aBack1" type="button">Volver</button></div>
         </div>
         <div class="aStep" data-s="3">
           <p class="aHint">Elegí cómo te van a ver en el ranking. Es opcional y tu mail nunca se muestra.</p>
@@ -376,8 +380,8 @@
           <div class="row"><button class="gh" id="aEditNick" type="button">Cambiar nick</button><button class="gh" id="acctOut" type="button">Cerrar sesión</button></div>
         </div>
         <div class="acctErr" id="acctErr" role="alert"></div>
-        <a class="aFoot" href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>
         <button class="gh" id="acctBack" type="button">Volver</button>
+        <a class="aFoot" href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>
       </div>
       <div class="tuto" id="tuto" role="group" aria-roledescription="carrusel" aria-label="Cómo jugar">
         <div class="tStep" id="tStep">1 / 3</div>
@@ -1417,7 +1421,7 @@ let acct = (() => { try { const a = JSON.parse(LS.get('sancor_acct', 'null')); r
 async function accApi(body) {
   const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 9000);
   try { const r = await fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal });
-    const j = await r.json().catch(() => ({})); return r.ok ? j : { error: r.status === 501 || r.status === 404 ? 'Las cuentas funcionan en drones-invasores.vercel.app' : (j.error || 'No se pudo conectar. Probá de nuevo.'), status: r.status };
+    const j = await r.json().catch(() => ({})); if (j.notFound) return { notFound: true }; return r.ok ? j : { error: r.status === 501 || r.status === 404 ? 'Las cuentas funcionan en drones-invasores.vercel.app' : (j.error || 'No se pudo conectar. Probá de nuevo.'), status: r.status };
   } catch { return { error: 'No se pudo conectar. Probá de nuevo.' }; } finally { clearTimeout(to); }
 }
 function mergeAlbum(p) { if (!p) return; album = { got: album.got.map((g, i) => g || !!(p.got && p.got[i])), drones: Math.max(album.drones, p.drones || 0), powers: Math.max(album.powers, p.powers || 0), best: Math.max(album.best || 0, p.best || 0) }; LS.set('sancor_album', JSON.stringify(album)); $('albCount').textContent = `${albN()}/9`; }
@@ -1436,7 +1440,8 @@ function goStep(n) {
   document.querySelectorAll('#acct .aStep').forEach(el => { const on = +el.dataset.s === n; el.classList.toggle('on', on); el.classList.toggle('back', on && back); });
   document.querySelectorAll('#acctSteps i').forEach(el => { const k = +el.dataset.s; el.classList.toggle('on', k === n); el.classList.toggle('ok', k < n); el.textContent = k < n ? '✓' : k; });
   document.querySelectorAll('#acctSteps b').forEach((el, i) => el.classList.toggle('ok', i + 1 < n));
-  $('acct').classList.toggle('done', n === 4); $('acctErr').textContent = ''; $('acctErr').classList.remove('ok');
+  $('acct').classList.toggle('done', n === 4); $('acct').classList.toggle('s2', n === 2);
+  if (n !== 2) { $('acctPass').type = 'password'; $('aEye').setAttribute('aria-pressed', 'false'); } $('acctErr').textContent = ''; $('acctErr').classList.remove('ok');
   $('acctTitle').textContent = n === 4 ? 'Tu cuenta' : n === 3 ? 'Tu nick' : 'Creá tu cuenta';
   const f = { 1: 'acctEmail', 2: 'acctPass', 3: 'acctNick' }[n]; if (f && matchMedia('(pointer:fine)').matches) setTimeout(() => $(f).focus(), 60);
 }
@@ -1466,20 +1471,16 @@ const EMAIL_OK = e => /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/.test(e);
 $('aNext1').addEventListener('click', () => { const e = $('acctEmail').value.trim(); if (!EMAIL_OK(e)) { aErr('Revisá el mail: parece que no es válido.'); return; } $('aEmailShow').innerHTML = `Mail: <b>${escH(e)}</b>`; goStep(2); SFX.ui('place'); });
 $('acctEmail').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aNext1').click(); } });
 $('aBack1').addEventListener('click', e => { e.preventDefault(); goStep(1); });
+$('aEye').addEventListener('click', () => { const i = $('acctPass'), show = i.type === 'password'; i.type = show ? 'text' : 'password'; $('aEye').setAttribute('aria-pressed', show); $('aEye').setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña'); i.focus(); });
 $('acctPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aLogin').click(); } });
-$('aLogin').addEventListener('click', async () => {
+$('aLogin').addEventListener('click', async () => { // si el mail ya tiene cuenta entra; si no, sigue al paso del nick y la crea
   const email = $('acctEmail').value.trim(), pass = $('acctPass').value;
   if (pass.length < 6) { aErr('La contraseña tiene que tener al menos 6 caracteres.'); return; }
-  aErr('Entrando…');
+  aErr('Un segundo…');
   const r = await accApi({ action: 'login', email, pass, progress: album });
+  if (r.notFound) { pending = { email, pass }; aMode = 'register'; $('acctNick').value = playerName || cleanName(email.split('@')[0]); goStep(3); SFX.ui('place'); return; }
   if (r.error) { aErr(r.error); return; }
   $('acctPass').value = ''; setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox(); aOk('¡Hola de nuevo!');
-});
-$('aReg').addEventListener('click', () => { // primero el nick (opcional) y recién ahí se crea la cuenta
-  const pass = $('acctPass').value;
-  if (pass.length < 6) { aErr('La contraseña tiene que tener al menos 6 caracteres.'); return; }
-  pending = { email: $('acctEmail').value.trim(), pass }; aMode = 'register';
-  $('acctNick').value = playerName || cleanName($('acctEmail').value.split('@')[0]); goStep(3); SFX.ui('place');
 });
 async function finishNick(nick) {
   const err = $('acctErr');
