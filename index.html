@@ -765,7 +765,7 @@ const SFX = (() => {
   function ensure() {
     if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-    ac = new AC();
+    try { ac = new AC({ latencyHint: "playback" }); } catch (e) { ac = new AC(); }   // búfer más grande: menos cortes en celulares
     master = ac.createGain(); master.gain.value = muted ? 0 : .9;
     const shelf = ac.createBiquadFilter(); shelf.type = 'lowshelf'; shelf.frequency.value = 180; shelf.gain.value = 5;       // cuerpo en graves
     const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4200; lp.Q.value = .5;                      // nada agudo ni chillón
@@ -773,15 +773,17 @@ const SFX = (() => {
     sfxBus = ac.createGain(); musBus = ac.createGain(); sfxBus.connect(master);
     musLP = ac.createBiquadFilter(); musLP.type = 'lowpass'; musLP.frequency.value = 18000; musBus.connect(musLP); musLP.connect(master);   // la música se "apaga" detrás de las fanfarrias
     // sala (reverberación) suave y compartida, como en shadow-platform
-    { const n = Math.floor(ac.sampleRate * 1.4), ib = ac.createBuffer(2, n, ac.sampleRate); let seed = 777; const r = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+    { const n = Math.floor(ac.sampleRate * .8), ib = ac.createBuffer(2, n, ac.sampleRate); let seed = 777; const r = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
       for (let c = 0; c < 2; c++) { const d = ib.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (r() * 2 - 1) * Math.pow(1 - i / n, 2.8); }
       revIn = ac.createGain(); const conv = ac.createConvolver(), rlp = ac.createBiquadFilter(), rout = ac.createGain(); conv.buffer = ib; rlp.type = 'lowpass'; rlp.frequency.value = 3200; rout.gain.value = .5;
       revIn.connect(rlp); rlp.connect(conv); conv.connect(rout); rout.connect(master);
       const ss = ac.createGain(); ss.gain.value = .12; sfxBus.connect(ss); ss.connect(revIn); const ms = ac.createGain(); ms.gain.value = .07; musLP.connect(ms); ms.connect(revIn); }
     { const N = 32, re = new Float32Array(N), im = new Float32Array(N); for (let k = 1; k < N; k++) re[k] = 4 / (k * Math.PI) * Math.sin(k * Math.PI * .25); pw = ac.createPeriodicWave(re, im); }   // pulso 25 %
     sfxBus.gain.value = vol.sfx; musBus.gain.value = vol.mus;
-    master.connect(shelf); shelf.connect(lp); lp.connect(comp); comp.connect(ac.destination);
-    noiseBuf = ac.createBuffer(1, ac.sampleRate * 1.5, ac.sampleRate); { const d = noiseBuf.getChannelData(0), hold = Math.max(1, Math.round(ac.sampleRate / 16000)); let l = 1, v = 1, left = 0; for (let i = 0; i < d.length; i++) { if (left-- <= 0) { const b = (l ^ (l >> 1)) & 1; l = (l >> 1) | (b << 14); v = l & 1 ? 1 : -1; left = hold; } d[i] = v * .9; } }   // ruido áspero de 8 bits (registro de desplazamiento)
+    const lim = ac.createDynamicsCompressor(); lim.threshold.value = -6; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .12;   // limitador: evita la saturación (crujidos)
+    const outG = ac.createGain(); outG.gain.value = .85;
+    master.connect(shelf); shelf.connect(lp); lp.connect(comp); comp.connect(lim); lim.connect(outG); outG.connect(ac.destination);
+    noiseBuf = ac.createBuffer(1, ac.sampleRate * 1.5, ac.sampleRate); { const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
     pad(.03);
   }
   function tone(type, f0, f1, dur, vol, o = {}) {
@@ -863,7 +865,7 @@ const SFX = (() => {
     const osc = ac.createOscillator(), g = ac.createGain();
     if (type === 'pulse') osc.setPeriodicWave(MU.pulse); else osc.type = type;
     osc.frequency.setValueAtTime(f, t); if (o.f1) osc.frequency.exponentialRampToValueAtTime(o.f1, t + dur);
-    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .006); g.gain.setValueAtTime(vol * (o.sus || .6), t + dur * .55); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .008); g.gain.linearRampToValueAtTime(vol * (o.sus || .6), t + dur * .55); g.gain.linearRampToValueAtTime(0, t + dur);
     osc.connect(g); g.connect(MU.g); osc.start(t); osc.stop(t + dur + .03);
   }
   function mNoise(t, dur, vol, lp, hp = 0) {
