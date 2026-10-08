@@ -723,23 +723,55 @@ const SFX = (() => {
   }
   function chord(freqs, step, dur, vol, lp = 1800) { freqs.forEach((f, i) => { tone('triangle', f, f, dur, vol, { delay: i * step, attack: .03, lp }); tone('sine', f / 2, f / 2, dur, vol * .8, { delay: i * step, attack: .04 }); }); }
   // ---- Música: cumbia en 16 bits (pulsos cuadrados, bajo triangular, percusión de ruido) ----
-  const MU = { on: false, timer: 0, step: 0, next: 0, bpm: 92, g: null, pulse: null, track: 'game' };
+  const MU = { on: false, timer: 0, step: 0, next: 0, bpm: 92, g: null, pulse: null, track: 'cumbia' };
   const hz = n => 440 * Math.pow(2, n / 12);
+  // Temas originales (sintetizados). Notas en semitonos desde La4; pasos de semicorchea.
+  const ev = (r, f, a = 3.2, b = 1.8) => [[0, r, a], [8, r, a], [6, f, b], [14, f, b]];             // bajo de cumbia: raíz y quinta
+  const eights = r => [0, 2, 4, 6, 8, 10, 12, 14].map(k => [k, r, 1.6]);
+  const quarters = (r, f) => [[0, r, 1.8], [4, f, 1.8], [8, r, 1.8], [12, f, 1.8]];
   const TRACKS = {
-    game: { // cumbia: La menor | Re menor | Mi | La menor
-      bass: [[-24, -17], [-19, -24], [-17, -22], [-24, -17]], stab: [[-12, -9, -5], [-12, -7, -4], [-13, -10, -5], [-12, -9, -5]],
-      lead: [
-        [[0, 7, 2], [3, 7, 1], [4, 5, 1], [5, 3, 1], [6, 0, 2], [8, 3, 2], [11, 3, 1], [12, 7, 3]],
-        [[0, 8, 2], [3, 8, 1], [4, 7, 1], [5, 5, 1], [6, 3, 2], [8, 5, 2], [11, 5, 1], [12, 0, 3]],
-        [[0, 7, 2], [3, 7, 1], [4, 2, 1], [5, -1, 1], [6, 2, 2], [8, 7, 2], [11, 2, 1], [12, -1, 3]],
-        [[0, 3, 2], [2, 7, 2], [4, 12, 4], [8, 10, 2], [10, 7, 2], [12, 3, 2], [14, 0, 2]]] },
-    menu: { // tema original de hinchada, Do mayor (pentatónica): Do | Fa | Sol | Do
-      bass: [[-21, -21], [-16, -16], [-14, -14], [-21, -14]], stab: [[-9, -5, -2], [-12, -9, -4], [-14, -10, -7], [-9, -5, -2]],
-      lead: [
-        [[0, 10, 2], [2, 10, 2], [4, 7, 2], [6, 10, 2], [8, 12, 4], [12, 10, 4]],
-        [[0, 12, 2], [2, 12, 2], [4, 10, 2], [6, 12, 2], [8, 15, 4], [12, 12, 4]],
-        [[0, 10, 2], [2, 10, 2], [4, 7, 2], [6, 5, 2], [8, 7, 4], [12, 2, 4]],
-        [[0, 7, 2], [2, 10, 2], [4, 12, 2], [6, 10, 2], [8, 7, 6], [14, 5, 2]]] }
+    menu: { name: 'Hinchada', steps: 16, kick: [0, 4, 8, 12], clap: [0, 4, 8, 10, 12], hatSoft: [0, 2, 4, 6, 8, 10, 12, 14], stab: [0, 8], stabLen: 3.6, stabVol: .05, stabSus: .6,
+      bars: [
+        { bass: [[0, -21, 3.5], [8, -21, 3.5], [6, -21, 1.5], [14, -21, 1.5]], ch: [-9, -5, -2], lead: [[0, 10, 2], [2, 10, 2], [4, 7, 2], [6, 10, 2], [8, 12, 4], [12, 10, 4]] },
+        { bass: [[0, -16, 3.5], [8, -16, 3.5], [6, -16, 1.5], [14, -16, 1.5]], ch: [-12, -9, -4], lead: [[0, 12, 2], [2, 12, 2], [4, 10, 2], [6, 12, 2], [8, 15, 4], [12, 12, 4]] },
+        { bass: [[0, -14, 3.5], [8, -14, 3.5], [6, -14, 1.5], [14, -14, 1.5]], ch: [-14, -10, -7], lead: [[0, 10, 2], [2, 10, 2], [4, 7, 2], [6, 5, 2], [8, 7, 4], [12, 2, 4]] },
+        { bass: [[0, -21, 3.5], [8, -21, 3.5], [6, -14, 1.5], [14, -14, 1.5]], ch: [-9, -5, -2], lead: [[0, 7, 2], [2, 10, 2], [4, 12, 2], [6, 10, 2], [8, 7, 6], [14, 5, 2]] }] },
+    cumbia: { name: 'Cumbia de la previa', steps: 16, kick: [0, 8], snare: [4, 12], hat: [0, 2, 4, 6, 8, 10, 12, 14], hatSoft: [1, 3, 5, 7, 9, 11, 13, 15], stab: [2, 6, 10, 14], stabLen: 1.2, stabVol: .06, stabSus: .4,
+      bars: [
+        { bass: ev(-24, -17), ch: [-12, -9, -5], lead: [[0, 7, 2], [3, 7, 1], [4, 5, 1], [5, 3, 1], [6, 0, 2], [8, 3, 2], [11, 3, 1], [12, 7, 3]] },
+        { bass: ev(-19, -24), ch: [-12, -7, -4], lead: [[0, 8, 2], [3, 8, 1], [4, 7, 1], [5, 5, 1], [6, 3, 2], [8, 5, 2], [11, 5, 1], [12, 0, 3]] },
+        { bass: ev(-17, -22), ch: [-13, -10, -5], lead: [[0, 7, 2], [3, 7, 1], [4, 2, 1], [5, -1, 1], [6, 2, 2], [8, 7, 2], [11, 2, 1], [12, -1, 3]] },
+        { bass: ev(-24, -17), ch: [-12, -9, -5], lead: [[0, 3, 2], [2, 7, 2], [4, 12, 4], [8, 10, 2], [10, 7, 2], [12, 3, 2], [14, 0, 2]] }] },
+    murga: { name: 'Murga del cielo', steps: 16, kick: [0, 3, 6, 8, 11, 14], snare: [12, 13], plat: [2, 6, 10, 14], stab: [4, 12], stabLen: 2, stabVol: .06, stabSus: .5,
+      bars: [
+        { bass: ev(-19, -24, 3, 1.5), ch: [-7, -4, 0], lead: [[0, 5, 2], [2, 8, 2], [4, 12, 4], [8, 10, 2], [10, 8, 2], [12, 5, 4]] },
+        { bass: ev(-26, -19, 3, 1.5), ch: [-14, -11, -7], lead: [[0, 1, 2], [2, 5, 2], [4, 10, 4], [8, 8, 2], [10, 5, 2], [12, 1, 4]] },
+        { bass: ev(-24, -17, 3, 1.5), ch: [-12, -8, -5], lead: [[0, 4, 2], [2, 7, 2], [4, 12, 3], [7, 10, 1], [8, 7, 4], [12, 4, 4]] },
+        { bass: ev(-19, -24, 3, 1.5), ch: [-7, -4, 0], lead: [[0, 5, 3], [3, 8, 1], [4, 7, 2], [6, 5, 2], [8, 0, 6], [14, 4, 2]] }] },
+    cuarteto: { name: 'Cuarteto del palco', steps: 16, kick: [0, 4, 8, 12], hatSoft: [2, 6, 10, 14], stab: [2, 6, 10, 14], stabLen: .9, stabVol: .065, stabSus: .35,
+      bars: [
+        { bass: quarters(-21, -26), ch: [-9, -5, -2], lead: [[0, 7, 2], [2, 10, 2], [4, 12, 2], [6, 10, 2], [8, 7, 4], [12, 3, 4]] },
+        { bass: quarters(-24, -17), ch: [-12, -9, -5], lead: [[0, 3, 2], [2, 7, 2], [4, 12, 4], [8, 10, 2], [10, 7, 2], [12, 5, 4]] },
+        { bass: quarters(-28, -21), ch: [-16, -12, -9], lead: [[0, 8, 2], [2, 12, 2], [4, 15, 4], [8, 12, 2], [10, 8, 2], [12, 7, 4]] },
+        { bass: quarters(-26, -19), ch: [-14, -10, -7], lead: [[0, 5, 2], [2, 10, 2], [4, 14, 4], [8, 12, 2], [10, 10, 2], [12, 7, 2], [14, 5, 2]] }] },
+    rock: { name: 'Rock del Monumento', steps: 16, kick: [0, 6, 8, 10], snare: [4, 12], hat: [0, 2, 4, 6, 8, 10, 12, 14], stab: [0, 3, 6, 8, 11, 14], stabLen: .8, stabVol: .05, stabSus: .3,
+      bars: [
+        { bass: eights(-29), ch: [-17, -10, -5], lead: [[0, 7, 3], [3, 10, 1], [4, 7, 2], [6, 5, 2], [8, 2, 4], [12, 5, 2], [14, 7, 2]] },
+        { bass: eights(-21), ch: [-21, -14, -9], lead: [[0, 3, 3], [3, 7, 1], [4, 10, 4], [8, 7, 2], [10, 3, 2], [12, 2, 4]] },
+        { bass: eights(-26), ch: [-14, -7, -2], lead: [[0, 2, 2], [2, 5, 2], [4, 10, 4], [8, 14, 2], [10, 12, 2], [12, 10, 4]] },
+        { bass: eights(-19), ch: [-19, -12, -7], lead: [[0, 9, 2], [2, 12, 2], [4, 14, 4], [8, 12, 2], [10, 9, 2], [12, 5, 2], [14, 2, 2]] }] },
+    malambo: { name: 'Malambo turbo', steps: 12, kick: [0, 6], clap: [3, 9], hatSoft: [1, 2, 4, 5, 7, 8, 10, 11], leadVol: .09,
+      bars: [
+        { bass: [[0, -24, 2.5], [6, -17, 2.5]], ch: [-12, -9, -5], lead: [12, 7, 3, 7, 12, 7, 15, 12, 7, 12, 15, 12].map((n, k) => [k, n, 1]) },
+        { bass: [[0, -29, 2.5], [6, -22, 2.5]], ch: [-13, -10, -5], lead: [11, 7, 4, 7, 11, 7, 14, 11, 7, 11, 14, 16].map((n, k) => [k, n, 1]) },
+        { bass: [[0, -19, 2.5], [6, -24, 2.5]], ch: [-12, -7, -4], lead: [8, 5, 0, 5, 8, 5, 12, 8, 5, 8, 12, 8].map((n, k) => [k, n, 1]) },
+        { bass: [[0, -29, 2.5], [6, -22, 2.5]], ch: [-13, -10, -5], lead: [11, 7, 4, 7, 11, 7, 14, 11, 7, 11, 11, 7].map((n, k) => [k, n, 1]) }] },
+    electro: { name: 'Electro de cancha', steps: 16, kick: [0, 4, 8, 12], clap: [4, 12], hat: [2, 6, 10, 14], hatSoft: [1, 3, 5, 7, 9, 11, 13, 15], arp: true,
+      bars: [
+        { bass: [2, 6, 10, 14].map(k => [k, -24, 1.5]), ch: [-12, -9, -5], lead: [[0, 12, 4], [4, 10, 2], [6, 7, 2], [8, 12, 4], [12, 15, 4]] },
+        { bass: [2, 6, 10, 14].map(k => [k, -28, 1.5]), ch: [-16, -12, -9], lead: [[0, 12, 4], [4, 8, 2], [6, 7, 2], [8, 8, 4], [12, 3, 4]] },
+        { bass: [2, 6, 10, 14].map(k => [k, -21, 1.5]), ch: [-9, -5, -2], lead: [[0, 7, 4], [4, 10, 2], [6, 12, 2], [8, 15, 4], [12, 14, 4]] },
+        { bass: [2, 6, 10, 14].map(k => [k, -26, 1.5]), ch: [-14, -10, -7], lead: [[0, 14, 4], [4, 12, 2], [6, 10, 2], [8, 7, 6], [14, 10, 2]] }] }
   };
   function mNote(type, f, t, dur, vol, o = {}) {
     const osc = ac.createOscillator(), g = ac.createGain();
@@ -754,23 +786,18 @@ const SFX = (() => {
     g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .003); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
     src.connect(f); f.connect(g); g.connect(MU.g); src.start(t, Math.random()); src.stop(t + dur + .02);
   }
-  function mStep(i, t, sd) {
-    const T = TRACKS[MU.track], menu = MU.track === 'menu', bar = Math.floor(i / 16) % 4, k = i % 16;
-    if (menu) { // hinchada: bombo a negras, palmas en ritmo de cantito
-      if (k % 4 === 0) mNote('sine', 120, t, .18, .6, { f1: 42, sus: .3 });
-      if ([0, 4, 8, 10, 12].includes(k)) mNoise(t, .06, .2, 0, 2400);
-      if (k % 2 === 0) mNoise(t, .03, .05, 0, 6000);
-      const b = T.bass[bar]; if (k % 8 === 0) mNote('triangle', hz(b[0]), t, sd * 3.5, .5); if (k === 6 || k === 14) mNote('triangle', hz(b[1]) + 0, t, sd * 1.5, .4);
-      if (k === 0 || k === 8) T.stab[bar].forEach(n => mNote('pulse', hz(n), t, sd * 3.6, .05, { sus: .6 }));
-    } else {
-      if (k === 0 || k === 8) { mNote('sine', 120, t, .16, .55, { f1: 42, sus: .3 }); }                       // bombo
-      if (k === 4 || k === 12) mNoise(t, .09, .22, 0, 1800);                                                 // caja
-      if (k % 2 === 0) mNoise(t, .05, k % 4 === 0 ? .1 : .06, 0, 5200);                                       // güiro: corcheas
-      else mNoise(t, .03, .035, 0, 6000);
-      const b = T.bass[bar]; if (k === 0 || k === 8) mNote('triangle', hz(b[0]), t, sd * 3.2, .5); if (k === 6 || k === 14) mNote('triangle', hz(b[1]), t, sd * 1.8, .42);
-      if (k === 2 || k === 6 || k === 10 || k === 14) T.stab[bar].forEach(n => mNote('pulse', hz(n), t, sd * 1.2, .06, { sus: .4 }));  // guitarra/acordeón a contratiempo
-    }
-    for (const [st, n, len] of T.lead[bar]) if (st === k) mNote('pulse', hz(n), t, sd * len * .92, .12);       // melodía
+  function mStep(i, t, sd) { // secuenciador genérico: batería, bajo, acordes, arpegio y melodía
+    const T = TRACKS[MU.track] || TRACKS.cumbia, N = T.steps, B = T.bars[Math.floor(i / N) % T.bars.length], k = i % N, has = (a) => a && a.includes(k);
+    if (has(T.kick)) mNote('sine', 120, t, .16, .55, { f1: 42, sus: .3 });                               // bombo
+    if (has(T.snare)) mNoise(t, .09, .22, 0, 1800);                                                       // caja
+    if (has(T.clap)) mNoise(t, .06, .2, 0, 2400);                                                         // palmas / aro
+    if (has(T.plat)) mNoise(t, .16, .07, 0, 4200);                                                        // platillo de murga (suave)
+    if (has(T.hat)) mNoise(t, .05, k % 4 === 0 ? .1 : .07, 0, 5200);                                       // güiro / hi-hat
+    if (has(T.hatSoft)) mNoise(t, .03, .035, 0, 6000);
+    for (const [st, n, len] of B.bass) if (st === k) mNote('triangle', hz(n), t, sd * len, .48);          // bajo
+    if (has(T.stab)) B.ch.forEach(n => mNote('pulse', hz(n), t, sd * T.stabLen, T.stabVol, { sus: T.stabSus }));   // acordes
+    if (T.arp) mNote('pulse', hz(B.ch[k % 3] + 12 + (k % 6 >= 3 ? 12 : 0) - 12), t, sd * .9, .03, { sus: .3 });     // arpegio
+    for (const [st, n, len] of B.lead) if (st === k) mNote('pulse', hz(n), t, sd * len * .92, T.leadVol || .12);   // melodía
   }
   function musicTick() {
     if (!MU.on || !ac) return;
@@ -802,11 +829,12 @@ const SFX = (() => {
     combo() { if (ok()) tone('triangle', 330, 392, .22, .16, { lp: 1500, attack: .02 }); },
     clear() { if (ok()) chord([130.8, 164.8, 196, 261.6], .12, 1, .17, 1600); },
     over() { if (!ok()) return; tone('sawtooth', 130, 46, 1.3, .28, { lp: 320 }); tone('sine', 65, 30, 1.5, .55); },
-    musicStart(bpm = 92, track = 'game') { if (!ac) ensure(); if (!ac) return; MU.bpm = bpm; if (MU.track !== track) { MU.track = track; MU.step = 0; if (MU.on) MU.next = now() + .08; }
+    musicStart(bpm = 92, track = 'cumbia') { if (!ac) ensure(); if (!ac) return; MU.bpm = bpm; if (MU.track !== track) { MU.track = track; MU.step = 0; if (MU.on) MU.next = now() + .08; }
       if (!MU.g) { MU.g = ac.createGain(); MU.g.connect(musBus); MU.pulse = ac.createPeriodicWave(new Float32Array([0, ...Array.from({ length: 24 }, (_, n) => Math.sin(Math.PI * (n + 1) * .25) * 2 / (Math.PI * (n + 1)))]), new Float32Array(25)); }
       MU.g.gain.cancelScheduledValues(now()); MU.g.gain.setValueAtTime(.0001, now()); MU.g.gain.linearRampToValueAtTime(.24, now() + .6);
       if (MU.on) return; MU.on = true; MU.step = 0; MU.next = now() + .08; clearInterval(MU.timer); MU.timer = setInterval(musicTick, 60); },
     musicBpm(b) { MU.bpm = b; },
+    trackName(n) { return (TRACKS[n] || {}).name || ''; },
     musicStop() { if (!MU.on || !ac) return; MU.on = false; clearInterval(MU.timer); MU.g.gain.cancelScheduledValues(now()); MU.g.gain.setTargetAtTime(.0001, now(), .25); },
     fx(n) { if (!ok()) return; // sonidos de la intro (graves, sin chillidos)
       if (n === 'crowd') { noise(2.6, .16, 700, { attack: .8 }); noise(2.2, .08, 1600, { attack: 1.2, delay: .3 }); }
@@ -908,12 +936,15 @@ function tryStart() {
   if (!name) { inp.classList.add('bad'); inp.focus(); setTimeout(() => inp.classList.remove('bad'), 600); return; }
   playerName = name; LS.set('sancor_name', name); inp.blur(); start();
 }
+// Música por nivel: un tema distinto en cada ronda; cuanto más fácil la ronda, más lento el tempo
+const LEVEL_SONGS = ['cumbia', 'murga', 'cuarteto', 'rock', 'malambo', 'electro'], LEVEL_BPM = [80, 88, 96, 104, 112, 120];
+const levelSong = w => { const i = (w - 1) % LEVEL_SONGS.length, c = Math.floor((w - 1) / LEVEL_SONGS.length); return [Math.min(140, LEVEL_BPM[i] + c * 8), LEVEL_SONGS[i]]; };
 let startWave = 1; // las partidas siempre arrancan en la ronda 1
 function start() {
   $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true; $('rank').textContent = '';
   wave = startWave; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
   itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; $('pauseOv').hidden = true;
-  document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(Math.min(120, 92 + (startWave - 1) * 4), 'game'); buildWave(); $('pauseBtn').hidden = false;
+  document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(...levelSong(startWave)); buildWave(); $('pauseBtn').hidden = false;
 }
 let clearAt = 0;
 function showLevelResults(bonus, allies) {
@@ -957,7 +988,7 @@ async function countRows() {
 }
 function nextLevel() {
   if (state !== 'clear') return; countTok++;
-  $('card').hidden = true; state = 'play'; wave++; SFX.pad(.05); SFX.musicStart(Math.min(120, 92 + (wave - 1) * 4), 'game'); bullets = []; buildWave(); $('pauseBtn').hidden = false;
+  $('card').hidden = true; state = 'play'; wave++; SFX.pad(.05); SFX.musicStart(...levelSong(wave)); bullets = []; buildWave(); $('pauseBtn').hidden = false;
 }
 $('nextBtn').onclick = nextLevel;
 function setPause(p) {
@@ -1105,7 +1136,7 @@ function update(dt) {
     for (const g of groups) g.age += dt;
     countT -= dt; const n = Math.ceil(countT);
     if (n !== countN && n > 0) { countN = n; $('bannerText').textContent = n; $('bannerSub').textContent = `Ronda ${wave} · ` + (wave === 1 ? 'Destruí al invasor' : 'No toques lo nuestro'); $('banner').classList.add('on'); SFX.tick && SFX.tick(); }
-    if (countT <= 0) { banner('¡Ya!', ''); }
+    if (countT <= 0) { banner('¡Ya!', '♪ ' + SFX.trackName(levelSong(wave)[1])); }
     return;
   }
   if ((keys.Space || touching) && ship.cd <= 0) {
