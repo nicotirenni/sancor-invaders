@@ -760,7 +760,7 @@ const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v === n
 // ---------- Sonido (WebAudio, graves y con cuerpo; todo sintetizado, sin archivos) ----------
 const SFX = (() => {
   const vol = { sfx: +LS.get('sancor_vol_sfx', 1), mus: +LS.get('sancor_vol_mus', 1) };
-  let sfxBus, musBus, ac = null, master, noiseBuf, padG = null, padNodes = [], muted = LS.get('sancor_muted', '0') === '1', lastHit = 0, lastShot = 0;
+  let lastUi = 0, sfxBus, musBus, musLP = null, revIn = null, pw = null, panNow = 0, ac = null, master, noiseBuf, padG = null, padNodes = [], muted = LS.get('sancor_muted', '0') === '1', lastHit = 0, lastShot = 0;
   const now = () => ac.currentTime;
   function ensure() {
     if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
@@ -770,25 +770,43 @@ const SFX = (() => {
     const shelf = ac.createBiquadFilter(); shelf.type = 'lowshelf'; shelf.frequency.value = 180; shelf.gain.value = 5;       // cuerpo en graves
     const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4200; lp.Q.value = .5;                      // nada agudo ni chillón
     const comp = ac.createDynamicsCompressor(); comp.threshold.value = -20; comp.ratio.value = 4; comp.attack.value = .004; comp.release.value = .22;
-    sfxBus = ac.createGain(); musBus = ac.createGain(); sfxBus.connect(master); musBus.connect(master);
+    sfxBus = ac.createGain(); musBus = ac.createGain(); sfxBus.connect(master);
+    musLP = ac.createBiquadFilter(); musLP.type = 'lowpass'; musLP.frequency.value = 18000; musBus.connect(musLP); musLP.connect(master);   // la música se "apaga" detrás de las fanfarrias
+    // sala (reverberación) suave y compartida, como en shadow-platform
+    { const n = Math.floor(ac.sampleRate * 1.4), ib = ac.createBuffer(2, n, ac.sampleRate); let seed = 777; const r = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+      for (let c = 0; c < 2; c++) { const d = ib.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (r() * 2 - 1) * Math.pow(1 - i / n, 2.8); }
+      revIn = ac.createGain(); const conv = ac.createConvolver(), rlp = ac.createBiquadFilter(), rout = ac.createGain(); conv.buffer = ib; rlp.type = 'lowpass'; rlp.frequency.value = 3200; rout.gain.value = .5;
+      revIn.connect(rlp); rlp.connect(conv); conv.connect(rout); rout.connect(master);
+      const ss = ac.createGain(); ss.gain.value = .12; sfxBus.connect(ss); ss.connect(revIn); const ms = ac.createGain(); ms.gain.value = .07; musLP.connect(ms); ms.connect(revIn); }
+    { const N = 32, re = new Float32Array(N), im = new Float32Array(N); for (let k = 1; k < N; k++) re[k] = 4 / (k * Math.PI) * Math.sin(k * Math.PI * .25); pw = ac.createPeriodicWave(re, im); }   // pulso 25 %
     sfxBus.gain.value = vol.sfx; musBus.gain.value = vol.mus;
     master.connect(shelf); shelf.connect(lp); lp.connect(comp); comp.connect(ac.destination);
-    noiseBuf = ac.createBuffer(1, ac.sampleRate * 1.5, ac.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    noiseBuf = ac.createBuffer(1, ac.sampleRate * 1.5, ac.sampleRate); { const d = noiseBuf.getChannelData(0), hold = Math.max(1, Math.round(ac.sampleRate / 16000)); let l = 1, v = 1, left = 0; for (let i = 0; i < d.length; i++) { if (left-- <= 0) { const b = (l ^ (l >> 1)) & 1; l = (l >> 1) | (b << 14); v = l & 1 ? 1 : -1; left = hold; } d[i] = v * .9; } }   // ruido áspero de 8 bits (registro de desplazamiento)
     pad(.03);
   }
   function tone(type, f0, f1, dur, vol, o = {}) {
     const t = now() + (o.delay || 0), osc = ac.createOscillator(), g = ac.createGain(); let node = osc;
-    osc.type = type; osc.frequency.setValueAtTime(f0, t); if (f1 !== f0) osc.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    if (type === 'pulse' && pw) osc.setPeriodicWave(pw); else osc.type = type === 'pulse' ? 'square' : type; osc.frequency.setValueAtTime(f0, t);
+    if (o.vib) { const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 6; lg.gain.value = o.vib; lfo.connect(lg); lg.connect(osc.detune); lfo.start(t); lfo.stop(t + dur + .05); } if (f1 !== f0) osc.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
     if (o.lp) { const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; osc.connect(f); node = f; }
     g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + (o.attack || .008)); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-    node.connect(g); g.connect(sfxBus); osc.start(t); osc.stop(t + dur + .05);
+    node.connect(g); route(g, o); osc.start(t); osc.stop(t + dur + .05);
   }
   function noise(dur, vol, lp, o = {}) {
     const t = now() + (o.delay || 0), src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
     src.buffer = noiseBuf; src.loop = true; f.type = 'lowpass'; f.frequency.setValueAtTime(o.lp0 || lp, t); if (o.lp0) f.frequency.exponentialRampToValueAtTime(lp, t + dur);
     g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + (o.attack || .006)); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-    src.connect(f); f.connect(g); g.connect(sfxBus); src.start(t, Math.random()); src.stop(t + dur + .05);
+    src.connect(f); f.connect(g); route(g, o); src.start(t, Math.random()); src.stop(t + dur + .05);
   }
+  function route(g, o) { // paneo según dónde pasa (de -1 a 1) y un poco de sala
+    let out = g; const pan = o.pan != null ? o.pan : panNow;
+    if (pan && ac.createStereoPanner) { const p = ac.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)); g.connect(p); out = p; }
+    out.connect(sfxBus); if (o.wet && revIn) { const w = ac.createGain(); w.gain.value = o.wet; out.connect(w); w.connect(revIn); }
+  }
+  const seqT = (type, freqs, step, dur, vol, o = {}) => freqs.forEach((f, i) => tone(type, f, f, dur, vol, { ...o, delay: (o.delay || 0) + i * step }));
+  const at = x => x == null ? 0 : Math.max(-1, Math.min(1, (x - 400) / 400)) * .7;    // posición del juego (0-800) a paneo
+  function duck(sec) { if (!musLP) return; const t = now(); musBus.gain.cancelScheduledValues(t); musBus.gain.setTargetAtTime(.35 * vol.mus, t, .05); musLP.frequency.setTargetAtTime(1100, t, .08);
+    musBus.gain.setTargetAtTime(vol.mus, t + sec, .2); musLP.frequency.setTargetAtTime(18000, t + sec, .3); }
   function chord(freqs, step, dur, vol, lp = 1800) { freqs.forEach((f, i) => { tone('triangle', f, f, dur, vol, { delay: i * step, attack: .03, lp }); tone('sine', f / 2, f / 2, dur, vol * .8, { delay: i * step, attack: .04 }); }); }
   // ---- Música: cumbia en 16 bits (pulsos cuadrados, bajo triangular, percusión de ruido) ----
   const MU = { on: false, timer: 0, step: 0, next: 0, bpm: 92, g: null, pulse: null, track: 'cumbia' };
@@ -798,7 +816,7 @@ const SFX = (() => {
   const eights = r => [0, 2, 4, 6, 8, 10, 12, 14].map(k => [k, r, 1.6]);
   const quarters = (r, f) => [[0, r, 1.8], [4, f, 1.8], [8, r, 1.8], [12, f, 1.8]];
   const TRACKS = {
-    menu: { name: 'Hinchada', steps: 16, kick: [0, 4, 8, 12], clap: [0, 4, 8, 10, 12], hatSoft: [0, 2, 4, 6, 8, 10, 12, 14], stab: [0, 8], stabLen: 3.6, stabVol: .05, stabSus: .6,
+    menu: { name: 'Hinchada', steps: 16, leadRest: true, leadVol: .085, kick: [0, 4, 8, 12], clap: [0, 4, 8, 10, 12], hatSoft: [0, 2, 4, 6, 8, 10, 12, 14], stab: [0, 8], stabLen: 3.6, stabVol: .05, stabSus: .6,
       bars: [
         { bass: [[0, -21, 3.5], [8, -21, 3.5], [6, -21, 1.5], [14, -21, 1.5]], ch: [-9, -5, -2], lead: [[0, 10, 2], [2, 10, 2], [4, 7, 2], [6, 10, 2], [8, 12, 4], [12, 10, 4]] },
         { bass: [[0, -16, 3.5], [8, -16, 3.5], [6, -16, 1.5], [14, -16, 1.5]], ch: [-12, -9, -4], lead: [[0, 12, 2], [2, 12, 2], [4, 10, 2], [6, 12, 2], [8, 15, 4], [12, 12, 4]] },
@@ -865,7 +883,8 @@ const SFX = (() => {
     for (const [st, n, len] of B.bass) if (st === k) mNote('triangle', hz(n), t, sd * len, .48);          // bajo
     if (has(T.stab)) B.ch.forEach(n => mNote('pulse', hz(n), t, sd * T.stabLen, T.stabVol, { sus: T.stabSus }));   // acordes
     if (T.arp) mNote('pulse', hz(B.ch[k % 3] + 12 + (k % 6 >= 3 ? 12 : 0) - 12), t, sd * .9, .03, { sus: .3 });     // arpegio
-    for (const [st, n, len] of B.lead) if (st === k) mNote('pulse', hz(n), t, sd * len * .92, T.leadVol || .12);   // melodía
+    const rest = T.leadRest && Math.floor(i / N / T.bars.length) % 2 === 1;                                // en el menú la melodía deja espacio cada 4 compases
+    if (!rest) for (const [st, n, len] of B.lead) if (st === k) mNote('pulse', hz(n), t, sd * len * .92, T.leadVol || .12);   // melodía
   }
   function musicTick() {
     if (!MU.on || !ac) return;
@@ -888,15 +907,38 @@ const SFX = (() => {
     unlock() { ensure(); if (!ac) return Promise.resolve(); try { const b = ac.createBuffer(1, 1, 22050), src = ac.createBufferSource(); src.buffer = b; src.connect(ac.destination); src.start(0); } catch (e) {} // desbloqueo para iOS
       return ac.state === 'running' ? Promise.resolve() : ac.resume(); },
     getVol(k) { return vol[k]; },
-    setVol(k, v) { vol[k] = Math.max(0, Math.min(1, v)); LS.set('sancor_vol_' + k, String(vol[k])); const b = k === 'sfx' ? sfxBus : musBus; if (b) b.gain.setTargetAtTime(vol[k], ac.currentTime, .03); },
+    setVol(k, v) { vol[k] = Math.max(0, Math.min(1, v)); LS.set('sancor_vol_' + k, String(vol[k])); const b = k === 'sfx' ? sfxBus : musBus; if (b) { b.gain.cancelScheduledValues(ac.currentTime); b.gain.setTargetAtTime(vol[k], ac.currentTime, .03); } },
     toggle() { muted = !muted; LS.set('sancor_muted', muted ? '1' : '0'); if (master) master.gain.setTargetAtTime(muted ? 0 : .9, ac.currentTime, .03); ensure(); return muted; },
-    shot() { if (!ok() || now() - lastShot < .06) return; lastShot = now(); tone('triangle', 250, 85, .16, .2, { lp: 1400 }); tone('sine', 120, 52, .2, .32); noise(.05, .07, 900); },
-    hit(n) { if (!ok() || now() - lastHit < .05) return; lastHit = now(); tone('sine', 150, 44, .24, .5); noise(.14 + Math.min(.2, n * .012), .22, 1300, { lp0: 2600 }); if (n > 6) tone('triangle', 82, 38, .4, .35, { lp: 600 }); },
-    bad() { if (!ok()) return; tone('sawtooth', 98, 68, .5, .26, { lp: 360 }); tone('sawtooth', 104, 64, .5, .2, { lp: 360 }); tone('sine', 55, 38, .55, .5); noise(.22, .12, 520); },
-    power(type) { if (!ok()) return; if (type === 'heal') chord([196, 247, 294], .08, .7, .16); else if (type === 'bomb') { chord([165, 220, 277, 330], .06, .9, .16); tone('sine', 72, 34, .7, .6); noise(.5, .3, 900, { lp0: 2400 }); } else chord([220, 277.2, 330], .07, .6, .16); },
-    combo() { if (ok()) tone('triangle', 330, 392, .22, .16, { lp: 1500, attack: .02 }); },
-    clear() { if (ok()) chord([130.8, 164.8, 196, 261.6], .12, 1, .17, 1600); },
-    over() { if (!ok()) return; tone('sawtooth', 130, 46, 1.3, .28, { lp: 320 }); tone('sine', 65, 30, 1.5, .55); },
+    // efectos de juego (graves, con cuerpo; paneados según dónde pasan)
+    shot(x) { if (!ok() || now() - lastShot < .06) return; lastShot = now(); const p = at(x);
+      tone('pulse', 330, 140, .09, .07, { lp: 1600, pan: p }); tone('triangle', 250, 85, .16, .2, { lp: 1400, pan: p }); tone('sine', 120, 52, .2, .3, { pan: p }); noise(.05, .06, 900, { pan: p }); },
+    hit(n, x, c = 0) { if (!ok() || now() - lastHit < .05) return; lastHit = now(); const p = at(x), k = Math.pow(2, Math.min(c, 14) / 24);   // sube de a poco con el combo
+      tone('sine', 150, 44, .24, .45, { pan: p }); noise(.14 + Math.min(.2, n * .012), .2, 1300, { lp0: 2600, pan: p, wet: .2 });
+      tone('pulse', 392 * k, 523 * k, .07, .06, { lp: 1800, pan: p, wet: .25 }); if (n > 6) tone('triangle', 82, 38, .4, .35, { lp: 600, pan: p }); },
+    bad(x) { if (!ok()) return; const p = at(x); tone('sawtooth', 98, 68, .5, .26, { lp: 360, pan: p }); tone('sawtooth', 104, 64, .5, .2, { lp: 360, pan: p }); tone('sine', 55, 38, .55, .5); noise(.22, .12, 520, { pan: p });
+      tone('pulse', 311, 233, .35, .08, { lp: 1200, vib: 30, delay: .05, pan: p, wet: .3 }); },
+    power(type, x) { if (!ok()) return; const p = at(x); duck(.9);
+      if (type === 'heal') { chord([196, 247, 294], .08, .7, .16); seqT('pulse', [392, 494, 587], .07, .22, .06, { lp: 1600, wet: .4, pan: p }); }
+      else if (type === 'bomb') { chord([165, 220, 277, 330], .06, .9, .16); tone('sine', 72, 34, .7, .6); noise(.6, .32, 700, { lp0: 2400, wet: .3 }); }
+      else if (type === 'rapid') { seqT('pulse', [330, 392, 330, 392, 494, 587], .045, .06, .07, { lp: 1700, pan: p, wet: .25 }); tone('triangle', 147, 294, .35, .18); }
+      else { seqT('pulse', [262, 330, 392, 523], .06, .12, .08, { lp: 1700, pan: p, wet: .3 }); chord([220, 277.2, 330], .07, .6, .14); } },
+    drop(x) { if (ok()) { const p = at(x); tone('pulse', 523, 262, .32, .05, { lp: 1500, vib: 20, pan: p, wet: .4 }); noise(.3, .04, 1800, { lp0: 600, pan: p }); } },   // cae un power-up
+    swish(dir) { if (ok()) noise(.7, .06, 1500, { lp0: 300, attack: .25, pan: dir > 0 ? -.6 : .6, wet: .2 }); },                     // pasa uno de los nuestros
+    combo(m = 2) { if (!ok()) return; const b = 262 * Math.pow(2, Math.min(m - 2, 3) * 2 / 12); seqT('pulse', [b, b * 1.26, b * 1.5], .055, .1, .08, { lp: 1800, wet: .35 }); tone('triangle', b / 2, b / 2, .3, .16); },
+    clear() { if (!ok()) return; duck(2); seqT('pulse', [262, 330, 392, 523, 392, 523], .085, .11, .09, { lp: 1800, wet: .3 });   // fanfarria de ronda superada
+      [[523, .09], [659, .05], [784, .04]].forEach(([f, v]) => tone('pulse', f, f, .6, v, { delay: .51, lp: 1800, wet: .45 })); chord([130.8, 164.8, 196, 261.6], .02, 1.1, .14, 1600); },
+    record() { if (!ok()) return; seqT('pulse', [330, 392, 494, 659], .06, .1, .08, { lp: 1800, wet: .35 }); tone('pulse', 988, 988, .35, .05, { delay: .24, vib: 25, lp: 1800, wet: .5 }); },   // nuevo récord
+    beep(n) { if (!ok()) return; if (n > 0) { tone('pulse', 330, 330, .12, .08, { lp: 1500 }); tone('triangle', 165, 165, .12, .16); }   // cuenta regresiva 3-2-1
+      else { tone('pulse', 659, 659, .4, .09, { lp: 1800, wet: .25 }); tone('pulse', 988, 988, .4, .04, { lp: 1800, wet: .3 }); tone('triangle', 330, 330, .45, .18); } },   // ¡Ya!
+    pause(p) { if (!ok()) return; tone('pulse', p ? 523 : 262, p ? 262 : 523, .16, .07, { lp: 1600 }); tone('triangle', p ? 196 : 131, p ? 98 : 262, .18, .16); },
+    ui(n) { if (!ok()) return; // interfaz
+      if (n === 'hover') { if (now() - (lastUi || 0) < .07) return; lastUi = now(); tone('sine', 520, 520, .03, .035, { attack: .004 }); }
+      else if (n === 'place') { tone('triangle', 200, 520, .07, .18); tone('pulse', 784, 784, .06, .05, { delay: .05, lp: 1700 }); }
+      else if (n === 'card') { tone('triangle', 96, 46, .6, .26, { wet: .2 }); noise(.5, .045, 1500, { lp0: 300, wet: .3 }); seqT('pulse', [330, 494], .12, .25, .045, { delay: .12, lp: 1600, wet: .45 }); }
+      else if (n === 'save') seqT('pulse', [330, 494, 659], .06, .1, .07, { lp: 1700, wet: .35 });
+      else if (n === 'podium') { seqT('pulse', [330, 392, 494, 659], .06, .09, .07, { lp: 1700, wet: .3 }); tone('pulse', 988, 988, .3, .045, { delay: .24, vib: 25, lp: 1800, wet: .5 }); }
+      else { tone('pulse', 440, 660, .05, .06, { lp: 1700 }); noise(.02, .02, 3000); } },
+    over() { if (!ok()) return; seqT('pulse', [440, 392, 349, 330], .2, .18, .08, { lp: 1500, wet: .3 }); seqT('triangle', [220, 196, 175, 165], .2, .18, .18); tone('pulse', 330, 165, .6, .07, { delay: .8, vib: 30, lp: 1200 }); tone('sawtooth', 130, 46, 1.3, .2, { lp: 320, delay: .8 }); tone('sine', 65, 30, 1.5, .45, { delay: .8 }); },
     musicStart(bpm = 92, track = 'cumbia') { if (!ac) ensure(); if (!ac) return; MU.bpm = bpm; if (MU.track !== track) { MU.track = track; MU.step = 0; if (MU.on) MU.next = now() + .08; }
       if (!MU.g) { MU.g = ac.createGain(); MU.g.connect(musBus); MU.pulse = ac.createPeriodicWave(new Float32Array([0, ...Array.from({ length: 24 }, (_, n) => Math.sin(Math.PI * (n + 1) * .25) * 2 / (Math.PI * (n + 1)))]), new Float32Array(25)); }
       MU.g.gain.cancelScheduledValues(now()); MU.g.gain.setValueAtTime(.0001, now()); MU.g.gain.linearRampToValueAtTime(.24, now() + .6);
@@ -917,11 +959,10 @@ const SFX = (() => {
     },
     count(i, last) { if (!ok()) return; const f = 220 * Math.pow(2, i * 2 / 12); tone('triangle', f, f * .94, last ? .12 : .06, last ? .24 : .15, { lp: 1500 }); if (last) tone('sine', f / 2, f / 2, .14, .3); },
     tick() { if (!ok()) return; tone('sine', 196, 180, .18, .32); },
-    hold(p) { if (ac) { try { p ? ac.suspend() : ac.resume(); } catch (e) {} } },
-    start() { if (!ok()) return; tone('sine', 110, 220, .38, .4); tone('triangle', 165, 330, .32, .14, { delay: .08, lp: 1400 }); },
+    hold(p) { if (!ac) return; clearTimeout(this._h); if (p) this._h = setTimeout(() => { try { ac.suspend(); } catch (e) {} }, 260); else { try { ac.resume(); } catch (e) {} } },   // deja sonar el efecto de pausa antes de congelar el audio
+    start() { if (!ok()) return; tone('sine', 110, 220, .38, .4); seqT('pulse', [262, 330, 392, 523], .07, .1, .07, { lp: 1700, wet: .25 }); tone('pulse', 659, 659, .35, .05, { delay: .28, vib: 20, lp: 1800, wet: .4 }); },
     whoosh() { if (ok()) noise(1.3, .13, 1000, { lp0: 150, attack: .5 }); },
-    danger() { if (ok()) tone('sine', 72, 46, .3, .6); },
-    tick() { if (ok()) tone('sine', 230, 150, .08, .22); }
+    danger() { if (ok()) { tone('sine', 72, 46, .3, .6); tone('pulse', 196, 185, .14, .04, { lp: 900 }); } }
   };
 })();
 ['pointerdown', 'keydown', 'click', 'touchend'].forEach(ev => addEventListener(ev, () => { SFX.ensure(); if (state === 'menu') SFX.musicStart(112, 'menu'); }, { passive: true }));
@@ -957,7 +998,7 @@ function setShare(sc, res) {
   const text = `🛸 Hice ${pts} puntos en Drones Invasores${pos} 🇦🇷 ¿Me superás? #DronesInvasores`;      // el hashtag va siempre (para poder seguirlo)
   $('shX').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
   $('shIn').href = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text + '\n\n' + url)}`;   // LinkedIn: abre el editor con el texto ya escrito
-  $('shCopy').onclick = async () => { const b = $('shCopy').querySelector('span'); try { await navigator.clipboard.writeText(text + ' ' + url); b.textContent = '¡Copiado!'; } catch { b.textContent = 'Copiá manual'; } setTimeout(() => b.textContent = 'Copiar texto', 1600); };
+  $('shCopy').onclick = async () => { const b = $('shCopy').querySelector('span'); try { await navigator.clipboard.writeText(text + ' ' + url); b.textContent = '¡Copiado!'; SFX.ui('save'); } catch { b.textContent = 'Copiá manual'; } setTimeout(() => b.textContent = 'Copiar texto', 1600); };
   $('share').hidden = false;
 }
 async function submitScore() {
@@ -965,7 +1006,7 @@ async function submitScore() {
     $('rank').hidden = false; $('rank').textContent = `Práctica desde ronda ${startWave}: no entra al ranking`; $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true; return;
   }
   const name = playerName, sc = score, w = wave;
-  if (sc > best) { best = sc; LS.set('sancor_best', best); }
+  if (sc > best) { const had = best > 0; best = sc; LS.set('sancor_best', best); if (had) setTimeout(() => SFX.record(), 1700); }
   $('rank').hidden = false; $('rank').textContent = 'Guardando puntaje…'; $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true;
   const show = res => { // muestra puesto, tabla y botones de compartir; nunca deja la pantalla sin resultados
     if (state !== 'over') return; // ya empezó otra partida
@@ -989,6 +1030,7 @@ function renderPodium(res) {
   $('boardNote').textContent = !res.top.length ? 'Todavía no hay puntajes. ¡Sé el primero!' : res.local ? 'Ranking de este dispositivo' : `Ranking global · ${res.total} jugadores`;
 }
 async function openPodium() {
+  SFX.ui('podium');
   cardBefore = $('card').dataset.mode === 'over' ? 'over' : 'menu';
   setMode('podium'); $('board').hidden = false; $('boardNote').hidden = false; $('board').innerHTML = ''; $('boardNote').textContent = 'Cargando…';
   const res = (await api('GET')) || { top: localBoard().slice(0, 10), total: localBoard().length, local: true };
@@ -998,7 +1040,7 @@ function closePodium() {
   setMode(cardBefore);
   if (cardBefore === 'over' && lastRes) renderBoard(lastRes, { name: playerName, score });
 }
-function openName() { setMode('name'); drawShipPreviews(); pickShip(shipType); $('nameInput').value = playerName; setTimeout(() => $('nameInput').focus(), 30); }
+function openName() { setMode('name'); SFX.ui('card'); drawShipPreviews(); pickShip(shipType); $('nameInput').value = playerName; setTimeout(() => $('nameInput').focus(), 30); }
 function backToMenu() { state = 'menu'; SFX.musicStart(112, 'menu'); countT = 0; paused = false; $('pauseOv').hidden = true; $('pauseBtn').hidden = true; SFX.hold(false); $('kicker').textContent = 'Destruí al invasor. Cuidá lo nuestro.'; document.documentElement.classList.add('scene-menu'); $('banner').classList.remove('on'); setMode('menu'); }
 function tryStart() {
   const inp = $('nameInput'), name = cleanName(inp.value);
@@ -1063,7 +1105,7 @@ $('nextBtn').onclick = nextLevel;
 function setPause(p) {
   if (state !== 'play' || countT > 0 && p === paused) return;
   paused = p; $('pauseOv').hidden = !p; if (p) { touching = false; for (const k in keys) keys[k] = false; }
-  SFX.hold(p);
+  if (!p) SFX.hold(false); SFX.pause(p); if (p) SFX.hold(true);
 }
 $('pauseBtn').onclick = () => setPause(true);
 $('resumeBtn').onclick = () => setPause(false);
@@ -1080,8 +1122,8 @@ function endGame(why = 'Fin del show') {
   submitScore();
 }
 $('newBtn').addEventListener('click', openName);
-document.querySelectorAll('.shipOpt').forEach(b => b.addEventListener('click', () => pickShip(b.dataset.ship)));
-$('credLink').addEventListener('click', e => { e.preventDefault(); setMode('credits'); });
+document.querySelectorAll('.shipOpt').forEach(b => b.addEventListener('click', () => { pickShip(b.dataset.ship); SFX.ui('place'); }));
+$('credLink').addEventListener('click', e => { e.preventDefault(); setMode('credits'); SFX.ui('card'); });
 $('credBack').addEventListener('click', () => setMode('menu'));
 $('playBtn').addEventListener('click', tryStart);
 $('nameBack').addEventListener('click', () => setMode('menu'));
@@ -1090,7 +1132,10 @@ $('menuBtn').addEventListener('click', backToMenu);
 $('podBtn').addEventListener('click', openPodium);
 $('podBtn2').addEventListener('click', openPodium);
 $('backBtn').addEventListener('click', closePodium);
-$('card').addEventListener('click', e => { if (e.target.closest('button,a')) SFX.tick(); });
+$('card').addEventListener('click', e => { if (e.target.closest('button,a') && !e.target.closest('.shipOpt')) SFX.ui('click'); });
+// sonidos de interfaz: pasar el mouse por los botones (solo con mouse) y otros toques
+if (matchMedia('(pointer:fine)').matches) document.addEventListener('pointerover', e => { const b = e.target.closest && e.target.closest('.sb,.gh,.soc,.shipOpt,.credLink'); if (b && !b.contains(e.relatedTarget)) SFX.ui('hover'); });
+['resumeBtn', 'quitBtn', 'pauseBtn', 'introSkip'].forEach(id => { const el = $(id); if (el) el.addEventListener('click', () => SFX.ui('click')); });
 // ---- Sliders elásticos de audio: efectos y música por separado ----
 document.querySelectorAll('.vol').forEach(box => {
   const k = box.dataset.k, es = box.querySelector('.es'), tr = box.querySelector('.et'), fill = box.querySelector('.ef'), num = box.querySelector('b'), L = es.querySelector('[data-s=l]'), R = es.querySelector('[data-s=r]');
@@ -1183,7 +1228,7 @@ function burst(x, y, c, n, sp = 150) {
 }
 function say(t) { hudMsg = t; hudMsgT = 1.6; }
 function collect(it) {
-  const P = POWERS[it.type]; SFX.power(it.type);
+  const P = POWERS[it.type]; SFX.power(it.type, it.x);
   rings.push({ x: it.x, y: it.y, r: 6, l: .6, c: P.c }); burst(it.x, it.y, P.c, 18, 160);
   pops.push({ x: it.x, y: it.y - 10, t: P.name, l: 1.2 });
   if (it.type === 'triple') buffs.triple = 10;
@@ -1205,18 +1250,18 @@ function update(dt) {
   if (countT > 0) { // cuenta regresiva: la nave se mueve, el resto espera
     for (const g of groups) g.age += dt;
     countT -= dt; const n = Math.ceil(countT);
-    if (n !== countN && n > 0) { countN = n; $('bannerText').textContent = n; $('bannerSub').textContent = `Ronda ${wave} · ` + (wave === 1 ? 'Destruí al invasor' : 'No toques lo nuestro'); $('banner').classList.add('on'); SFX.tick && SFX.tick(); }
-    if (countT <= 0) { banner('¡Ya!', '♪ ' + SFX.trackName(levelSong(wave)[1])); }
+    if (n !== countN && n > 0) { countN = n; $('bannerText').textContent = n; $('bannerSub').textContent = `Ronda ${wave} · ` + (wave === 1 ? 'Destruí al invasor' : 'No toques lo nuestro'); $('banner').classList.add('on'); SFX.beep(n); }
+    if (countT <= 0) { SFX.beep(0); banner('¡Ya!', '♪ ' + SFX.trackName(levelSong(wave)[1])); }
     return;
   }
   if ((keys.Space || touching) && ship.cd <= 0) {
-    bullets.push({ x: ship.x, y: ship.y - 24, vx: 0 }); SFX.shot();
+    bullets.push({ x: ship.x, y: ship.y - 24, vx: 0 }); SFX.shot(ship.x);
     if (buffs.triple > 0) { bullets.push({ x: ship.x - 8, y: ship.y - 20, vx: -110 }); bullets.push({ x: ship.x + 8, y: ship.y - 20, vx: 110 }); }
     ship.cd = buffs.rapid > 0 ? .085 : .2;
   }
   for (const k in buffs) buffs[k] = Math.max(0, buffs[k] - dt);
   itemT -= dt; // los power-ups caen al azar durante toda la partida
-  if (itemT <= 0) { const k = Object.keys(POWERS); items.push({ type: k[Math.floor(Math.random() * k.length)], x: rnd(40, W - 40), y: -20, ph: Math.random() * 6 }); itemT = rnd(7, 13); }
+  if (itemT <= 0) { const k = Object.keys(POWERS); const ix = rnd(40, W - 40); items.push({ type: k[Math.floor(Math.random() * k.length)], x: ix, y: -20, ph: Math.random() * 6 }); SFX.drop(ix); itemT = rnd(7, 13); }
   for (const it of items) {
     it.y += 85 * dt;
     const dx = it.x - ship.x, dy = it.y - ship.y;
@@ -1231,7 +1276,7 @@ function update(dt) {
     if (g.ally) {
       if (g.hidden) { g.wait -= dt; if (g.wait <= 0) { // sale otra vez, desde el lado contrario y a otra altura
         const yMin = SANCOR_Y0 + 120, yMax = Math.max(yMin + 20, STADIUM_TOP - 70); g.dir = -g.dir; g.y = rnd(yMin, yMax);
-        g.vx = g.dir * rnd(110, 170) * g.sp; g.x = g.dir > 0 ? -g.w - 10 : W + 10; g.hidden = false; } }
+        g.vx = g.dir * rnd(110, 170) * g.sp; g.x = g.dir > 0 ? -g.w - 10 : W + 10; g.hidden = false; SFX.swish(g.dir); } }
       else { g.x += g.vx * dt; if ((g.vx > 0 && g.x > W + 10) || (g.vx < 0 && g.x + g.w < -10)) { g.hidden = true; g.wait = rnd(1.4, 4); } }
     } else {
       if (g.age > 1.2) { g.x += g.vx * dt; g.y += g.vy * dt; }
@@ -1258,7 +1303,7 @@ function update(dt) {
     b.y = -99;
     if (bg.ally) {
       best.alive = false; burst(bp[0], bp[1], best.c, 10); rings.push({ x: bp[0], y: bp[1], r: 4, l: .5, c: '#ff3040' });
-      waveAllyHits++; respect -= 4; score = Math.max(0, score - 10); pops.push({ x: bp[0], y: bp[1], t: '-10', l: 1, bad: true }); flash = .35; shake = 14; combo = 0; mult = 1; say('¡NO! Es de los nuestros'); SFX.bad();
+      waveAllyHits++; respect -= 4; score = Math.max(0, score - 10); pops.push({ x: bp[0], y: bp[1], t: '-10', l: 1, bad: true }); flash = .35; shake = 14; combo = 0; mult = 1; say('¡NO! Es de los nuestros'); SFX.bad(bp[0]);
     } else {
       let n = 0;
       for (const d of bg.dots) {
@@ -1266,7 +1311,7 @@ function update(dt) {
         const dx = bg.x + d.x - bp[0], dy = bg.y + d.y - bp[1];
         if (dx * dx + dy * dy < (HIT + 2) * (HIT + 2)) { d.alive = false; n++; burst(bg.x + d.x, bg.y + d.y, d.c, 4); }
       }
-      const oldMult = mult; combo += n; waveCombo = Math.max(waveCombo, combo); comboT = 1.6; mult = Math.min(5, 1 + Math.floor(combo / 12)); if (n) SFX.hit(n); if (mult > oldMult) SFX.combo();
+      const oldMult = mult; combo += n; waveCombo = Math.max(waveCombo, combo); comboT = 1.6; mult = Math.min(5, 1 + Math.floor(combo / 12)); if (n) SFX.hit(n, bp[0], combo); if (mult > oldMult) SFX.combo(mult);
       const pts = n * 10 * mult; score += pts; shake = Math.min(4.5, shake + n * .25);
       rings.push({ x: bp[0], y: bp[1], r: 4, l: .45, c: '#ffd0da' });
       pops.push({ x: bp[0], y: bp[1], t: '+' + pts, l: .8 });
