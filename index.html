@@ -14,7 +14,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Drones Invasores">
 <meta name="twitter:image" content="/og.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@500;700&family=Press+Start+2P&display=swap">
 <style>
   /* Cielo nocturno: fondo Galaxy (WebGL) + juego en canvas + bloom + overlays con texto Glitch/Shiny (estilo ReactBits) */
   :root{--ink:#05060f;--red:#ff5a78;--celeste:#74c0f5;--gold:#ffc928;--mint:#7fffd4;--white:#f4f7ff;
@@ -127,6 +127,10 @@
   .etr{height:8px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;transition:height .25s cubic-bezier(.34,1.56,.64,1),margin .25s}
   .es.drag .etr{height:16px;margin:-4px 0} .ef{height:100%;width:100%;background:linear-gradient(90deg,#D62068,#E8317B);border-radius:99px;transform-origin:left;will-change:transform}
   #mute:hover,#mute:focus-visible{border-color:var(--pink);outline:none} #mute .x{display:none} #mute.off .x{display:inline} #mute.off .w{display:none} #mute.off{color:#6f7fb0}
+  #intro{position:fixed;inset:0;z-index:50;background:#04060f;transition:opacity .45s} #intro.out{opacity:0;pointer-events:none} #intro[hidden]{display:none}
+  #introCv{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+  #introSkip{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));font:12px 'Press Start 2P',monospace;color:#cfd6f0;background:rgba(10,14,32,.7);border:1px solid #313857;border-radius:8px;padding:10px 14px;cursor:pointer}
+  #introSkip:hover{color:#fff;border-color:var(--pink)}
   #sparks{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
   /* ShinyText (ReactBits) */
   .shiny{display:inline-block;color:#8fa0d0;background:linear-gradient(110deg,#8fa0d0 35%,#fff 50%,#8fa0d0 65%);background-size:220% 100%;
@@ -194,6 +198,7 @@
     <div class="vol" data-k="mus"><div class="vlab"><span>Música</span><b>100</b></div><div class="es"><span class="ei" data-s="l"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span><div class="et"><div class="etr"><div class="ef"></div></div></div><span class="ei" data-s="r"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span></div></div>
   </div>
   <div class="prow"><button class="sb" id="resumeBtn" type="button">Continuar</button><button class="gh" id="quitBtn" type="button">Salir al menú</button></div></div></div>
+<div id="intro"><canvas id="introCv"></canvas><button id="introSkip" type="button">Saltar ›</button></div>
 <canvas id="sparks"></canvas>
 <div id="hud"><div id="hudRow">
   <div class="hl"><div class="k"><span>PUNTOS</span> · <span id="hWave">RONDA 1</span></div><b id="hScore">0</b></div>
@@ -772,6 +777,17 @@ const SFX = (() => {
       if (MU.on) return; MU.on = true; MU.step = 0; MU.next = now() + .08; clearInterval(MU.timer); MU.timer = setInterval(musicTick, 60); },
     musicBpm(b) { MU.bpm = b; },
     musicStop() { if (!MU.on || !ac) return; MU.on = false; clearInterval(MU.timer); MU.g.gain.cancelScheduledValues(now()); MU.g.gain.setTargetAtTime(.0001, now(), .25); },
+    fx(n) { if (!ok()) return; // sonidos de la intro (graves, sin chillidos)
+      if (n === 'crowd') { noise(2.6, .16, 700, { attack: .8 }); noise(2.2, .08, 1600, { attack: 1.2, delay: .3 }); }
+      else if (n === 'chant') { [0, .22, .66, .88, 1.32, 1.54].forEach((d, i) => { noise(.07, .2, 1900, { delay: d }); tone('triangle', i % 2 ? 165 : 196, i % 2 ? 160 : 190, .2, .12, { delay: d, lp: 900 }); }); }
+      else if (n === 'drones') { tone('sawtooth', 70, 150, 1.4, .07, { lp: 520 }); tone('sawtooth', 72, 153, 1.4, .06, { lp: 520 }); noise(1.2, .05, 1200, { attack: .4 }); }
+      else if (n === 'boo') { noise(1.5, .2, 480, { attack: .25 }); tone('sawtooth', 110, 96, 1.3, .07, { lp: 380 }); tone('sawtooth', 131, 117, 1.2, .05, { lp: 380, delay: .1 }); tone('sine', 820, 900, .32, .035, { delay: .2 }); tone('sine', 760, 700, .28, .03, { delay: .65 }); }
+      else if (n === 'whoosh') { noise(.5, .16, 300, { lp0: 1800, attack: .05 }); }
+      else if (n === 'laser') { tone('square', 480, 160, .2, .08, { lp: 1600 }); tone('sine', 240, 90, .22, .2); }
+      else if (n === 'boom') { noise(.7, .32, 700, { lp0: 2200 }); tone('sine', 95, 38, .6, .4); }
+      else if (n === 'sting') { [220, 277, 330, 440].forEach((f, i) => tone('triangle', f, f, 1.1, .07, { delay: i * .05, attack: .03, lp: 1500 })); tone('sine', 110, 110, 1.2, .3); }
+      else if (n === 'blip') { tone('square', 260, 250, .035, .025, { lp: 1100 }); }
+    },
     count(i, last) { if (!ok()) return; const f = 220 * Math.pow(2, i * 2 / 12); tone('triangle', f, f * .94, last ? .12 : .06, last ? .24 : .15, { lp: 1500 }); if (last) tone('sine', f / 2, f / 2, .14, .3); },
     tick() { if (!ok()) return; tone('sine', 196, 180, .18, .32); },
     hold(p) { if (ac) { try { p ? ac.suspend() : ac.resume(); } catch (e) {} } },
@@ -1246,6 +1262,135 @@ const splitTitle = (() => {
   return () => { el.classList.remove('in'); void el.offsetWidth; requestAnimationFrame(() => el.classList.add('in')); };
 })();
 splitTitle(); document.documentElement.classList.add('scene-menu'); layoutAll(); buildWave(); $('banner').classList.remove('on');
+// ================= Intro animada: la despedida de Messi y el show de drones (pixel art + parallax, 7 s) =================
+const Intro = (() => {
+  const box = $('intro'), cv = $('introCv'), g = cv.getContext('2d'), DUR = 7, FONT = '"Press Start 2P", monospace';
+  let W = 320, H = 180, S = 1, gy = 150, SH = 60, SW = 480, cx = 200, armed = false, run = false, t0 = 0, done = false, raf = 0;
+  let stars = [], city = [], lights = [], fans = [], drones = [], parts = [], fired = {}, blipN = 0;
+  const PAL = { H: '#5a3a22', S: '#e2a878', B: '#3e2716', E: '#141414', C: '#74c0f5', W: '#ffffff', N: '#1b2a4a', K: '#0e0e0e', J: '#161616', G: '#2a3150', T: '#74c0f5', Y: '#f6b40e', R: '#c9302c' };
+  const MESSI = ['....HHHH....', '...HHHHHH...', '..HHSSSSHH..', '..HSESSESH..', '..HSSSSSSH..', '..HBSSSSBH..', '...BBBBBB...', '....BSSB....', '..CWCWCWCW..', '.SCWCWCWCWS.', '.SCWCWCWCWS.', '.SCWCWCWCWS.', '..CWCWCWCW..', '..NNNNNNNN..', '..NNN..NNN..', '..SS....SS..', '..WW....WW..', '..WW....WW..', '..KK....KK..'];
+  const MESSI_UP = ['....HHHH..S.', '...HHHHHH.S.', '..HHSSSSHHS.', '..HSESSESHS.', '..HSSSSSSHS.', '..HBSSSSBHS.', '...BBBBBB.C.', '....BSSB..C.', '..CWCWCWCWC.', '.SCWCWCWCW..', '.SCWCWCWCW..', '.SCWCWCWCW..', '..CWCWCWCW..', '..NNNNNNNN..', '..NNN..NNN..', '..SS....SS..', '..WW....WW..', '..WW....WW..', '..KK....KK..'];
+  const TAPIA = ['....JJJJJ.....', '...JJJJJJJ....', '...JSSSSSJ....', '...SESSSES....', '...SSSSSSS....', '...JJSSSJJ....', '....JJJJJ.....', '..GGGWTWGGG...', '.GGGGWTWGGGG..', '.GGGGWTWGGGG..', '.SGGGGTGGGGS..', '.SGGGGGGGGGS..'];
+  const rnd = (a, b) => a + Math.random() * (b - a), cl = v => Math.max(0, Math.min(1, v)), sm = (a, b, t) => { const k = cl((t - a) / (b - a)); return k * k * (3 - 2 * k); };
+  function spr(rows, x, y, s) { for (let r = 0; r < rows.length; r++) for (let c = 0; c < rows[r].length; c++) { const ch = rows[r][c]; if (ch !== '.') { g.fillStyle = PAL[ch]; g.fillRect(Math.round(x + c * s), Math.round(y + r * s), s, s); } } }
+  const top = xw => gy - SH * (.5 + .5 * Math.min(1, ((xw - cx) / (SW / 2)) ** 2));     // borde superior de las tribunas (forma de bol)
+  function build() {
+    const vw = innerWidth, vh = innerHeight, P = Math.max(1, Math.floor(Math.min(vw, vh) / 180));
+    W = Math.ceil(vw / P); H = Math.ceil(vh / P); cv.width = W; cv.height = H; g.imageSmoothingEnabled = false;
+    S = Math.max(1, Math.round(H / 200)); gy = H - Math.round(H * .17); SH = Math.round(Math.min(H * .3, W * .6)); SW = Math.max(W * 1.25, 260); cx = W * .56;
+    stars = Array.from({ length: Math.round(W * H / 220) }, () => ({ x: rnd(0, W * 1.3), y: rnd(-H * .5, gy), p: rnd(0, 6), b: Math.random() }));
+    city = []; for (let x = -20; x < W * 1.6; x += rnd(6, 14) * S) city.push({ x, w: rnd(5, 12) * S, h: rnd(10, 34) * S });
+    lights = Array.from({ length: Math.round(SW * SH / 40) }, () => ({ x: rnd(cx - SW / 2, cx + SW / 2), f: rnd(.08, .95), p: rnd(0, 6), c: Math.random() < .25 ? '#74c0f5' : '#fff5d6' }));
+    fans = []; for (let x = -10; x < W * 1.5; x += rnd(3, 6) * S) fans.push({ x, h: rnd(3, 7) * S, arm: Math.random() < .3, flag: Math.random() < .12, p: rnd(0, 6) });
+    // drones: puntos del isologotipo y "SANCOR SEGUROS", tomados de un dibujo chico
+    const o = document.createElement('canvas'), ow = 104, oh = 24, k = Math.max(1, Math.min(2.4, (W - 16) / ow)); o.width = ow; o.height = oh; const og = o.getContext('2d');
+    og.strokeStyle = '#fff'; og.lineWidth = 2; og.beginPath(); og.arc(11, 12, 10, 0, 7); og.stroke(); og.beginPath(); og.moveTo(2, 12); og.lineTo(20, 12); og.stroke();
+    og.fillStyle = '#fff'; og.font = '8px ' + FONT; og.textBaseline = 'top'; og.fillText('SANCOR', 26, 2); og.fillText('SEGUROS', 26, 13);
+    const d = og.getImageData(0, 0, ow, oh).data, tg = [];
+    for (let y = 0; y < oh; y++) for (let x = 0; x < ow; x++) if (d[(Math.floor(y) * ow + Math.floor(x)) * 4 + 3] > 140) tg.push([x, y]);
+    const minX = Math.min(...tg.map(p => p[0])), maxX = Math.max(...tg.map(p => p[0])), ox = W / 2 - (minX + maxX) / 2 * k, oy = H * .22;   // centrado según el dibujo real
+    drones = tg.map(([x, y]) => ({ tx: ox + x * k, ty: oy + y * k, sx: rnd(cx - SW * .4, cx + SW * .4) - W * .06, sy: gy - rnd(SH * .2, SH * .8), dl: rnd(0, .45), dead: false, vy: 0 }));
+  }
+  const camX = t => W * .18 * sm(0, 3.4, t);
+  const camY = t => H * .32 * sm(3.25, 4.2, t) - H * .2 * sm(5.15, 5.6, t);
+  const CAPS = [[.15, '6 DE OCTUBRE · MONUMENTAL', 'LA DESPEDIDA DE MESSI'], [1.75, '80.000 HINCHAS', 'ESPERABAN SU HOMENAJE'], [3.3, 'PERO LOS DRONES', 'ESCRIBIERON...'], [4.5, '¡SANCOR SEGUROS!', 'Y EL ESTADIO SILBO'], [5.35, '¡DEFENDE EL CIELO!', '']];
+  function wrap(txt, max) { const out = []; let line = ''; for (const w of txt.split(' ')) { if ((line + ' ' + w).trim().length > max) { if (line) out.push(line); line = w; } else line = (line + ' ' + w).trim(); } if (line) out.push(line); return out; }
+  function caption(t) {
+    let c = null; for (const k of CAPS) if (t >= k[0]) c = k; if (!c || t > 6.15) return;
+    const max = Math.floor((W - 14) / 8), lines = [...wrap(c[1], max), ...wrap(c[2], max)], shown = Math.floor((t - c[0]) * 34);
+    const n = lines.reduce((a, l) => a + l.length, 0); if (shown < n && Math.floor(shown / 3) !== blipN) { blipN = Math.floor(shown / 3); SFX.fx('blip'); }
+    g.fillStyle = 'rgba(4,6,15,.72)'; g.fillRect(0, 4, W, lines.length * 11 + 7);
+    g.font = '8px ' + FONT; g.textBaseline = 'top'; g.textAlign = 'center'; let left = shown;
+    lines.forEach((l, i) => { const s = l.slice(0, Math.max(0, left)); left -= l.length; g.fillStyle = i === 0 ? '#ffffff' : '#74c0f5'; g.fillText(s, W / 2, 8 + i * 11); });
+  }
+  function label(txt, x, y, col) { g.font = '8px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'bottom'; const w = txt.length * 8 + 4; g.fillStyle = 'rgba(4,6,15,.75)'; g.fillRect(Math.round(x - w / 2), Math.round(y - 10), w, 10); g.fillStyle = col; g.fillText(txt, Math.round(x), Math.round(y)); }
+  function glow(x, y, r, col, a) { g.globalAlpha = a; g.fillStyle = col; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.globalAlpha = 1; }
+  function frame(t) {
+    const X = camX(t), Y = camY(t);
+    // cielo y estrellas (casi fijas: parallax mínimo)
+    const sk = g.createLinearGradient(0, 0, 0, H); sk.addColorStop(0, '#03050d'); sk.addColorStop(.7, '#0b1434'); sk.addColorStop(1, '#16224d'); g.fillStyle = sk; g.fillRect(0, 0, W, H);
+    for (const s of stars) { const a = .35 + .65 * Math.abs(Math.sin(t * 2 + s.p)); g.fillStyle = s.b > .85 ? `rgba(180,215,255,${a})` : `rgba(255,255,255,${a * .7})`; g.fillRect(Math.round(s.x - X * .06), Math.round(s.y + Y * .08), 1, 1); }
+    // ciudad lejana
+    g.fillStyle = '#0a1230'; for (const b of city) g.fillRect(Math.round(b.x - X * .25), Math.round(gy - SH * .45 - b.h + Y * .3), b.w, b.h + SH);
+    // estadio Monumental (capa media)
+    g.save(); g.translate(-Math.round(X * .5), Math.round(Y * .5));
+    for (let xw = Math.floor(cx - SW / 2); xw < cx + SW / 2; xw++) { const tp = Math.round(top(xw)); g.fillStyle = '#111833'; g.fillRect(xw, tp, 1, gy - tp + 2); g.fillStyle = '#c7d0ea'; g.fillRect(xw, tp, 1, 1); g.fillStyle = '#c9302c'; g.fillRect(xw, tp + 2, 1, S); g.fillStyle = '#e9edf7'; g.fillRect(xw, tp + 2 + S, 1, 1); g.fillStyle = '#1b2549'; g.fillRect(xw, Math.round(tp + (gy - tp) * .45), 1, 1); g.fillRect(xw, Math.round(tp + (gy - tp) * .75), 1, 1); }
+    for (const l of lights) { const tp = top(l.x), y = tp + 2 + (gy - tp - 3) * l.f; if (Math.sin(t * 5 + l.p) > -.2) { g.fillStyle = l.c; g.globalAlpha = .55 + .45 * Math.sin(t * 7 + l.p * 3); g.fillRect(Math.round(l.x), Math.round(y), 1, 1); } } g.globalAlpha = 1;
+    for (const sgn of [-1, 1]) { const fx = cx + sgn * SW * .42, ft = top(fx) - 22 * S; g.fillStyle = '#2a3150'; g.fillRect(Math.round(fx), Math.round(ft), S, Math.round(top(fx) - ft)); g.fillStyle = '#fff6da'; g.fillRect(Math.round(fx - 4 * S), Math.round(ft - 2 * S), 9 * S, 3 * S); glow(fx, ft, 7 * S, '#fff2c4', .12); glow(fx, ft, 3 * S, '#fff2c4', .3); }
+    for (const sgn of [-1, 1]) { const sx = cx + sgn * SW * .3, sy = top(sx) + (gy - top(sx)) * .3; g.fillStyle = '#0a0f22'; g.fillRect(Math.round(sx - 9 * S), Math.round(sy), 18 * S, 9 * S); g.fillStyle = Math.sin(t * 4) > 0 ? '#74c0f5' : '#9fd4fa'; g.fillRect(Math.round(sx - 8 * S), Math.round(sy + S), 16 * S, 7 * S); g.fillStyle = '#fff'; g.fillRect(Math.round(sx - 8 * S), Math.round(sy + 3 * S), 16 * S, 2 * S); }   // pantallas
+    // palco con Chiqui Tapia
+    const px = cx + SW * .17, py = top(px) + (gy - top(px)) * .2, bw = 20 * S, bh = 14 * S;
+    g.fillStyle = '#3b2f48'; g.fillRect(Math.round(px - bw / 2 - S), Math.round(py - S), bw + 2 * S, bh + 2 * S); g.fillStyle = '#5a4630'; g.fillRect(Math.round(px - bw / 2), Math.round(py), bw, bh);
+    spr(TAPIA, px - 7 * S, py + bh - TAPIA.length * S + Math.round(Math.sin(t * 6) * .6), S);
+    g.fillStyle = '#3b2f48'; g.fillRect(Math.round(px - bw / 2), Math.round(py + bh - 2 * S), bw, 2 * S);
+    if (t > 4.45) label('TAPIA', px, py - 2, '#ffd27a');
+    g.restore();
+    // drones: suben desde el estadio y escriben la publicidad (en el cielo, parallax bajo)
+    if (t > 3.3) for (const d of drones) {
+      const k = cl((t - 3.4 - d.dl) / 1.05), e = 1 - Math.pow(1 - k, 3);
+      let x = d.sx - X * .5 + (d.tx - (d.sx - X * .5)) * e, y = d.sy + Y * .5 + (d.ty + Y * .15 - (d.sy + Y * .5)) * e - Math.sin(k * Math.PI) * 10 * S;
+      if (d.dead) { d.vy += .25; d.ty += d.vy; d.tx += d.vx; }
+      if (y > H) continue; glow(x, y, 1.6, '#ff5a78', .35); g.fillStyle = k >= 1 && Math.sin(t * 9 + d.tx) > .7 ? '#ffffff' : '#ff8aa0'; g.fillRect(Math.round(x), Math.round(y), 1, 1);
+    }
+    // césped y Messi saludando (capa cercana)
+    const pg = Math.round(gy + Y * .8); g.fillStyle = '#1b6a2d'; g.fillRect(0, pg, W, H - pg + 40);
+    g.fillStyle = '#21793a'; for (let x = -((X * .8) % (16 * S)) - 16 * S; x < W; x += 16 * S) g.fillRect(Math.round(x), pg, 8 * S, H - pg + 40);
+    g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(0, pg + 2 * S, W, 1);
+    const mx = W * .46 + 8 * S - X * .8, my = pg + Math.round((H - pg) * .62) - MESSI.length * S, waving = t > 1.75 && t < 3.5 && Math.floor(t * 4) % 2 === 0;
+    if (my < H) { spr(waving ? MESSI_UP : MESSI, mx - 6 * S, my, S); if (t > .35 && t < 5.2) label('MESSI', mx, my - 3, '#ffffff'); }
+    // hinchada delante (capa más cercana, se mueve más)
+    const fb = Math.round(H + Y * 1.15);
+    for (const f of fans) { const x = Math.round(f.x - X * 1.15), jump = t > 1.75 && t < 3.4 ? Math.round(Math.abs(Math.sin(t * 9 + f.p)) * 2 * S) : 0; g.fillStyle = '#05070f'; g.fillRect(x, fb - 5 * S - f.h - jump, 4 * S, f.h + 6 * S); g.fillRect(x + S, fb - 7 * S - f.h - jump, 2 * S, 2 * S);
+      if (f.arm) g.fillRect(x + 3 * S, fb - 11 * S - f.h - jump, S, 5 * S);
+      if (f.flag) { const wv = Math.round(Math.sin(t * 8 + f.p) * S); g.fillStyle = '#74c0f5'; g.fillRect(x + 4 * S, fb - 14 * S - f.h + wv, 6 * S, 2 * S); g.fillStyle = '#fff'; g.fillRect(x + 4 * S, fb - 12 * S - f.h + wv, 6 * S, 2 * S); g.fillStyle = '#74c0f5'; g.fillRect(x + 4 * S, fb - 10 * S - f.h + wv, 6 * S, 2 * S); } }
+    // la nave (Monumento a la Bandera) sube y le dispara a la publicidad
+    if (t > 5.25) {
+      const k = sm(5.25, 5.75, t), sx = W / 2, sy = H + 30 * S - (H * .32 + 30 * S) * k;
+      if (t > 5.8 && t < 6.05) { g.fillStyle = '#bfe3ff'; g.fillRect(Math.round(sx - S / 2), Math.round(H * .3), Math.max(1, S), Math.round(sy - H * .3)); glow(sx, sy - 14 * S, 4 * S, '#74c0f5', .6); }
+      g.fillStyle = 'rgba(255,215,140,.85)'; g.fillRect(Math.round(sx - 2 * S), Math.round(sy + 8 * S), 4 * S, Math.round((3 + Math.random() * 3) * S));
+      const half = [[1, -13], [2.5, -11], [2.8, -1], [4, 0], [4, 2], [5.5, 2], [5.5, 5], [7, 5], [7, 8]];
+      g.fillStyle = '#e8f3ff'; g.beginPath(); g.moveTo(sx, sy - 13 * S); for (const [a, b] of half) g.lineTo(sx + a * S, sy + b * S); for (let i = half.length - 1; i >= 0; i--) g.lineTo(sx - half[i][0] * S, sy + half[i][1] * S); g.fill();
+      g.fillStyle = '#74c0f5'; g.fillRect(Math.round(sx - 7 * S), Math.round(sy + 5 * S), 14 * S, 3 * S); g.fillStyle = '#f6b40e'; g.fillRect(Math.round(sx - S / 2), Math.round(sy + 5 * S), Math.max(1, S), 2 * S);
+    }
+    for (const p of parts) { p.x += p.vx; p.y += p.vy; p.vy += .06; p.l -= .02; if (p.l > 0) { g.globalAlpha = p.l; g.fillStyle = p.c; g.fillRect(Math.round(p.x), Math.round(p.y), S, S); } } g.globalAlpha = 1;
+    caption(t);
+    // título final
+    if (t > 6.2) {
+      const a = sm(6.2, 6.45, t); g.fillStyle = `rgba(4,6,15,${.55 * a})`; g.fillRect(0, 0, W, H); g.globalAlpha = a; g.textAlign = 'center'; g.textBaseline = 'middle';
+      const big = Math.max(8, Math.floor(Math.min(W / 10, H / 6) / 8) * 8), two = W < big * 17;
+      g.font = big + 'px ' + FONT; const ln = two ? ['DRONES', 'INVASORES'] : ['DRONES INVASORES'];
+      ln.forEach((l, i) => { const y = H * .42 + (i - (ln.length - 1) / 2) * big * 1.3; g.fillStyle = '#0b1a33'; g.fillText(l, W / 2 + S, y + S); const gr = g.createLinearGradient(0, y - big / 2, 0, y + big / 2); gr.addColorStop(0, '#74c0f5'); gr.addColorStop(.5, '#ffffff'); gr.addColorStop(1, '#74c0f5'); g.fillStyle = gr; g.fillText(l, W / 2, y); });
+      g.globalAlpha = 1;
+    }
+    if (t > 6.6) { g.fillStyle = `rgba(4,6,15,${sm(6.6, 7, t)})`; g.fillRect(0, 0, W, H); }
+  }
+  function sounds(t) {
+    const at = (k, n, f) => { if (t >= k && !fired[n]) { fired[n] = 1; f(); } };
+    at(.05, 'crowd', () => SFX.fx('crowd')); at(1.8, 'chant', () => SFX.fx('chant')); at(3.35, 'drones', () => SFX.fx('drones')); at(4.5, 'boo', () => SFX.fx('boo'));
+    at(5.25, 'whoosh', () => SFX.fx('whoosh')); at(5.8, 'laser', () => SFX.fx('laser')); at(6.2, 'sting', () => SFX.fx('sting'));
+    at(5.95, 'boom', () => { SFX.fx('boom'); const hx = W / 2, hy = H * .3 + camY(t) * .15; for (const d of drones) if (Math.hypot(d.tx - hx, d.ty - hy) < 26 * S) { d.dead = true; d.vx = rnd(-1, 1); d.vy = rnd(-2, 0); }
+      for (let i = 0; i < 60; i++) parts.push({ x: hx, y: hy, vx: rnd(-2.2, 2.2), vy: rnd(-2.5, 1), l: 1, c: i % 3 ? '#ff8aa0' : '#ffd27a' }); });
+  }
+  function loop(now) {
+    if (done) return;
+    const t = run ? (now - t0) / 1000 : 0;
+    if (run) { sounds(t); frame(t); if (t >= DUR) return finish(); }
+    else { frame(.2); g.fillStyle = 'rgba(4,6,15,.55)'; g.fillRect(0, 0, W, H); if (Math.floor(now / 500) % 2 === 0) { g.font = '8px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ffffff'; g.fillText(matchMedia('(pointer:coarse)').matches ? 'TOCA PARA EMPEZAR' : 'HACE CLIC PARA EMPEZAR', W / 2, H * .55); } }
+    raf = requestAnimationFrame(loop);
+  }
+  function begin() { if (run || done) return; SFX.ensure(); run = true; t0 = performance.now() + 120; }
+  function finish() {
+    if (done) return; done = true; cancelAnimationFrame(raf); box.classList.add('out'); setTimeout(() => { box.hidden = true; }, 480);
+    state = 'menu'; SFX.ensure(); SFX.musicStart(112, 'menu'); splitTitle();
+  }
+  box.addEventListener('pointerdown', e => { if (e.target.id === 'introSkip') return; begin(); });
+  addEventListener('keydown', e => { if (done) return; if (e.key === 'Escape') finish(); else begin(); });
+  $('introSkip').addEventListener('click', e => { e.stopPropagation(); finish(); });
+  addEventListener('resize', () => { if (!done) build(); });
+  return { open() { state = 'intro'; build(); if (document.fonts) document.fonts.load('8px "Press Start 2P"').then(build); raf = requestAnimationFrame(loop); } };
+})();
+Intro.open();
+
 // en el menú los drones ya están armados detrás del cartel
 groups.forEach(g => g.age = 3);
 requestAnimationFrame(loop);
