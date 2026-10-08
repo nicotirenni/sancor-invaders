@@ -854,20 +854,24 @@ async function countRows() {
   const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
   if (reduce) { els.forEach(e => e.textContent = e.dataset.pre + e.dataset.v + e.dataset.suf); return; }
   await new Promise(r => setTimeout(r, 450));
+  const run = (i) => { // anima una fila; "half" se resuelve al llegar al 50%, "done" al terminar
+    const e = els[i], v = +e.dataset.v, t0 = performance.now(); let lastTick = 0, lastN = -1, half, done;
+    const hp = new Promise(r => half = r), dp = new Promise(r => done = r);
+    const step = now => {
+      if (tok !== countTok) { half(); done(); return; }
+      const k = Math.min(1, (now - t0) / DUR), n = Math.round(v * (1 - Math.pow(1 - k, 3)));
+      e.textContent = e.dataset.pre + n + e.dataset.suf;
+      if (n !== lastN && now - lastTick > 55 && k < 1) { SFX.count(i); lastTick = now; }
+      lastN = n; if ((now - t0) / DUR >= .5) half();
+      if (k < 1) requestAnimationFrame(step); else { SFX.count(i, true); done(); }
+    };
+    requestAnimationFrame(step); return { half: hp, done: dp };
+  };
+  let prev = null;
   for (let i = 0; i < els.length; i++) {
-    const e = els[i], v = +e.dataset.v, t0 = performance.now(); let lastTick = 0, lastN = -1;
-    await new Promise(res => {
-      const step = now => {
-        if (tok !== countTok) return res();
-        const k = Math.min(1, (now - t0) / DUR), n = Math.round(v * (1 - Math.pow(1 - k, 3)));
-        e.textContent = e.dataset.pre + n + e.dataset.suf;
-        if (n !== lastN && now - lastTick > 55 && k < 1) { SFX.count(i); lastTick = now; }
-        lastN = n; if (k < 1) requestAnimationFrame(step); else res();
-      };
-      requestAnimationFrame(step);
-    });
+    if (prev) await prev.half;                // la siguiente fila arranca cuando la anterior va por la mitad
     if (tok !== countTok) return;
-    SFX.count(i, true); await new Promise(r => setTimeout(r, GAP));
+    prev = run(i);
   }
 }
 function nextLevel() {
