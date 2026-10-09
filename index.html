@@ -409,7 +409,7 @@
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a></div>
-      <span class="ver" id="ver">v2.3.1</span>
+      <span class="ver" id="ver">v2.3.2</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -1114,6 +1114,19 @@ function banner(t, sub) {
   clearTimeout(banner.t); banner.t = setTimeout(() => $('banner').classList.remove('on'), 1700);
 }
 // ---------- Jugador y ranking ----------
+// Registro de errores: avisa al servidor (sin datos personales) para poder diagnosticar fallas que solo pasan en algunos navegadores
+const reported = new Set();
+function report(k, e, x) {
+  try {
+    const m = e ? String(e.message || e) : '', key = k + m; if (reported.has(key) || reported.size > 12) return; reported.add(key);
+    const v = (document.getElementById('ver') || {}).textContent || '';
+    const body = JSON.stringify({ k, m, s: e && e.stack ? String(e.stack).slice(0, 600) : '', st: typeof state !== 'undefined' ? state : '', w: typeof wave !== 'undefined' ? wave : 0, v, ua: navigator.userAgent, br: !!navigator.brave, x: x || '' });
+    if (location.protocol.startsWith('http')) fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
+  } catch {}
+}
+let visAt = 0; document.addEventListener('visibilitychange', () => { visAt = performance.now(); });
+addEventListener('error', e => report('err', e.error || e.message));
+addEventListener('unhandledrejection', e => report('rej', e.reason));
 const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
 // ---------- Sonido (WebAudio, graves y con cuerpo; todo sintetizado, sin archivos) ----------
 const SFX = (() => {
@@ -1506,7 +1519,7 @@ function showNewCards(id) {
 // Novedad del álbum: se muestra una sola vez, en el menú
 function openNews() {
   if (LS.get('sancor_news_v2') || state !== 'menu' || $('card').dataset.mode !== 'menu') return;
-  const el = $('news'); el.hidden = false; requestAnimationFrame(() => el.classList.add('on')); SFX.ui('card');
+  const el = $('news'); el.hidden = false; void el.offsetWidth; el.classList.add('on'); SFX.ui('card');
 }
 function closeNews(thenAlbum) {
   const el = $('news'); if (el.hidden) return; LS.set('sancor_news_v2', '1'); el.classList.remove('on');
@@ -1524,7 +1537,7 @@ function cheer(done) { // "¡Venciste a los drones!" con papelitos; se cierra so
   const cols = ['#74c0f5', '#ffffff', '#74c0f5', '#ffffff', '#ffc928'];
   const conf = Array.from({ length: 70 }, (_, k) => `<i class="cf" style="left:${Math.random() * 100}%;--w:${6 + Math.random() * 7 | 0}px;--c:${cols[k % 5]};--x:${(Math.random() - .5) * 30 | 0}vw;--r:${(Math.random() - .5) * 1440 | 0}deg;--t:${2 + Math.random() * 1.6}s;--d:${Math.random() * .7}s"></i>`).join('');
   el.innerHTML = `<i class="ring"></i>${conf}<span class="ch-k">RONDA ${wave} DE ${MAX_WAVE}</span><div class="ch-t">${title}</div><span class="ch-s">¡Defendiste al G.O.A.T.!</span>`;
-  el.hidden = false; requestAnimationFrame(() => el.classList.add('on'));
+  el.hidden = false; void el.offsetWidth; el.classList.add('on');
   clearTimeout(chT); chT = setTimeout(closeCheer, 2600);
 }
 function closeCheer() {
@@ -1542,7 +1555,7 @@ function revealCard(i, done) { // develado: cae → tiembla → (toque o solo) s
   $('rvMini').innerHTML = album.got.map((g, k) => `<i class="${g ? 'g' : ''}${k === i ? ' new' : ''}" style="${g ? `background-position:${(k % 3) * 50}% ${Math.floor(k / 3) * 50}%` : ''}"></i>`).join('');
   $('rvSparks').innerHTML = Array.from({ length: 18 }, (_, k) => { const a = k / 18 * Math.PI * 2 + Math.random() * .3, d = 110 + Math.random() * 120; return `<i class="rv-spark" style="--x:${Math.cos(a) * d | 0}px;--y:${Math.sin(a) * d | 0}px;--s:${10 + Math.random() * 14 | 0}px;--c:${['#ffc928', '#fff3c4', '#74c0f5', '#ff9fc4'][k % 4]};--d:${Math.random() * .15}s"></i>`; }).join('');
   r.classList.remove('on', 'flipped'); c.className = 'rv-card'; r.hidden = false;
-  requestAnimationFrame(() => r.classList.add('on')); SFX.ui('card');
+  void r.offsetWidth; r.classList.add('on'); SFX.ui('card');
   rvTimers.push(setTimeout(() => { c.className = 'rv-card shake'; SFX.cardShake(); }, 750));
   rvTimers.push(setTimeout(revealFlip, 1500));
 }
@@ -1764,7 +1777,7 @@ function start() {
   itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; $('pauseOv').hidden = true; newCards = []; lives = 3; ship.inv = 0; foes = []; ebullets = [];
   document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(...levelSong(startWave)); buildWave(); $('pauseBtn').hidden = false;
 }
-let clearAt = 0;
+let clearAt = 0, clearResults = null;
 function showLevelResults(bonus, allies) {
   state = 'clear'; clearAt = performance.now(); SFX.musicStop(); SFX.pad(0);
   groups = []; items = []; bullets = []; parts = []; rings = []; pops = []; foes = []; ebullets = []; hudMsgT = 0; flash = 0; shake = 0;   // pantalla limpia al superar el nivel
@@ -1775,7 +1788,8 @@ function showLevelResults(bonus, allies) {
     + row('Bonus por cuidar lo nuestro', bonus, '+') + row('Mejor combo', waveCombo)
     + row('Errores (drones nuestros)', waveAllyHits) + row('Respeto', Math.max(0, Math.round(respect)), '', '%')
     + row('Puntos totales', score, '', '', 'tot');
-  const results = () => { clearAt = performance.now(); setMode('level'); countRows(); setShare(score, null, wave); };
+  const results = () => { clearAt = performance.now(); setMode('level'); countRows(); try { setShare(score, null, wave); } catch (e) { report('err-share', e); } };
+  clearResults = results;
   showNewCards('lvlCards'); const card = newCards.length ? newCards[0] : -1; newCards = []; $('card').hidden = true;
   cheer(card >= 0 ? () => revealCard(card, results) : results);   // festejo → figurita (si hay) → números
 }
@@ -2045,7 +2059,7 @@ function update(dt) {
     for (const g of groups) if (g.ally) for (const d of g.dots) if (d.alive && Math.random() < .3) burst(g.x + d.x, g.y + d.y, d.c, 2, 60);
     say(bonus ? `¡Sancor destruido! +${bonus} por cuidar lo nuestro` : '¡Sancor destruido!'); SFX.clear();
     bullets = []; ebullets = [];
-    albWave(wave, lv(wave).allies > 0 && waveAllyHits === 0); grantCard();
+    try { albWave(wave, lv(wave).allies > 0 && waveAllyHits === 0); grantCard(); } catch (e) { report('err-album', e); }
     if (wave >= MAX_WAVE) { foes = []; endGame('¡Defendiste al G.O.A.T.!', true); } else showLevelResults(bonus, allies);
   } else if (lowest + STEP / 2 > STADIUM_TOP) endGame('Sancor llegó al Monumental');
   else if (respect <= 0) endGame('Se perdió el respeto');
@@ -2129,12 +2143,15 @@ function loop(now) {
   // calidad adaptativa: si el equipo no da 40fps sostenidos, se baja el detalle (nunca se vuelve a subir)
   if (state === 'play' && !paused && countT <= 0 && raw < 250) { slow = raw > 25 ? slow + 1 : Math.max(0, slow - 2); if (slow > 90) { slow = 0; setPerf(perf + 1); } }
   const playing = state === 'play' && !paused;
-  if (playing) update(dt);
+  if (playing) { try { update(dt); } catch (e) { report('err-update', e); } }
   // el fondo se anima a 30fps (20 si el equipo va justo); el juego solo se redibuja cuando algo cambia
   if (frameN % (perf ? 3 : 2) === 0) drawBg(now / 1000);
   const key = state + paused; if (key !== lastKey) { lastKey = key; settle = 4; }
   if ($('card').dataset.mode === 'tuto' && !$('card').hidden) drawTuto(now);
-  if (playing) draw(now / 1000); else if (settle > 0 && state !== 'menu') { settle--; draw(now / 1000); }
+  try { if (playing) draw(now / 1000); else if (settle > 0 && state !== 'menu') { settle--; draw(now / 1000); } } catch (e) { report('err-draw', e); }
+  // vigilante: si el juego estuvo frenado mucho tiempo o el fin de ronda quedó sin cartel, se registra y se destraba
+  if (raw > 3000 && document.visibilityState === 'visible' && now - visAt > 1500 && state !== 'menu') report('gap', null, Math.round(raw) + 'ms');
+  if (state === 'clear' && $('card').hidden && $('cheer').hidden && $('reveal').hidden && performance.now() - clearAt > 6000 && clearResults) { report('stuck-clear'); const r = clearResults; clearResults = null; r(); }
   requestAnimationFrame(loop);
 }
 /* SplitText (ReactBits, sin GSAP): letras que suben escalonadas */
