@@ -409,7 +409,7 @@
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a></div>
-      <span class="ver" id="ver">v2.3.2</span>
+      <span class="ver" id="ver">v2.4.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -2172,8 +2172,8 @@ const splitTitle = (() => {
 splitTitle(); document.documentElement.classList.add('scene-menu'); layoutAll(); buildWave(); $('banner').classList.remove('on');
 // ================= Intro animada: la despedida de Messi y el show de drones (pixel art 16 bits + parallax, 10 s) =================
 const Intro = (() => {
-  // Intro de 10 s con ilustraciones pixel art (mismo estilo que el álbum), animadas con zoom lento, luces y los drones del juego
-  const box = $('intro'), cv = $('introCv'), g = cv.getContext('2d'), DUR = 10, FONT = '"Press Start 2P", monospace';
+  // Intro de 15 s con ilustraciones pixel art (mismo estilo que el álbum), animadas con zoom lento, luces y los drones del juego
+  const box = $('intro'), cv = $('introCv'), g = cv.getContext('2d'), DUR = 15, FONT = '"Press Start 2P", monospace';
   const SRC = ['img/intro1.webp', 'img/intro2.webp', 'img/intro3.webp'];
   const imgs = SRC.map(s => { const im = new Image(); im.decoding = 'async'; im.src = s; return im; });
   const loaded = Promise.all(imgs.map(im => im.decode ? im.decode().catch(() => {}) : new Promise(r => { im.onload = im.onerror = r; })));
@@ -2181,9 +2181,9 @@ const Intro = (() => {
   let drones = [], parts = [], sparks = [], fired = {}, blipN = -1, logo = { x: 0, y: 0, w: 0, h: 0 };
   const rnd = (a, b) => a + Math.random() * (b - a), cl = v => Math.max(0, Math.min(1, v)), sm = (a, b, t) => { const k = cl((t - a) / (b - a)); return k * k * (3 - 2 * k); };
   // tiempos (s): 3 escenas, un texto por escena, con tiempo para leer
-  const T = { s2: 3.1, s3: 5.7, droneA: 5.9, ship: 7.9, laser: 8.45, boom: 8.6, title: 9.0 };
+  const T = { s2: 3.1, s3: 5.7, droneA: 5.9, ship: 10.6, laser: 11.4, boom: 11.55, title: 12.6 };
   const CAPS = [[.35, 2.9, '6 DE OCTUBRE · MONUMENTAL', 'LA DESPEDIDA DE MESSI'], [3.4, 5.5, '80.000 HINCHAS', 'ESPERABAN SU HOMENAJE'],
-    [6.0, 7.7, 'PERO LOS DRONES', 'ESCRIBIERON OTRA COSA...'], [7.75, 8.95, '¡DEFENDE AL G.O.A.T.!', '']];
+    [6.0, 9.5, 'PERO LOS DRONES', 'ESCRIBIERON OTRA COSA...'], [9.7, 12.55, '¡DEFENDE AL G.O.A.T.!', '']];
   function build() {
     D = Math.min(2, devicePixelRatio || 1); W = Math.round(innerWidth * D); H = Math.round(innerHeight * D);
     cv.width = W; cv.height = H; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
@@ -2259,7 +2259,7 @@ const Intro = (() => {
   function sounds(t) {
     const at = (k, n, f) => { if (t >= k && !fired[n]) { fired[n] = 1; f(); } };
     at(.05, 'crowd', () => SFX.fx('crowd')); at(2.6, 'crowd2', () => SFX.fx('crowd')); at(3.2, 'chant', () => SFX.fx('chant')); at(4.3, 'chant2', () => SFX.fx('chant'));
-    at(T.droneA - .1, 'drones', () => SFX.fx('drones')); at(7.0, 'boo', () => SFX.fx('boo'));
+    at(T.droneA - .1, 'drones', () => SFX.fx('drones')); at(7.4, 'boo', () => SFX.fx('boo')); at(8.6, 'boo2', () => SFX.fx('boo'));
     at(T.ship, 'whoosh', () => SFX.fx('whoosh')); at(T.laser, 'laser', () => SFX.fx('laser')); at(T.title, 'sting', () => SFX.fx('sting'));
     at(T.boom, 'boom', () => { SFX.fx('boom'); const hx = W / 2, hy = logo.y + logo.h * .5;
       for (const d of drones) if (Math.hypot(d.tx - hx, (d.ty - hy) * 1.6) < logo.w * .22) { d.dead = true; d.vx = rnd(-2, 2) * S; d.vy = rnd(-4, 0) * S; }
