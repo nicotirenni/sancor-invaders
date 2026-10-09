@@ -1188,6 +1188,7 @@ const SFX = (() => {
   // Temas originales (sintetizados). Notas en semitonos desde La4; pasos de semicorchea.
   const ev = (r, f, a = 3.2, b = 1.8) => [[0, r, a], [8, r, a], [6, f, b], [14, f, b]];             // bajo de cumbia: raíz y quinta
   const eights = r => [0, 2, 4, 6, 8, 10, 12, 14].map(k => [k, r, 1.6]);
+  const dem = (r, to) => [[0, r, 3], [3, r, 1.5], [6, r, 2], [8, r, 3], [11, r, 1.5], [14, r, 2, to]];             // bajo de RKT siguiendo el dembow
   const quarters = (r, f) => [[0, r, 1.8], [4, f, 1.8], [8, r, 1.8], [12, f, 1.8]];
   // Ritmos argentinos con sus tempos reales. Registro medio-grave: la melodía nunca pasa de ~900 Hz y la percusión va filtrada.
   // shift transpone todo el tema (semitonos); bass: [paso, nota, duración, nota final del glissando opcional]
@@ -1232,7 +1233,38 @@ const SFX = (() => {
         { bass: eights(-29), ch: [-29, -22, -17], lead: [[0, -5, 3], [3, -2, 1], [4, 0, 2], [6, -2, 2], [8, -5, 4], [12, 2, 2], [14, 0, 2]] },
         { bass: eights(-26), ch: [-26, -19, -14], lead: [[0, -2, 3], [3, 2, 1], [4, 3, 4], [8, 2, 2], [10, -2, 2], [12, -5, 4]] },
         { bass: eights(-31), ch: [-31, -24, -19], lead: [[0, -7, 2], [2, -3, 2], [4, 0, 4], [8, 5, 2], [10, 3, 2], [12, 0, 4]] },
-        { bass: eights(-33), ch: [-33, -26, -21], lead: [[0, -9, 2], [2, -5, 2], [4, -2, 4], [8, 3, 2], [10, 2, 2], [12, -2, 2], [14, -5, 2]] }] }
+        { bass: eights(-33), ch: [-33, -26, -21], lead: [[0, -9, 2], [2, -5, 2], [4, -2, 4], [8, 3, 2], [10, 2, 2], [12, -2, 2], [14, -5, 2]] }] },
+    // Segundas versiones: misma familia y tempo, otra tonalidad, otra melodía y variaciones de percusión (se alternan nivel a nivel)
+    cumbia2: { name: 'Cumbia del aguante', steps: 16, shift: -3, kick: [0, 8], snare: [4, 12], hat: [0, 2, 4, 6, 8, 10, 12, 14], hatSoft: [3, 7, 11, 15], stab: [2, 6, 10, 14], stabLen: 1.4, stabVol: .05, stabSus: .45,
+      bars: [
+        { bass: ev(-31, -24), ch: [-7, -3, 0], lead: [[0, 9, 2], [2, 7, 1], [3, 5, 1], [4, 7, 2], [6, 9, 2], [8, 12, 3], [11, 9, 1], [12, 7, 4]] },
+        { bass: ev(-26, -19), ch: [-14, -10, -7], lead: [[0, 10, 2], [2, 9, 1], [3, 7, 1], [4, 5, 2], [6, 2, 2], [8, 5, 2], [10, 7, 2], [12, 2, 4]] },
+        { bass: ev(-24, -17), ch: [-12, -8, -5], lead: [[0, 4, 2], [2, 7, 1], [3, 9, 1], [4, 7, 2], [6, 4, 2], [8, 0, 2], [10, 4, 2], [12, 7, 4]] },
+        { bass: ev(-31, -24), ch: [-7, -3, 0], lead: [[0, 5, 3], [3, 4, 1], [4, 2, 2], [6, 0, 2], [8, -3, 4], [12, 5, 4]] }] },
+    rkt2: { name: 'RKT del fondo', steps: 16, shift: -2, kick: [0, 4, 8, 12], clap: [3, 6, 10, 14], hatSoft: [2, 6, 10, 14], stab: [0, 6, 8], stabLen: 2, stabVol: .045, stabSus: .6, leadVol: .1,
+      bars: [
+        { bass: dem(-29), ch: [-17, -14, -10], lead: [[0, 7, 1], [1, 7, 1], [2, 5, 1], [3, 7, 2], [6, 10, 2], [8, 7, 1], [9, 7, 1], [10, 5, 1], [11, 2, 3]] },
+        { bass: dem(-21), ch: [-21, -17, -14], lead: [[0, 4, 1], [1, 4, 1], [2, 2, 1], [3, 4, 2], [6, 7, 2], [8, 4, 1], [9, 4, 1], [10, 2, 1], [11, 0, 3]] },
+        { bass: dem(-19), ch: [-19, -15, -12], lead: [[0, 5, 1], [1, 5, 1], [2, 4, 1], [3, 5, 2], [6, 9, 2], [8, 5, 1], [9, 5, 1], [10, 4, 1], [11, 0, 3]] },
+        { bass: dem(-22, -17), ch: [-22, -19, -15], lead: [[0, 2, 2], [2, 5, 2], [4, 7, 4], [8, 5, 2], [10, 2, 2], [12, -1, 4]] }] },
+    tango2: { name: 'Tango de la despedida', steps: 16, shift: -3, kickSoft: [0, 8], stab: [0, 4, 8, 12], accent: [0, 8], stabLen: 1, stabVol: .065, stabSus: .25, leadVol: .1, leadSus: .9,
+      bars: [
+        { bass: [[0, -19, 2], [8, -19, 2], [14, -20, 2, -19]], ch: [-7, -4, 0], lead: [[0, 5, 4], [4, 7, 2], [6, 8, 2], [8, 12, 3], [11, 10, 1], [12, 8, 4]] },
+        { stab: [0, 3, 6, 8, 12], bass: [[0, -26, 2], [3, -26, 2], [6, -26, 2], [8, -19, 2], [14, -25, 2, -24]], ch: [-14, -11, -7], lead: [[0, 10, 3], [3, 8, 1], [4, 7, 2], [6, 5, 2], [8, 1, 4], [12, -2, 4]] },
+        { bass: [[0, -24, 2], [8, -24, 2], [14, -25, 2, -24]], ch: [-8, -5, -2], lead: [[0, 4, 3], [3, 7, 1], [4, 10, 2], [6, 8, 2], [8, 7, 2], [10, 4, 2], [12, 1, 4]] },
+        { stab: [0, 3, 6, 8, 12], bass: [[0, -19, 2], [3, -19, 2], [6, -19, 2], [8, -24, 2], [14, -20, 2, -19]], ch: [-7, -4, 0], lead: [[0, 5, 6], [6, 4, 2], [8, 0, 4], [12, -7, 4]] }] },
+    cuarteto2: { name: 'Cuarteto de la popular', steps: 16, kick: [0, 4, 8, 12], clap: [4, 12], hatSoft: [2, 6, 10, 14], stab: [2, 6, 10, 14], stabLen: .9, stabVol: .055, stabSus: .35,
+      bars: [
+        { bass: quarters(-24, -17), ch: [-12, -9, -5], lead: [[0, 0, 2], [2, 3, 2], [4, 7, 2], [6, 3, 2], [8, 8, 2], [10, 7, 2], [12, 3, 4]] },
+        { bass: quarters(-28, -21), ch: [-16, -12, -9], lead: [[0, 8, 2], [2, 7, 2], [4, 5, 2], [6, 3, 2], [8, 0, 2], [10, 3, 2], [12, 5, 4]] },
+        { bass: quarters(-26, -19), ch: [-14, -10, -7], lead: [[0, 2, 2], [2, 5, 2], [4, 10, 2], [6, 7, 2], [8, 5, 2], [10, 2, 2], [12, -1, 4]] },
+        { bass: quarters(-29, -22), ch: [-17, -13, -10], lead: [[0, 7, 2], [2, 4, 2], [4, -1, 2], [6, 2, 2], [8, -1, 2], [10, -5, 2], [12, -1, 4]] }] },
+    rock2: { name: 'Rock de la bandera', steps: 16, kick: [0, 8, 10], snare: [4, 12], hat: [0, 2, 4, 6, 8, 10, 12, 14], stab: [0, 8], stabLen: 3, stabVol: .045, stabSus: .6,
+      bars: [
+        { bass: eights(-24), ch: [-24, -17, -12], lead: [[0, 0, 2], [2, 3, 2], [4, 5, 2], [6, 3, 1], [7, 0, 1], [8, -2, 2], [10, 0, 6]] },
+        { bass: eights(-28), ch: [-28, -21, -16], lead: [[0, -4, 2], [2, 0, 2], [4, 3, 2], [6, 5, 2], [8, 3, 4], [12, 0, 4]] },
+        { bass: eights(-33), ch: [-33, -26, -21], lead: [[0, 3, 3], [3, 7, 1], [4, 5, 2], [6, 3, 2], [8, 0, 4], [12, -2, 4]] },
+        { bass: eights(-26), ch: [-26, -19, -14], lead: [[0, -2, 2], [2, 2, 2], [4, 5, 4], [8, 7, 2], [10, 5, 2], [12, 2, 4]] }] }
   };
   const SOFT_MAX = 900; // Hz: tope de la melodía y los acordes (si una nota lo supera, baja una octava)
   const soft = f => { while (f > SOFT_MAX) f /= 2; return f; };
@@ -1773,7 +1805,7 @@ function tryStart() {
 }
 // Música por nivel: 4 rondas por ritmo, de menor a mayor tempo y dentro del rango real de cada género
 const LEVEL_MUSIC = [['cumbia', [92, 94, 96, 98]], ['rkt', [98, 100, 102, 104]], ['tango', [116, 118, 120, 122]], ['cuarteto', [124, 126, 128, 130]], ['rock', [130, 132, 134, 136]]];
-const levelSong = w => { const [name, bpms] = LEVEL_MUSIC[Math.min(4, Math.floor((w - 1) / 4))]; return [bpms[(w - 1) % 4], name]; };
+const levelSong = w => { const [name, bpms] = LEVEL_MUSIC[Math.min(4, Math.floor((w - 1) / 4))]; return [bpms[(w - 1) % 4], name + ((w - 1) % 2 ? '2' : '')]; };   // dos versiones por ritmo, alternadas
 let startWave = 1; // las partidas siempre arrancan en la ronda 1
 function start() {
   $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true; $('rank').textContent = '';
