@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://drones-invasores.vercel.app/sitemap.xml
