@@ -3,9 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2032%2032%22%3E%3Cdefs%3E%3ClinearGradient%20id=%22g%22%20x1=%220%22%20y1=%220%22%20x2=%220%22%20y2=%221%22%3E%3Cstop%20offset=%220%22%20stop-color=%22%23fff%22/%3E%3Cstop%20offset=%22.55%22%20stop-color=%22%23d9ecfc%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22%236fb6ee%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width=%2232%22%20height=%2232%22%20rx=%227%22%20fill=%22%2305060f%22/%3E%3Cpolygon%20points=%2217.86,3.2%2017.86,4.75%2019.1,4.75%2019.41,6.3%2019.41,17.46%2020.34,17.46%2020.34,18.39%2021.27,18.39%2021.27,21.18%2022.51,21.18%2022.51,24.28%2023.75,24.28%2023.75,26.14%2024.99,26.14%2024.99,29.24%2024.06,29.86%207.94,29.86%207.01,29.24%207.01,26.14%208.25,26.14%208.25,24.28%209.49,24.28%209.49,21.18%2010.73,21.18%2010.73,18.39%2011.66,18.39%2011.66,17.46%2012.59,17.46%2012.59,6.3%2012.9,4.75%2014.14,4.75%2014.14,3.2%22%20fill=%22url%28%23g%29%22/%3E%3Cpath%20d=%22M14.7,30.58V27.38a1.3,1.3%200%200%201%202.6,0V30.58z%22%20fill=%22%231b3e6b%22/%3E%3Ccircle%20cx=%2216.0%22%20cy=%2229.08%22%20r=%22.9%22%20fill=%22%23f6b40e%22/%3E%3C/svg%3E">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="/img/icon-96.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#05060f">
+<meta name="author" content="Nico Tirenni">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<title>Drones Invasores</title>
+<title>Drones Invasores · Juego arcade gratis</title>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Drones Invasores","url":"https://drones-invasores.vercel.app/",
+"description":"Juego arcade gratis en el navegador: defendé la despedida de Messi en el Monumental de un show de drones invasor. 20 rondas con cumbia, RKT, tango, cuarteto y rock, ranking global y un álbum de figuritas para completar.",
+"image":"https://drones-invasores.vercel.app/og-home.jpg","inLanguage":"es-AR","genre":["Arcade","Shoot 'em up"],"gamePlatform":["Navegador web","Celular","Computadora"],
+"applicationCategory":"Game","operatingSystem":"Web","playMode":"SinglePlayer","isAccessibleForFree":true,
+"offers":{"@type":"Offer","price":"0","priceCurrency":"ARS"},
+"author":{"@type":"Person","name":"Nico Tirenni"}}
+</script>
+
 <meta name="description" content="Destruí al invasor con un show de drones en el cielo nocturno. Cuidá lo nuestro y llegá al ranking.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Drones Invasores">
@@ -356,11 +370,18 @@
   #stage #shipPick canvas{position:static;display:block;inset:auto;width:64px;height:64px;pointer-events:none} .shipOpt:hover{background:#1a2040;color:#fff}
   .shipOpt.sel{background:#22142c;color:#fff;box-shadow:0 0 0 2px var(--pink) inset,0 0 18px rgba(214,32,104,.25)} .shipOpt:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
   @media (prefers-reduced-motion:reduce){.title,.shiny,.sb-b,.sb-t{animation:none}}
+  .seo-txt{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 </style>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
+<main class="seo-txt">
+  <h1>Drones Invasores: juego arcade gratis en el navegador</h1>
+  <p>El 6 de octubre, en la despedida de Messi en el Monumental, un show de drones invade el cielo. Manejá la nave y defendé al G.O.A.T. ronda a ronda.</p>
+  <p>20 rondas con música de ritmos argentinos (cumbia, RKT, tango, cuarteto y rock), un ranking global y un álbum de 9 figuritas para completar. Se juega en el celular o en la compu, sin descargar nada.</p>
+  <p>Juego realizado por Nico Tirenni.</p>
+</main>
 <canvas id="bg"></canvas>
 <button id="mute" type="button" aria-label="Activar o silenciar el sonido" title="Sonido"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="w" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="x" d="M16 9l5 6M21 9l-5 6"/></svg></button>
 <button id="pauseBtn" type="button" aria-label="Pausar" title="Pausa (P)" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
@@ -409,7 +430,7 @@
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a></div>
-      <span class="ver" id="ver">v2.5.0</span>
+      <span class="ver" id="ver">v2.5.1</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
