@@ -4,7 +4,7 @@ const BOTS = /bot|crawl|spider|facebookexternalhit|facebot|linkedin|twitter|slac
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 module.exports = (req, res) => {
-  const d = params(req.query || {}), host = req.headers['x-forwarded-host'] || req.headers.host || 'drones-invasores.vercel.app';
+  const d = params(req.query || {}), host = req.headers['x-forwarded-host'] || req.headers.host || 'www.dronesinvasores.com';
   const site = `https://${host}`;
   if (!BOTS.test(req.headers['user-agent'] || '')) { res.statusCode = 302; res.setHeader('Location', '/'); res.setHeader('Cache-Control', 'no-store'); return res.end(); }
   const title = `🛸 ${d.pts} puntos en Drones Invasores 🇦🇷`;

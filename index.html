@@ -12,9 +12,9 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>Drones Invasores · Juego arcade gratis</title>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"VideoGame","name":"Drones Invasores","url":"https://drones-invasores.vercel.app/",
+{"@context":"https://schema.org","@type":"VideoGame","name":"Drones Invasores","url":"https://www.dronesinvasores.com/",
 "description":"Juego arcade gratis en el navegador: defendé la despedida de Messi en el Monumental de un show de drones invasor. 20 rondas con cumbia, RKT, tango, cuarteto y rock, ranking global y un álbum de figuritas para completar.",
-"image":"https://drones-invasores.vercel.app/og-home.jpg","inLanguage":"es-AR","genre":["Arcade","Shoot 'em up"],"gamePlatform":["Navegador web","Celular","Computadora"],
+"image":"https://www.dronesinvasores.com/og-home.jpg","inLanguage":"es-AR","genre":["Arcade","Shoot 'em up"],"gamePlatform":["Navegador web","Celular","Computadora"],
 "applicationCategory":"Game","operatingSystem":"Web","playMode":"SinglePlayer","isAccessibleForFree":true,
 "offers":{"@type":"Offer","price":"0","priceCurrency":"ARS"},
 "author":{"@type":"Person","name":"Nico Tirenni"}}
@@ -23,11 +23,11 @@
 <meta name="description" content="Destruí al invasor con un show de drones en el cielo nocturno. Cuidá lo nuestro y llegá al ranking.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Drones Invasores">
-<link rel="canonical" href="https://drones-invasores.vercel.app/">
+<link rel="canonical" href="https://www.dronesinvasores.com/">
 <meta property="og:description" content="Destruí al invasor con un show de drones en el cielo nocturno. ¿Cuántos puntos hacés?">
-<meta property="og:url" content="https://drones-invasores.vercel.app/">
-<meta property="og:image" content="https://drones-invasores.vercel.app/og-home.jpg">
-<meta property="og:image:secure_url" content="https://drones-invasores.vercel.app/og-home.jpg">
+<meta property="og:url" content="https://www.dronesinvasores.com/">
+<meta property="og:image" content="https://www.dronesinvasores.com/og-home.jpg">
+<meta property="og:image:secure_url" content="https://www.dronesinvasores.com/og-home.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -36,7 +36,7 @@
 <meta property="og:site_name" content="Drones Invasores">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Drones Invasores">
-<meta name="twitter:image" content="https://drones-invasores.vercel.app/og-home.jpg">
+<meta name="twitter:image" content="https://www.dronesinvasores.com/og-home.jpg">
 <meta name="twitter:image:alt" content="Drones Invasores">
 <meta name="twitter:description" content="Destruí al invasor con un show de drones en el cielo nocturno. ¿Cuántos puntos hacés?">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Chakra+Petch:wght@500;700&family=Press+Start+2P&display=swap">
@@ -430,7 +430,7 @@
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a></div>
-      <span class="ver" id="ver">v2.5.1</span>
+      <span class="ver" id="ver">v2.5.2</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -1459,13 +1459,13 @@ function storyImage(sc, sub) {
   g.save(); g.translate(Wd / 2, 1350); g.scale(5, 5); drawShip(g, shipType, 1); g.restore();
   // pie
   g.font = '600 36px "Chakra Petch", sans-serif'; g.fillStyle = '#74c0f5'; g.fillText('#DronesInvasores', Wd / 2, Hd - 330);
-  g.fillStyle = '#dfe6ff'; g.fillText('drones-invasores.vercel.app', Wd / 2, Hd - 275);
+  g.fillStyle = '#dfe6ff'; g.fillText('dronesinvasores.com', Wd / 2, Hd - 275);
   g.font = '500 30px "Chakra Petch", sans-serif'; g.fillStyle = '#aab4d6'; g.fillText('Realizado por Nico Tirenni', Wd / 2, Hd - 222);
   return new Promise(r => c.toBlob(r, 'image/png'));
 }
 let shareFile = null;
 // Base del link para compartir: en Vercel, el mismo sitio (así los previews también funcionan); en cualquier otro lado, el dominio oficial
-const shareBase = () => /\.vercel\.app$/.test(location.hostname) ? location.origin : 'https://drones-invasores.vercel.app';
+const shareBase = () => /(\.vercel\.app|dronesinvasores\.com)$/.test(location.hostname) ? location.origin : 'https://www.dronesinvasores.com';
 function setShare(sc, res, lvl) {
   const pts = Number(sc).toLocaleString('es-AR'), pos = res && !res.local ? ` y quedé en el puesto ${res.rank} de ${res.total}` : '';
   const text = lvl ? `🛸 Voy por la ronda ${lvl + 1} con ${pts} puntos en Drones Invasores 🇦🇷 ¿Me superás? #DronesInvasores`
@@ -1651,7 +1651,7 @@ let acct = (() => { try { const a = JSON.parse(LS.get('sancor_acct', 'null')); r
 async function accApi(body) {
   const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 9000);
   try { const r = await fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal });
-    const j = await r.json().catch(() => ({})); if (j.notFound) return { notFound: true }; return r.ok ? j : { error: r.status === 501 || r.status === 404 ? 'Las cuentas funcionan en drones-invasores.vercel.app' : (j.error || 'No se pudo conectar. Probá de nuevo.'), status: r.status };
+    const j = await r.json().catch(() => ({})); if (j.notFound) return { notFound: true }; return r.ok ? j : { error: r.status === 501 || r.status === 404 ? 'Las cuentas funcionan en dronesinvasores.com' : (j.error || 'No se pudo conectar. Probá de nuevo.'), status: r.status };
   } catch { return { error: 'No se pudo conectar. Probá de nuevo.' }; } finally { clearTimeout(to); }
 }
 function mergeAlbum(p) { // une el álbum local con el de la cuenta sin perder nada (incluidos los logros por pegar)

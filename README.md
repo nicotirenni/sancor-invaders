@@ -8,7 +8,7 @@ Juego estático (`index.html`) + una función serverless para el ranking global 
    Vercel agrega las variables `KV_REST_API_URL` / `KV_REST_API_TOKEN` (o `UPSTASH_REDIS_REST_*`). Redeploy.
 3. Sin eso el juego funciona igual: el ranking se guarda solo en el dispositivo de cada jugador.
 
-La imagen para compartir el link (`og-home.jpg`) usa la URL completa https://drones-invasores.vercel.app; si cambia el dominio, actualizarla en las etiquetas `og:` y `twitter:` de index.html.
+La imagen para compartir el link (`og-home.jpg`) usa la URL completa https://www.dronesinvasores.com (dominio propio; drones-invasores.vercel.app redirige ahí); si cambia el dominio, actualizarla en las etiquetas `og:` y `twitter:` de index.html.
 
 ## Compartir puntaje
 - `/r?p=PUNTOS&r=RONDA&k=lvl|over[&q=PUESTO-TOTAL]` (`api/share.js`): página que se comparte. A las redes (X, LinkedIn, Facebook) les da título, texto e imagen con el puntaje; a las personas las redirige al juego.
