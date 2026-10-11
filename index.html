@@ -105,6 +105,16 @@
   #slot .sl-res span{font-size:14px;color:#c9d3f0;line-height:1.35}
   #slot .sl-res.pop{animation:pop .6s ease-out both}
   #slot .sb{min-width:220px} #slot .sb .sb-in{width:100%;box-sizing:border-box} #slot .sb[disabled]{opacity:.55;pointer-events:none}
+  #slot{touch-action:none;-webkit-user-select:none;user-select:none}
+  #slot .sl-mach{transition:transform .45s cubic-bezier(.3,1.6,.5,1)} #slot .sl-mach.drag{transition:none}
+  #slot .sl-coach{--d:calc(var(--c) * 1.25);display:none;position:absolute;left:50%;top:-14px;width:56px;height:calc(var(--d) + 60px);margin-left:-20px;pointer-events:none;z-index:3}
+  #slot .sl-coach .tr{position:absolute;left:14px;top:4px;width:12px;height:var(--d);border-radius:6px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.55));transform-origin:top;animation:slTrail 1.8s ease-in-out infinite}
+  #slot .sl-coach .dot{position:absolute;left:4px;top:-6px;width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.8);animation:slTap 1.8s ease-out infinite}
+  #slot .sl-coach svg{position:absolute;left:0;top:0;width:52px;height:52px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6));animation:slHand 1.8s ease-in-out infinite}
+  @keyframes slHand{0%{transform:translateY(0) scale(1.15);opacity:0}12%{opacity:1;transform:translateY(0) scale(1)}60%{transform:translateY(var(--d)) scale(1);opacity:1}80%,100%{transform:translateY(var(--d)) scale(1);opacity:0}}
+  @keyframes slTrail{0%,12%{transform:scaleY(0);opacity:0}60%{transform:scaleY(1);opacity:.9}80%,100%{transform:scaleY(1);opacity:0}}
+  @keyframes slTap{0%{transform:scale(.4);opacity:0}12%{opacity:.9}35%,100%{transform:scale(1.6);opacity:0}}
+  @media (pointer:coarse){#slot.s1 .sl-coach{display:block} #slot.s1 #slGo{opacity:0;pointer-events:none;transition:opacity .4s} #slot.s1.hint #slGo{opacity:.85;pointer-events:auto}}
   #hud .lives i.x{display:none;background:var(--gold)} #hud .lives.x4 i.x{display:block}
   /* festejo al vencer a los drones: título que salta letra por letra + papelitos celestes y blancos */
   #cheer{position:fixed;inset:0;z-index:19;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6vw,16px);text-align:center;overflow:hidden;background:radial-gradient(circle at 50% 45%,rgba(116,192,245,.28),rgba(5,6,15,.55) 60%);opacity:0;transition:opacity .25s}
@@ -452,7 +462,7 @@
         <span class="sl-tag" id="slTag">TRAGAMONEDAS</span>
         <h2 id="slTitle">Probá tu suerte</h2>
         <p class="sl-p" id="slP"></p>
-        <div class="sl-mach"><i class="sl-bulbs" aria-hidden="true"></i><div class="sl-reel"><div class="sl-strip"></div></div><div class="sl-reel"><div class="sl-strip"></div></div><div class="sl-reel"><div class="sl-strip"></div></div></div>
+        <div class="sl-mach" id="slMach"><i class="sl-bulbs" aria-hidden="true"></i><div class="sl-coach" aria-hidden="true"><i class="dot"></i><i class="tr"></i><svg viewBox="0 0 24 24"><path d="M9 11V4.5a1.5 1.5 0 0 1 3 0V10l5.2 1.1a2 2 0 0 1 1.6 2.2l-.6 5.2A2.5 2.5 0 0 1 15.7 21H11a3 3 0 0 1-2.4-1.2l-3-4a1.6 1.6 0 0 1 2.3-2.2L9 14.6Z" fill="#fff" stroke="#141a3c" stroke-width="1.3" stroke-linejoin="round"/></svg></div><div class="sl-reel"><div class="sl-strip"></div></div><div class="sl-reel"><div class="sl-strip"></div></div><div class="sl-reel"><div class="sl-strip"></div></div></div>
         <div class="sl-res" id="slRes" aria-live="polite"></div>
         <button class="sb" id="slGo" type="button">¡Girar!</button>
       </div>
@@ -467,7 +477,7 @@
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a></div>
-      <span class="ver" id="ver">v2.6.1</span>
+      <span class="ver" id="ver">v2.6.2</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -1942,10 +1952,11 @@ function openSlot(why, done) { // pantalla completa: entra en círculo desde el 
   $('slP').innerHTML = (why === 'tok' ? 'Agarraste la ficha.' : 'Llegaste con lo justo: te damos un tiro.') + ` Si salen <b>3 iguales</b>, ganás una ventaja para toda la ronda ${wave + 1}.`;
   $('slRes').className = 'sl-res'; $('slRes').innerHTML = ''; slLbl('¡Girar!'); $('slGo').disabled = false;
   document.querySelectorAll('#slot .sl-reel').forEach(r => { r.classList.remove('win'); const st = r.firstElementChild; st.style.transition = 'none'; st.style.transform = 'none'; st.innerHTML = slCell(pick()); });
-  const el = $('slot'); el.classList.remove('on', 'out'); el.hidden = false; void el.offsetWidth; el.classList.add('on'); SFX.slot('open');
+  const el = $('slot'); el.classList.remove('on', 'out', 'hint'); el.classList.add('s1'); el.hidden = false; void el.offsetWidth; el.classList.add('on'); SFX.slot('open');
+  clearTimeout(slHintT); slHintT = setTimeout(() => el.classList.add('hint'), 5000);   // en celular, si no hace el gesto, aparece el botón
 }
 function spinSlot() {
-  if (slStep !== 1) return; slStep = 2; $('slGo').disabled = true; slLbl('Girando…');
+  if (slStep !== 1) return; slStep = 2; $('slGo').disabled = true; slLbl('Girando…'); clearTimeout(slHintT); $('slot').classList.remove('s1', 'hint'); buzz(25);
   const win = Math.random() < SL_WIN || slMiss >= 2;
   let res;
   if (win) { const k = pick(); res = [k, k, k]; slMiss = 0; }
@@ -1958,7 +1969,7 @@ function spinSlot() {
     st.style.transition = 'none'; st.style.transform = 'translateY(0)'; void st.offsetWidth;
     const dur = 1.3 + i * .55;
     st.style.transition = `transform ${dur}s cubic-bezier(.12,.7,.22,1.06)`; st.style.transform = `translateY(${-(n + 1) * C}px)`;
-    setTimeout(() => { SFX.slot('stop', i); if (i === 2) slEnd(res, reels); }, dur * 1000);
+    setTimeout(() => { SFX.slot('stop', i); buzz(12); if (i === 2) slEnd(res, reels); }, dur * 1000);
   });
 }
 function slEnd(res, reels) {
@@ -1975,6 +1986,17 @@ function closeSlot() { // sale cerrando el círculo y sigue: figurita (si hay) �
 }
 function slotGo() { if (slStep === 1) spinSlot(); else if (slStep === 3) closeSlot(); }
 $('slGo').addEventListener('click', slotGo);
+// Gesto de palanca: deslizar hacia abajo en cualquier parte de la pantalla del tragamonedas (la máquina acompaña el dedo)
+let slHintT = 0, slY0 = null;
+const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch {} };
+$('slot').addEventListener('pointerdown', e => { if (slStep !== 1 || e.target.closest('#slGo')) return; slY0 = e.clientY; $('slMach').classList.add('drag'); try { $('slot').setPointerCapture(e.pointerId); } catch {} });
+$('slot').addEventListener('pointermove', e => { if (slY0 == null) return; const dy = Math.max(0, e.clientY - slY0); $('slMach').style.transform = `translateY(${Math.min(dy, 140) * .3}px) rotateX(${-Math.min(dy, 140) * .06}deg)`; });
+const slRelease = e => {
+  if (slY0 == null) return; const dy = e.clientY - slY0; slY0 = null; const m = $('slMach'); m.classList.remove('drag'); m.style.transform = '';
+  if (dy > 50 && slStep === 1) spinSlot();
+};
+$('slot').addEventListener('pointerup', slRelease); $('slot').addEventListener('pointercancel', slRelease);
+
 addEventListener('keydown', e => { if (!slStep) return; if (['Enter', 'Space'].includes(e.code)) { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) slotGo(); } }, true);
 function nextLevel() { rvStep = 0; rvDone = null; $('reveal').hidden = true; chDone = null; $('cheer').hidden = true; 
   if (state !== 'clear' || slStep) return; countTok++; perk = slPend; slPend = null; if (perk === 'life') lives++; if (perk) setTimeout(() => say(`¡${PERKS[perk].n}! Toda la ronda`), 300);
