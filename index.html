@@ -234,6 +234,24 @@
   .podTitle{font-family:var(--display);font-size:clamp(34px,6.4cqw,80px);line-height:1;text-transform:uppercase;letter-spacing:.03em;color:var(--white)}
   .row{flex-wrap:wrap;gap:12px;justify-content:center;align-items:center} .nameStep .row{display:flex} #backBtn,#nextBtn{display:none}
   #menuBtns{flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:12px;width:min(100%,280px)} #menuBtns>*{width:100%;text-align:center}
+  /* elegir modo: Casual vs Torneo */
+  .card[data-mode=mode]>#modePick{display:flex} .card[data-mode=mode]{width:min(92cqw,720px)}
+  .modePick{flex-direction:column;align-items:center;gap:max(14px,2cqw);width:100%}
+  .modeOpts{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%}
+  .modeOpt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:20px 18px 18px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,#141a3a,#0d1230);color:#dfe6ff;text-align:left;cursor:pointer;font:inherit;transition:transform .2s,border-color .2s,box-shadow .2s}
+  .modeOpt:hover,.modeOpt:focus-visible{transform:translateY(-3px);border-color:rgba(116,192,245,.6);box-shadow:0 10px 30px rgba(0,0,0,.4),0 0 0 1px rgba(116,192,245,.3);outline:none}
+  .modeOpt.tor{border-color:rgba(255,201,40,.4);background:linear-gradient(180deg,#221a3e,#120f2c)} .modeOpt.tor:hover,.modeOpt.tor:focus-visible{border-color:var(--gold);box-shadow:0 10px 30px rgba(0,0,0,.4),0 0 24px rgba(255,201,40,.2)}
+  .modeOpt .mIc{flex:none;display:grid;place-items:center;width:46px;height:46px;border-radius:12px;background:rgba(116,192,245,.14);color:var(--celeste)} .modeOpt.tor .mIc{background:rgba(255,201,40,.14);color:var(--gold)}
+  .modeOpt b{font:400 clamp(28px,4cqw,38px)/1 var(--display);text-transform:uppercase;color:#fff} .modeOpt .mSub{font-size:14px;color:var(--muted);margin-bottom:6px}
+  .modeOpt ul{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:7px;font-size:14px;line-height:1.3;flex:1}
+  .modeOpt li{position:relative;padding-left:22px} .modeOpt li::before{position:absolute;left:0;top:0;font-weight:700}
+  .modeOpt li.y::before{content:'✓';color:#7fffd4} .modeOpt li.n{color:var(--muted)} .modeOpt li.n::before{content:'–';color:var(--muted)} .modeOpt li.k{color:#ffd77a} .modeOpt li.k::before{content:'●';font-size:9px;top:4px;color:var(--gold)}
+  .modeOpt .mGo{align-self:stretch;text-align:center;padding:.75em 1em;border-radius:10px;background:rgba(116,192,245,.16);color:#fff;font-weight:600} .modeOpt.tor .mGo{background:var(--pink)}
+  .modePick .podTitle{font-size:clamp(30px,4.6cqw,52px);white-space:nowrap}
+  .modeOpt .mHead{display:flex;align-items:center;gap:12px;margin-bottom:2px} .modeOpt .mHead .mIc{margin:0}
+  @media (max-width:599px){.card[data-mode=mode]{max-height:calc(100dvh - 32px);overflow-y:auto} .modePick{gap:12px} .modePick .podTitle{font-size:clamp(26px,8vw,36px)}
+    .modeOpts{grid-template-columns:1fr;gap:10px} .modeOpt{padding:14px 14px 12px;gap:4px} .modeOpt .mIc{width:36px;height:36px;border-radius:10px} .modeOpt .mIc svg{width:20px;height:20px}
+    .modeOpt b{font-size:28px} .modeOpt .mSub{margin:0} .modeOpt ul{gap:4px;font-size:13px;margin:4px 0 8px} .modeOpt .mGo{padding:.6em 1em}}
   .nameStep{flex-direction:column;align-items:center;gap:max(10px,1.6cqw)}
   .lbl{font-size:clamp(14px,2.3cqw,24px);color:#c9d2f0}
   .field{width:min(100%,320px);box-sizing:border-box;text-align:center;font:600 clamp(16px,2.6cqw,26px)/1 var(--body);letter-spacing:.02em;color:var(--white);background:rgba(7,11,32,.6);border:1px solid rgba(116,192,245,.28);border-radius:var(--radius);padding:.85em 1em}
@@ -435,7 +453,7 @@
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3c-.6.8-.6 1.7 0 2.5M12 3c-.6.8-.6 1.7 0 2.5"/></svg>Invitame un cafecito</a></div>
-      <span class="ver" id="ver">v2.5.6</span>
+      <span class="ver" id="ver">v2.7.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -448,6 +466,22 @@
         <i class="credDiv" aria-hidden="true"></i>
         <button class="gh" id="credBack" type="button">Volver</button>
         <a class="aFoot credPriv" href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>
+      </div>
+      <div class="modePick" id="modePick">
+        <div class="podTitle">¿Cómo querés jugar?</div>
+        <div class="modeOpts">
+          <button class="modeOpt" type="button" id="modeCasual">
+            <span class="mHead"><span class="mIc" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="11" rx="5.5"/><path d="M7 10.5v4M5 12.5h4"/><circle cx="16" cy="11.5" r="1" fill="currentColor"/><circle cx="18" cy="14" r="1" fill="currentColor"/></svg></span><span><b>Casual</b><br><span class="mSub">Practicá a tu ritmo</span></span></span>
+            <ul><li class="y">Elegí cualquiera de los 20 niveles</li><li class="y">Sin cuenta: entrás directo</li><li class="n">No suma al ranking ni da figuritas</li></ul>
+            <span class="mGo">Jugar casual</span>
+          </button>
+          <button class="modeOpt tor" type="button" id="modeTorneo">
+            <span class="mHead"><span class="mIc" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M12 14v3M8 21h8M9 17h6l1 4H8Z"/></svg></span><span><b>Torneo</b><br><span class="mSub">Para competir de verdad</span></span></span>
+            <ul><li class="y">Ranking global con tu nick reservado</li><li class="y">Ganás figuritas para el álbum</li><li class="y">Historial y foto de perfil</li><li class="k">Necesitás cuenta (es gratis)</li></ul>
+            <span class="mGo">Jugar torneo</span>
+          </button>
+        </div>
+        <button class="gh" id="modeBack" type="button">Volver</button>
       </div>
       <div class="nameStep" id="nameStep">
         <label class="lbl" for="nameInput">¿Cómo te llamás?</label>
@@ -1910,7 +1944,11 @@ function endGame(why = 'Fin del show', won = false) {
   SFX.pad(.03); SFX.musicStop();
   submitScore();
 }
-$('newBtn').addEventListener('click', openName);
+let gameMode = 'torneo';   // 'casual' (cualquier nivel, sin ranking ni figuritas) o 'torneo' (con cuenta: ranking, figuritas e historial)
+$('newBtn').addEventListener('click', () => { setMode('mode'); SFX.ui('card'); });
+$('modeBack').addEventListener('click', () => setMode('menu'));
+$('modeCasual').addEventListener('click', () => { gameMode = 'casual'; openName(); });                       // parte 2: nave → selector de niveles
+$('modeTorneo').addEventListener('click', () => { gameMode = 'torneo'; if (acct) openName(); else openAcct('mode'); });   // parte 3: sin cuenta, primero login
 document.querySelectorAll('.shipOpt').forEach(b => b.addEventListener('click', () => { pickShip(b.dataset.ship); SFX.ui('place'); }));
 $('credA').addEventListener('click', e => { e.preventDefault(); setMode('credits'); SFX.ui('card'); });
 $('howLink').addEventListener('click', e => { e.preventDefault(); openTuto(() => setMode('menu')); });
@@ -2002,7 +2040,7 @@ addEventListener('keydown', e => {
   if (e.target && e.target.closest && e.target.closest('a,button')) { if (e.code === 'Space' || e.code === 'Enter') return; }
   keys[e.code] = true; if (e.code === 'Space') e.preventDefault();
   if ((e.code === 'Enter' || e.code === 'Space') && state === 'clear' && performance.now() - clearAt > 1200) { nextLevel(); return; }
-  if (e.code === 'Enter' && state === 'menu' && $('card').dataset.mode === 'menu') openName();
+  if (e.code === 'Enter' && state === 'menu' && $('card').dataset.mode === 'menu') { setMode('mode'); SFX.ui('card'); }
   else if ((e.code === 'Space' || e.code === 'Enter') && state === 'over' && $('card').dataset.mode === 'over' && performance.now() - overAt > 1200) tryStart();
 });
 addEventListener('keyup', e => keys[e.code] = false);
