@@ -138,6 +138,9 @@
         box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(116,192,245,.05)}
   .card[data-mode=menu]{background:none;border-color:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;overflow:visible;gap:max(14px,2.4cqw)}
   .card>*{display:none}
+  .cafe{margin:2px 0 0;font-size:clamp(13px,1.6cqw,15px);color:var(--muted);text-align:center;order:9} .card:is([data-mode=level],[data-mode=over])>#cafe{display:block}
+  .cafe a,.credLink a.cafeM{display:inline-flex;align-items:center;gap:.35em;color:#ffd77a;text-decoration:underline;text-decoration-color:rgba(255,215,122,.45);text-underline-offset:4px;font-weight:600} .cafe a:hover,.cafe a:focus-visible,.credLink a.cafeM:hover{color:#fff;text-decoration-color:#ffd77a;outline:none}
+  @media (max-width:699px){.credLink{flex-wrap:wrap;justify-content:center;row-gap:10px;width:auto;left:76px;right:76px} .credLink .cafeSep{display:none} .credLink a.cafeM{order:-1;flex-basis:100%;justify-content:center}}
   .card[data-mode=menu]>#credLink{display:flex} .card[data-mode=menu]>#ver{display:block}
   .ver{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:5;font:500 12px/1 var(--body);letter-spacing:.08em;color:var(--muted);opacity:.7;pointer-events:none}  .card[data-mode=menu]>#menuBtns{margin-top:max(22px,3.4cqw)} .card[data-mode=credits]>#cred{display:flex}
   .credLink{position:fixed;left:0;right:0;bottom:max(18px,env(safe-area-inset-bottom));margin:0 auto;width:max-content;z-index:5;pointer-events:auto;color:var(--muted);font-size:clamp(13px,1.6cqw,16px);text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(143,160,208,.4);letter-spacing:.04em}
@@ -429,8 +432,8 @@
         <button class="gh" id="podBtn" type="button">Ver ranking</button>
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
-      <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a></div>
-      <span class="ver" id="ver">v2.5.2</span>
+      <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3c-.6.8-.6 1.7 0 2.5M12 3c-.6.8-.6 1.7 0 2.5"/></svg>Invitame un cafecito</a></div>
+      <span class="ver" id="ver">v2.5.3</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -535,6 +538,7 @@
         <button class="gh" id="podBtn2" type="button">Ver ranking</button>
         <button class="gh" id="menuBtn" type="button">Menú</button>
       </div>
+      <p class="cafe" id="cafe">¿Te gusta el juego? <a href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3c-.6.8-.6 1.7 0 2.5M12 3c-.6.8-.6 1.7 0 2.5"/></svg>Invitame un cafecito</a></p>
       <button class="gh" id="backBtn" type="button">Volver</button>
     </div>
   </div>
