@@ -80,42 +80,6 @@
   #news .nw-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:4px} #news .nw-btns>*{width:100%;box-sizing:border-box;text-align:center} #news .nw-btns .sb{display:flex} #news .nw-btns .sb .sb-in{width:100%;box-sizing:border-box}
   #news .nw-x{position:absolute;top:10px;right:10px;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:22px;line-height:1;cursor:pointer} #news .nw-x:hover{color:#fff;background:rgba(255,255,255,.08)}
   @media (max-width:420px){#news .nw-btns{grid-template-columns:1fr} #news .nw-btns .gh{order:1}}
-  /* tragamonedas entre rondas: 3 iguales = ventaja para toda la ronda siguiente */
-  #slot{position:fixed;inset:0;z-index:21;pointer-events:auto;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow:hidden;background:radial-gradient(circle at 50% 42%,#3a1f6e,#160d38 45%,#05060f 85%);clip-path:circle(0% at 50% 50%);transition:clip-path .65s cubic-bezier(.6,0,.3,1)}
-  #slot[hidden]{display:none} #slot.on{clip-path:circle(75% at 50% 50%)} #slot.on.out{clip-path:circle(0% at 50% 50%);transition-duration:.5s}
-  #slot .sl-rays{position:absolute;left:50%;top:42%;width:max(220vw,220vh);aspect-ratio:1;translate:-50% -50%;background:repeating-conic-gradient(rgba(255,201,40,.10) 0 8deg,transparent 8deg 20deg);-webkit-mask:radial-gradient(circle,#000 10%,transparent 60%);mask:radial-gradient(circle,#000 10%,transparent 60%);animation:rvSpin 22s linear infinite;pointer-events:none}
-  #slot.won .sl-rays{background:repeating-conic-gradient(rgba(255,201,40,.28) 0 8deg,transparent 8deg 20deg);animation-duration:6s}
-  #slot .sl{position:relative;width:min(560px,100%);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;transform:translateY(40px) scale(.7);opacity:0;transition:transform .6s .25s cubic-bezier(.3,1.5,.5,1),opacity .3s .25s}
-  #slot.on .sl{transform:none;opacity:1} #slot.on.out .sl{transform:scale(.9);opacity:0;transition-delay:0s}
-  #slot .sl-tag{font:700 11px/1 var(--body);letter-spacing:.24em;color:#1a1300;background:var(--gold);padding:6px 10px 5px;border-radius:999px;box-shadow:0 0 18px rgba(255,201,40,.5)}
-  #slot h2{margin:0;font:400 clamp(40px,10vw,64px)/1 var(--display);text-transform:uppercase;color:var(--white)}
-  #slot .sl-p{margin:0;font-size:15px;line-height:1.4;color:#c9d3f0} #slot .sl-p b{color:#ffd77a}
-  #slot .sl-mach{--c:clamp(76px,22vw,120px);position:relative;display:flex;gap:10px;padding:16px 16px 18px;border-radius:22px;background:linear-gradient(180deg,#2a1f55,#140f30);border:2px solid rgba(255,201,40,.55);box-shadow:0 0 0 4px rgba(0,0,0,.35),0 0 50px rgba(255,201,40,.18),inset 0 2px 0 rgba(255,255,255,.12)}
-  #slot .sl-mach::before{content:'';position:absolute;left:8px;right:8px;top:50%;height:2px;margin-top:-1px;background:rgba(255,201,40,.55);box-shadow:0 0 10px rgba(255,201,40,.7);z-index:2;pointer-events:none;opacity:.6}
-  #slot .sl-bulbs{position:absolute;inset:-7px;border-radius:26px;pointer-events:none;background:radial-gradient(circle,#fff6c9 0 2.5px,#ffc928 3px,transparent 4.5px) 0 0/18px 18px;-webkit-mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);padding:7px;animation:slBulb .5s steps(2) infinite;opacity:.9}
-  @keyframes slBulb{50%{background-position:9px 9px}}
-  #slot .sl-reel{position:relative;width:var(--c);height:calc(var(--c) * 1.5);overflow:hidden;border-radius:12px;background:linear-gradient(180deg,#0a0e26,#141a3c 50%,#0a0e26);box-shadow:inset 0 0 0 1px rgba(116,192,245,.25),inset 0 10px 18px rgba(0,0,0,.6),inset 0 -10px 18px rgba(0,0,0,.6)}
-  #slot .sl-reel::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,6,15,.85),transparent 30%,transparent 70%,rgba(5,6,15,.85));pointer-events:none}
-  #slot .sl-strip{position:absolute;left:0;right:0;top:calc(var(--c) * .25);will-change:transform}
-  #slot .sl-cell{height:var(--c);display:grid;place-items:center} #slot .sl-cell svg{width:62%;height:62%;filter:drop-shadow(0 0 8px var(--g))}
-  #slot .sl-reel.win{box-shadow:inset 0 0 0 2px var(--gold),0 0 24px rgba(255,201,40,.6);animation:slWin .6s ease-in-out 3}
-  @keyframes slWin{50%{transform:translateY(-4px) scale(1.04)}}
-  #slot .sl-res{min-height:48px;display:flex;flex-direction:column;justify-content:center;gap:4px}
-  #slot .sl-res b{font:400 clamp(24px,6vw,32px)/1 var(--display);text-transform:uppercase;letter-spacing:.02em}
-  #slot .sl-res span{font-size:14px;color:#c9d3f0;line-height:1.35}
-  #slot .sl-res.pop{animation:pop .6s ease-out both}
-  #slot .sb{min-width:220px} #slot .sb .sb-in{width:100%;box-sizing:border-box} #slot .sb[disabled]{opacity:.55;pointer-events:none}
-  #slot{touch-action:none;-webkit-user-select:none;user-select:none}
-  #slot .sl-mach{transition:transform .45s cubic-bezier(.3,1.6,.5,1)} #slot .sl-mach.drag{transition:none}
-  #slot .sl-coach{--d:calc(var(--c) * 1.25);display:none;position:absolute;left:50%;top:-14px;width:56px;height:calc(var(--d) + 60px);margin-left:-20px;pointer-events:none;z-index:3}
-  #slot .sl-coach .tr{position:absolute;left:14px;top:4px;width:12px;height:var(--d);border-radius:6px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.55));transform-origin:top;animation:slTrail 1.8s ease-in-out infinite}
-  #slot .sl-coach .dot{position:absolute;left:4px;top:-6px;width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.8);animation:slTap 1.8s ease-out infinite}
-  #slot .sl-coach svg{position:absolute;left:0;top:0;width:52px;height:52px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6));animation:slHand 1.8s ease-in-out infinite}
-  @keyframes slHand{0%{transform:translateY(0) scale(1.15);opacity:0}12%{opacity:1;transform:translateY(0) scale(1)}60%{transform:translateY(var(--d)) scale(1);opacity:1}80%,100%{transform:translateY(var(--d)) scale(1);opacity:0}}
-  @keyframes slTrail{0%,12%{transform:scaleY(0);opacity:0}60%{transform:scaleY(1);opacity:.9}80%,100%{transform:scaleY(1);opacity:0}}
-  @keyframes slTap{0%{transform:scale(.4);opacity:0}12%{opacity:.9}35%,100%{transform:scale(1.6);opacity:0}}
-  @media (pointer:coarse){#slot.s1 .sl-coach{display:block} #slot.s1 #slGo{opacity:0;pointer-events:none;transition:opacity .4s} #slot.s1.hint #slGo{opacity:.85;pointer-events:auto}}
-  #hud .lives i.x{display:none;background:var(--gold)} #hud .lives.x4 i.x{display:block}
   /* festejo al vencer a los drones: título que salta letra por letra + papelitos celestes y blancos */
   #cheer{position:fixed;inset:0;z-index:19;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6vw,16px);text-align:center;overflow:hidden;background:radial-gradient(circle at 50% 45%,rgba(116,192,245,.28),rgba(5,6,15,.55) 60%);opacity:0;transition:opacity .25s}
   #cheer[hidden]{display:none} #cheer.on{opacity:1} #cheer>span,#cheer>div{position:relative;z-index:1}
@@ -168,7 +132,7 @@
   @keyframes rvShine{to{translate:120% 0}}
   @keyframes rvBurst{0%{opacity:1;transform:translate(0,0) scale(.3) rotate(0)}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1) rotate(180deg)}}
   @keyframes rvBlink{50%{opacity:.4}}
-  #hud{transition:opacity .25s} html:has(#card:not([hidden])) #hud,html:has(#reveal:not([hidden])) #hud,html:has(#cheer:not([hidden])) #hud,html:has(#slot:not([hidden])) #hud{opacity:0}
+  #hud{transition:opacity .25s} html:has(#card:not([hidden])) #hud,html:has(#reveal:not([hidden])) #hud,html:has(#cheer:not([hidden])) #hud{opacity:0}
   .card{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:max(10px,1.8cqw);text-align:center;box-sizing:border-box;max-width:min(92cqw,760px);max-height:96%;overflow:auto;
         padding:max(16px,2.8cqw) max(18px,4cqw);border-radius:20px;background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
         box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(116,192,245,.05)}
@@ -431,7 +395,7 @@
 <canvas id="sparks"></canvas>
 <div id="hud"><div id="hudRow">
   <div class="hl"><div class="k"><span>PUNTOS</span> · <span id="hWave">RONDA 1</span></div><b id="hScore">0</b></div>
-  <div class="hr"><div class="k">RESPETO</div><div class="bar"><i id="hBar"></i></div><div class="lives" id="hLives" aria-label="Vidas"><i></i><i></i><i></i><i class="x"></i></div></div>
+  <div class="hr"><div class="k">RESPETO</div><div class="bar"><i id="hBar"></i></div><div class="lives" id="hLives" aria-label="Vidas"><i></i><i></i><i></i></div></div>
 </div><div id="hudSub"></div></div>
 <div id="wrap"><canvas id="stadium"></canvas><div id="stage">
     <canvas id="game" width="1200" height="900"></canvas>
@@ -456,17 +420,6 @@
       <div class="rv-txt"><span class="rv-k">¡NUEVA FIGURITA!</span><span class="rv-n" id="rvName"></span><span class="rv-d" id="rvDesc"></span><div class="rv-mini" id="rvMini"></div></div>
       <button class="sb rv-go" id="rvGo" type="button">¡Genial!</button>
     </div>
-    <div id="slot" hidden role="dialog" aria-modal="true" aria-labelledby="slTitle">
-      <div class="sl-rays"></div>
-      <div class="sl">
-        <span class="sl-tag" id="slTag">TRAGAMONEDAS</span>
-        <h2 id="slTitle">Probá tu suerte</h2>
-        <p class="sl-p" id="slP"></p>
-        <div class="sl-mach" id="slMach"><i class="sl-bulbs" aria-hidden="true"></i><div class="sl-coach" aria-hidden="true"><i class="dot"></i><i class="tr"></i><svg viewBox="0 0 24 24"><path d="M9 11V4.5a1.5 1.5 0 0 1 3 0V10l5.2 1.1a2 2 0 0 1 1.6 2.2l-.6 5.2A2.5 2.5 0 0 1 15.7 21H11a3 3 0 0 1-2.4-1.2l-3-4a1.6 1.6 0 0 1 2.3-2.2L9 14.6Z" fill="#fff" stroke="#141a3c" stroke-width="1.3" stroke-linejoin="round"/></svg></div><div class="sl-reel"><div class="sl-strip"></div></div><div class="sl-reel"><div class="sl-strip"></div></div><div class="sl-reel"><div class="sl-strip"></div></div></div>
-        <div class="sl-res" id="slRes" aria-live="polite"></div>
-        <button class="sb" id="slGo" type="button">¡Girar!</button>
-      </div>
-    </div>
     <div class="card" id="card" data-mode="menu">
       <div class="kicker" id="kicker">Destruí al invasor. Cuidá lo nuestro.</div>
       <h1 class="title" id="title" aria-label="Drones Invasores"></h1>
@@ -477,7 +430,7 @@
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a></div>
-      <span class="ver" id="ver">v2.6.2</span>
+      <span class="ver" id="ver">v2.5.2</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -1032,8 +985,7 @@ const POWERS = {
   rapid:  { label: '»',  name: 'FUEGO RÁPIDO',   c: '#7fffd4' },
   heal:   { label: '+',  name: 'RESPETO +25',    c: '#ffffff' },
   bomb:   { label: '★',  name: '¡GOLAZO!',       c: '#ffc928' },
-  life:   { label: '♥',  name: 'VIDA +1',        c: '#ff5a78' },
-  token:  { label: '7',  name: '¡FICHA! TIRO EN EL TRAGAMONEDAS', c: '#ff7ad9' }   // no sale al azar con los demás: ver dropItem
+  life:   { label: '♥',  name: 'VIDA +1',        c: '#ff5a78' }
 };
 
 const ship = { x: W / 2, y: 310, cd: 0, vx: 0, tilt: 0, inv: 0 };
@@ -1075,7 +1027,7 @@ function lv(w) {
     shots: w >= 15 ? 3 : w >= 13 ? 2 : 1, bob: w >= 14, formation: w === 10, allySp: w >= 16 ? 1.25 : 1, tip: LV_TIPS[w] };
 }
 // Drones isotipo: el círculo de Sancor armado con drones; flotan, disparan y aguantan varios tiros
-let foes = [], ebullets = [], lives = 3, perk = null, slotTok = false, tokDrop = false;   // slotTok: agarró la ficha; tokDrop: ya cayó la ficha esta ronda   // perk: ventaja del tragamonedas para la ronda en curso
+let foes = [], ebullets = [], lives = 3;
 const FOE_R = 23;
 let foeShape = null, foeShapeMv = null;
 function foePts() {
@@ -1405,12 +1357,6 @@ const SFX = (() => {
     combo(m = 2) { if (!ok()) return; const b = 262 * Math.pow(2, Math.min(m - 2, 3) * 2 / 12); seqT('pulse', [b, b * 1.26, b * 1.5], .055, .1, .08, { lp: 1800, wet: .35 }); tone('triangle', b / 2, b / 2, .3, .16); },
     clear() { if (!ok()) return; duck(2); seqT('pulse', [262, 330, 392, 523, 392, 523], .085, .11, .09, { lp: 1800, wet: .3 });   // fanfarria de ronda superada
       [[523, .09], [659, .05], [784, .04]].forEach(([f, v]) => tone('pulse', f, f, .6, v, { delay: .51, lp: 1800, wet: .45 })); chord([130.8, 164.8, 196, 261.6], .02, 1.1, .14, 1600); },
-    slot(k, i = 0) { if (!ok()) return;   // tragamonedas: tic de rodillos, golpe al frenar, premio o "casi"
-      if (k === 'open') { noise(.6, .07, 1600, { lp0: 300, attack: .2 }); seqT('pulse', [392, 523, 659, 784], .06, .1, .06, { lp: 1800, wet: .35, delay: .25 }); }
-      else if (k === 'tick') tone('triangle', 520, 480, .03, .025, { lp: 1400 });
-      else if (k === 'stop') { tone('sine', 150, 70, .12, .22); tone('pulse', 330 + i * 110, 330 + i * 110, .06, .05, { lp: 1500 }); }
-      else if (k === 'win') { duck(1.6); seqT('pulse', [523, 659, 784, 659, 784, 1047], .08, .14, .07, { lp: 2000, wet: .35 }); chord([261.6, 329.6, 392, 523.2], .03, 1.3, .12, 1800); }
-      else seqT('triangle', [392, 330, 262], .14, .2, .08, { lp: 1200 }); },
     cardShake() { if (!ok()) return; [0, .12, .24].forEach((d, i) => tone('pulse', 392 + i * 98, 392 + i * 98, .07, .05, { delay: d, lp: 1600 })); },   // la figurita tiembla
     cardFlip() { if (!ok()) return; duck(1.5); noise(.35, .05, 2400, { lp0: 500 }); seqT('pulse', [523, 659, 784, 1047], .05, .14, .08, { lp: 2000, wet: .4, delay: .05 }); chord([261.6, 329.6, 392, 523.2], .03, 1.2, .13, 1800); tone('pulse', 1568, 1568, .5, .03, { delay: .3, vib: 30, lp: 2400, wet: .6 }); },   // ¡se da vuelta!
     record() { if (!ok()) return; seqT('pulse', [330, 392, 494, 659], .06, .1, .08, { lp: 1800, wet: .35 }); tone('pulse', 988, 988, .35, .05, { delay: .24, vib: 25, lp: 1800, wet: .5 }); },   // nuevo récord
@@ -1885,12 +1831,12 @@ let startWave = 1; // las partidas siempre arrancan en la ronda 1
 function start() {
   $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true; $('rank').textContent = '';
   wave = startWave; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
-  itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; $('pauseOv').hidden = true; newCards = []; lives = 3; perk = null; slotTok = tokDrop = false; slPend = null; ship.inv = 0; foes = []; ebullets = [];
+  itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; $('pauseOv').hidden = true; newCards = []; lives = 3; ship.inv = 0; foes = []; ebullets = [];
   document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(...levelSong(startWave)); buildWave(); $('pauseBtn').hidden = false;
 }
 let clearAt = 0, clearResults = null;
 function showLevelResults(bonus, allies) {
-  state = 'clear'; clearAt = performance.now(); SFX.musicStop(); SFX.pad(0); perk = null; lives = Math.min(lives, 3);   // la ventaja dura una sola ronda
+  state = 'clear'; clearAt = performance.now(); SFX.musicStop(); SFX.pad(0);
   groups = []; items = []; bullets = []; parts = []; rings = []; pops = []; foes = []; ebullets = []; hudMsgT = 0; flash = 0; shake = 0;   // pantalla limpia al superar el nivel
   touching = false; for (const k in keys) keys[k] = false; $('pauseBtn').hidden = true; $('banner').classList.remove('on');
   $('kicker').textContent = 'Ronda completada'; $('lvlTitle').textContent = `Ronda ${wave} de ${MAX_WAVE}`;
@@ -1902,9 +1848,7 @@ function showLevelResults(bonus, allies) {
   const results = () => { clearAt = performance.now(); setMode('level'); countRows(); try { setShare(score, null, wave); } catch (e) { report('err-share', e); } };
   clearResults = results;
   showNewCards('lvlCards'); const card = newCards.length ? newCards[0] : -1; newCards = []; $('card').hidden = true;
-  const rescue = lives <= 1 || respect < 35, tok = slotTok; slotTok = false; tokDrop = false;
-  const after = card >= 0 ? () => revealCard(card, results) : results;
-  cheer(tok || rescue ? () => openSlot(tok ? 'tok' : 'rescue', after) : after);   // festejo → tragamonedas (ficha o rescate) → figurita (si hay) → números
+  cheer(card >= 0 ? () => revealCard(card, results) : results);   // festejo → figurita (si hay) → números
 }
 // CountUp (ReactBits): los números suben de 0 al valor, fila por fila de arriba hacia abajo, con un tic grave por cada uno
 let countTok = 0;
@@ -1931,78 +1875,11 @@ async function countRows() {
     prev = run(i);
   }
 }
-// ---------- Tragamonedas entre rondas: 3 iguales = una ventaja durante toda la ronda siguiente ----------
-const PERKS = {
-  life:    { n: 'Vida extra',        hud: 'VIDA EXTRA',            d: 'Arrancás la ronda con una vida más.', c: '#ff5a78', svg: '<path d="M12 21 3.6 12.6A5 5 0 0 1 12 6a5 5 0 0 1 8.4 6.6Z" fill="currentColor"/>' },
-  respect: { n: 'Respeto intocable', hud: 'RESPETO INTOCABLE',     d: 'Si le pegás a uno de los nuestros, no perdés respeto.', c: '#b9c6ff', svg: '<path d="M12 2 20 5v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5Z" fill="currentColor"/><path d="m8.5 12 2.5 2.5 4.5-5" fill="none" stroke="#141a3c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' },
-  pass:    { n: 'Nuestros a salvo',  hud: 'TIROS NO DAÑAN A LOS NUESTROS', d: 'Tus tiros atraviesan a los nuestros sin dañarlos.', c: '#74c0f5', svg: '<rect x="2" y="5" width="20" height="14" rx="2" fill="#74c0f5"/><rect x="2" y="9.7" width="20" height="4.6" fill="#fff"/><circle cx="12" cy="12" r="1.8" fill="#ffc928"/>' },
-  triple:  { n: 'Triple toda la ronda', hud: 'DISPARO TRIPLE',     d: 'Disparo triple durante toda la ronda.', c: '#74c0f5', svg: '<g fill="currentColor"><rect x="10.5" y="3" width="3" height="11" rx="1.5"/><rect x="4" y="6" width="3" height="11" rx="1.5" transform="rotate(-18 5.5 11.5)"/><rect x="17" y="6" width="3" height="11" rx="1.5" transform="rotate(18 18.5 11.5)"/><rect x="7" y="18" width="10" height="3" rx="1.5"/></g>' },
-  rapid:   { n: 'Fuego rápido',      hud: 'FUEGO RÁPIDO',          d: 'Disparás el doble de rápido toda la ronda.', c: '#7fffd4', svg: '<path d="M13 2 4 14h7l-1 8 10-13h-7Z" fill="currentColor"/>' },
-  x2:      { n: 'Puntos x2',         hud: 'PUNTOS x2',             d: 'Cada drone que bajes vale el doble.', c: '#ffc928', svg: '<circle cx="12" cy="12" r="10" fill="currentColor"/><text x="12" y="16.2" text-anchor="middle" font-family="Anton,sans-serif" font-size="11.5" fill="#1a1300">x2</text>' }
-};
-const PK = Object.keys(PERKS), SL_WIN = .4;   // 40% de chances; después de 2 intentos sin premio, el tercero gana seguro
-let slStep = 0, slMiss = 0, slWon = null, slTick = 0, slPend = null, slDone = null;   // slPend: ventaja ganada para la ronda que viene
-const slLbl = t => { const b = $('slGo'); (b.querySelector('.sb-in') || b).textContent = t; };   // el botón rosa envuelve el texto en .sb-in
-const slCell = k => `<div class="sl-cell" style="color:${PERKS[k].c};--g:${PERKS[k].c}"><svg viewBox="0 0 24 24" aria-hidden="true">${PERKS[k].svg}</svg></div>`;
-const pick = () => PK[Math.floor(Math.random() * PK.length)];
-function openSlot(why, done) { // pantalla completa: entra en círculo desde el centro, se juega y vuelve al flujo de la ronda
-  if (state !== 'clear' || slStep) return done && done();
-  slStep = 1; slWon = null; slDone = done; $('card').hidden = true;
-  $('slTag').textContent = why === 'tok' ? '¡GANASTE UNA FICHA!' : 'TIRO DE RESCATE';
-  $('slP').innerHTML = (why === 'tok' ? 'Agarraste la ficha.' : 'Llegaste con lo justo: te damos un tiro.') + ` Si salen <b>3 iguales</b>, ganás una ventaja para toda la ronda ${wave + 1}.`;
-  $('slRes').className = 'sl-res'; $('slRes').innerHTML = ''; slLbl('¡Girar!'); $('slGo').disabled = false;
-  document.querySelectorAll('#slot .sl-reel').forEach(r => { r.classList.remove('win'); const st = r.firstElementChild; st.style.transition = 'none'; st.style.transform = 'none'; st.innerHTML = slCell(pick()); });
-  const el = $('slot'); el.classList.remove('on', 'out', 'hint'); el.classList.add('s1'); el.hidden = false; void el.offsetWidth; el.classList.add('on'); SFX.slot('open');
-  clearTimeout(slHintT); slHintT = setTimeout(() => el.classList.add('hint'), 5000);   // en celular, si no hace el gesto, aparece el botón
-}
-function spinSlot() {
-  if (slStep !== 1) return; slStep = 2; $('slGo').disabled = true; slLbl('Girando…'); clearTimeout(slHintT); $('slot').classList.remove('s1', 'hint'); buzz(25);
-  const win = Math.random() < SL_WIN || slMiss >= 2;
-  let res;
-  if (win) { const k = pick(); res = [k, k, k]; slMiss = 0; }
-  else { slMiss++; const a = pick(), b = Math.random() < .55 ? a : pick(); let c = pick(); while (c === a && c === b) c = pick(); res = [a, b, c]; }   // a veces "casi": dos iguales
-  const reels = [...document.querySelectorAll('#slot .sl-reel')], C = reels[0].offsetHeight / 1.5;
-  slTick = setInterval(() => SFX.slot('tick'), 75);
-  reels.forEach((r, i) => {
-    const st = r.firstElementChild, n = 16 + i * 7;
-    st.innerHTML = st.innerHTML + Array.from({ length: n }, () => slCell(pick())).join('') + slCell(res[i]);
-    st.style.transition = 'none'; st.style.transform = 'translateY(0)'; void st.offsetWidth;
-    const dur = 1.3 + i * .55;
-    st.style.transition = `transform ${dur}s cubic-bezier(.12,.7,.22,1.06)`; st.style.transform = `translateY(${-(n + 1) * C}px)`;
-    setTimeout(() => { SFX.slot('stop', i); buzz(12); if (i === 2) slEnd(res, reels); }, dur * 1000);
-  });
-}
-function slEnd(res, reels) {
-  clearInterval(slTick); if (slStep !== 2) return; slStep = 3;
-  const won = res[0] === res[1] && res[1] === res[2], R = $('slRes'); slWon = won ? res[0] : null;
-  if (won) { const P = PERKS[res[0]]; reels.forEach(r => r.classList.add('win')); $('slot').classList.add('won'); R.innerHTML = `<b style="color:${P.c}">¡${P.n}!</b><span>${P.d} Vale para la ronda ${wave + 1}.</span>`; SFX.slot('win'); }
-  else { R.innerHTML = `<b style="color:#c9d3f0">${res[0] === res[1] ? '¡Casi!' : 'Esta vez no'}</b><span>Seguí participando: agarrá otra ficha en las próximas rondas.</span>`; SFX.slot('lose'); }
-  R.classList.add('pop'); $('slGo').disabled = false; slLbl('Continuar'); $('slGo').focus({ preventScroll: true });
-}
-function closeSlot() { // sale cerrando el círculo y sigue: figurita (si hay) → números
-  if (slStep !== 3) return; slStep = 4; slPend = slWon; const el = $('slot'); el.classList.add('out'); SFX.ui('click');
-  setTimeout(() => { slStep = 0; const d = slDone; slDone = null; clearAt = performance.now(); if (d) d(); }, 200);   // lo que sigue aparece detrás mientras el círculo se cierra
-  setTimeout(() => { if (!slStep) { el.hidden = true; el.classList.remove('on', 'out', 'won'); } }, 550);
-}
-function slotGo() { if (slStep === 1) spinSlot(); else if (slStep === 3) closeSlot(); }
-$('slGo').addEventListener('click', slotGo);
-// Gesto de palanca: deslizar hacia abajo en cualquier parte de la pantalla del tragamonedas (la máquina acompaña el dedo)
-let slHintT = 0, slY0 = null;
-const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch {} };
-$('slot').addEventListener('pointerdown', e => { if (slStep !== 1 || e.target.closest('#slGo')) return; slY0 = e.clientY; $('slMach').classList.add('drag'); try { $('slot').setPointerCapture(e.pointerId); } catch {} });
-$('slot').addEventListener('pointermove', e => { if (slY0 == null) return; const dy = Math.max(0, e.clientY - slY0); $('slMach').style.transform = `translateY(${Math.min(dy, 140) * .3}px) rotateX(${-Math.min(dy, 140) * .06}deg)`; });
-const slRelease = e => {
-  if (slY0 == null) return; const dy = e.clientY - slY0; slY0 = null; const m = $('slMach'); m.classList.remove('drag'); m.style.transform = '';
-  if (dy > 50 && slStep === 1) spinSlot();
-};
-$('slot').addEventListener('pointerup', slRelease); $('slot').addEventListener('pointercancel', slRelease);
-
-addEventListener('keydown', e => { if (!slStep) return; if (['Enter', 'Space'].includes(e.code)) { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) slotGo(); } }, true);
-function nextLevel() { rvStep = 0; rvDone = null; $('reveal').hidden = true; chDone = null; $('cheer').hidden = true; 
-  if (state !== 'clear' || slStep) return; countTok++; perk = slPend; slPend = null; if (perk === 'life') lives++; if (perk) setTimeout(() => say(`¡${PERKS[perk].n}! Toda la ronda`), 300);
+function nextLevel() { rvStep = 0; rvDone = null; $('reveal').hidden = true; chDone = null; $('cheer').hidden = true;
+  if (state !== 'clear') return; countTok++;
   $('card').hidden = true; state = 'play'; wave++; SFX.pad(.05); SFX.musicStart(...levelSong(wave)); bullets = []; buildWave(); $('pauseBtn').hidden = false;
 }
-$('nextBtn').onclick = () => nextLevel();
+$('nextBtn').onclick = nextLevel;
 function setPause(p) {
   if (state !== 'play' || countT > 0 && p === paused) return;
   paused = p; $('pauseOv').hidden = !p; if (p) { touching = false; for (const k in keys) keys[k] = false; }
@@ -2099,14 +1976,12 @@ const hudC = { s: -1, w: -1, r: -1, l: -1 };
 function updateHud() {
   if (score !== hudC.s) { hudC.s = score; $('hScore').textContent = score; }
   if (wave !== hudC.w) { hudC.w = wave; $('hWave').textContent = `RONDA ${wave}/${MAX_WAVE}`; }
-  if (lives !== hudC.l) { hudC.l = lives; [...$('hLives').children].forEach((h, i) => h.classList.toggle('off', i >= lives)); $('hLives').classList.toggle('x4', lives > 3); }
+  if (lives !== hudC.l) { hudC.l = lives; [...$('hLives').children].forEach((h, i) => h.classList.toggle('off', i >= lives)); }
   const rp = Math.max(0, Math.round(respect));
   if (rp !== hudC.r) { hudC.r = rp; const b = $('hBar'); b.style.width = rp + '%'; b.classList.toggle('low', rp < 30); }
   let h = '';
   if (mult > 1 || combo > 4) h += `<span style="color:${GOLD}">COMBO x${mult} (${combo})</span>`;
-  if (slotTok) h += `<span style="color:${POWERS.token.c}">FICHA ✓</span>`;
-  if (perk) h += `<span style="color:${PERKS[perk].c}">★ ${PERKS[perk].hud}</span>`;
-  for (const k of ['triple', 'rapid']) if (buffs[k] > 0 && perk !== k) h += `<span style="color:${POWERS[k].c}">${POWERS[k].name} ${buffs[k].toFixed(1)}s</span>`;
+  for (const k of ['triple', 'rapid']) if (buffs[k] > 0) h += `<span style="color:${POWERS[k].c}">${POWERS[k].name} ${buffs[k].toFixed(1)}s</span>`;
   if (h !== lastHud) { $('hudSub').innerHTML = h; lastHud = h; }
 }
 addEventListener('resize', layoutAll); new ResizeObserver(layoutAll).observe($('wrap'));
@@ -2142,7 +2017,6 @@ function collect(it) {
   else if (it.type === 'rapid') buffs.rapid = 8;
   else if (it.type === 'heal') respect = Math.min(100, respect + 25);
   else if (it.type === 'life') lives = Math.min(3, lives + 1);
-  else if (it.type === 'token') slotTok = true;
   else { // golazo: borra al azar buena parte de Sancor
     let n = 0;
     for (const g of groups) if (!g.ally) for (const d of g.dots) if (d.alive && d.ready && Math.random() < .4) { d.alive = false; n++; burst(g.x + d.x, g.y + d.y, d.c, 3); }
@@ -2165,15 +2039,13 @@ function update(dt) {
   }
   if ((keys.Space || touching) && ship.cd <= 0) {
     bullets.push({ x: ship.x, y: ship.y - 24, vx: 0 }); SFX.shot(ship.x);
-    if (buffs.triple > 0 || perk === 'triple') { bullets.push({ x: ship.x - 8, y: ship.y - 20, vx: -110 }); bullets.push({ x: ship.x + 8, y: ship.y - 20, vx: 110 }); }
-    ship.cd = buffs.rapid > 0 || perk === 'rapid' ? .085 : .2;
+    if (buffs.triple > 0) { bullets.push({ x: ship.x - 8, y: ship.y - 20, vx: -110 }); bullets.push({ x: ship.x + 8, y: ship.y - 20, vx: 110 }); }
+    ship.cd = buffs.rapid > 0 ? .085 : .2;
   }
   for (const k in buffs) buffs[k] = Math.max(0, buffs[k] - dt);
   ship.inv = Math.max(0, ship.inv - dt); updateFoes(dt); if (state !== 'play') return;
   itemT -= dt; // los power-ups caen al azar durante toda la partida
-  if (itemT <= 0) { const k = Object.keys(POWERS).filter(t => t !== 'token' && (t !== 'life' || (wave >= 6 && lives < 3))); const ix = rnd(40, W - 40);
-    const tok = !tokDrop && !slotTok && wave < MAX_WAVE && wave >= 2 && Math.random() < .14; if (tok) tokDrop = true;   // la ficha es rara: como mucho una por ronda
-    items.push({ type: tok ? 'token' : k[Math.floor(Math.random() * k.length)], x: ix, y: -20, ph: Math.random() * 6 }); SFX.drop(ix); itemT = rnd(7, 13); }
+  if (itemT <= 0) { const k = Object.keys(POWERS).filter(t => t !== 'life' || (wave >= 6 && lives < 3)); const ix = rnd(40, W - 40); items.push({ type: k[Math.floor(Math.random() * k.length)], x: ix, y: -20, ph: Math.random() * 6 }); SFX.drop(ix); itemT = rnd(7, 13); }
   for (const it of items) {
     it.y += 85 * dt;
     const dx = it.x - ship.x, dy = it.y - ship.y;
@@ -2207,7 +2079,7 @@ function update(dt) {
     if (foes.length && hitFoes(x0, y0, b.x, b.y)) { b.y = -99; continue; }
     let best = null, bd = HIT * HIT, bg = null, bp;
     const sx = b.x - x0, sy = b.y - y0, sl = sx * sx + sy * sy || 1; // colisión sobre todo el tramo recorrido (no se salta drones)
-    for (const g of groups) if (!g.hidden && !(g.ally && perk === 'pass')) for (const d of g.dots) {
+    for (const g of groups) if (!g.hidden) for (const d of g.dots) {
       if (!d.alive || d.back) continue; const p = dpos(g, d); if (!d.ready) continue;
       const t = Math.max(0, Math.min(1, ((p[0] - x0) * sx + (p[1] - y0) * sy) / sl));
       const dx = p[0] - (x0 + sx * t), dy = p[1] - (y0 + sy * t), q = dx * dx + dy * dy;
@@ -2217,7 +2089,7 @@ function update(dt) {
     b.y = -99;
     if (bg.ally) {
       best.alive = false; burst(bp[0], bp[1], best.c, 10); rings.push({ x: bp[0], y: bp[1], r: 4, l: .5, c: '#ff3040' });
-      waveAllyHits++; if (perk !== 'respect') respect -= 4; score = Math.max(0, score - 10); pops.push({ x: bp[0], y: bp[1], t: '-10', l: 1, bad: true }); flash = .35; shake = 14; combo = 0; mult = 1; say('¡NO! Es de los nuestros'); SFX.bad(bp[0]);
+      waveAllyHits++; respect -= 4; score = Math.max(0, score - 10); pops.push({ x: bp[0], y: bp[1], t: '-10', l: 1, bad: true }); flash = .35; shake = 14; combo = 0; mult = 1; say('¡NO! Es de los nuestros'); SFX.bad(bp[0]);
     } else {
       let n = 0;
       for (const d of bg.dots) {
@@ -2226,7 +2098,7 @@ function update(dt) {
         if (dx * dx + dy * dy < (HIT + 2) * (HIT + 2)) { d.alive = false; n++; burst(bg.x + d.x, bg.y + d.y, d.c, 4); }
       }
       const oldMult = mult; combo += n; waveCombo = Math.max(waveCombo, combo); comboT = 1.6; mult = Math.min(5, 1 + Math.floor(combo / 12)); if (n) SFX.hit(n, bp[0], combo); if (mult > oldMult) SFX.combo(mult); if (mult >= 5) award(2);
-      const pts = n * 10 * mult * (perk === 'x2' ? 2 : 1); score += pts; shake = Math.min(4.5, shake + n * .25);
+      const pts = n * 10 * mult; score += pts; shake = Math.min(4.5, shake + n * .25);
       rings.push({ x: bp[0], y: bp[1], r: 4, l: .45, c: '#ffd0da' });
       pops.push({ x: bp[0], y: bp[1], t: '+' + pts, l: .8 });
     }
@@ -2336,7 +2208,7 @@ function loop(now) {
   try { if (playing) draw(now / 1000); else if (settle > 0 && state !== 'menu') { settle--; draw(now / 1000); } } catch (e) { report('err-draw', e); }
   // vigilante: si el juego estuvo frenado mucho tiempo o el fin de ronda quedó sin cartel, se registra y se destraba
   if (raw > 3000 && document.visibilityState === 'visible' && now - visAt > 1500 && state !== 'menu') report('gap', null, Math.round(raw) + 'ms');
-  if (state === 'clear' && $('card').hidden && $('cheer').hidden && $('reveal').hidden && $('slot').hidden && performance.now() - clearAt > 6000 && clearResults) { report('stuck-clear'); const r = clearResults; clearResults = null; r(); }
+  if (state === 'clear' && $('card').hidden && $('cheer').hidden && $('reveal').hidden && performance.now() - clearAt > 6000 && clearResults) { report('stuck-clear'); const r = clearResults; clearResults = null; r(); }
   requestAnimationFrame(loop);
 }
 /* SplitText (ReactBits, sin GSAP): letras que suben escalonadas */
