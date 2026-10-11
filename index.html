@@ -188,7 +188,7 @@
   @keyframes stepIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}} @keyframes stepBack{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
   .aStep .field{width:100%} .aHint{margin:0;text-align:center;color:#c9d2f0;font-size:clamp(13px,1.8cqw,16px);line-height:1.45}
   .gBtn{min-height:44px;color-scheme:light;background:transparent;display:flex;justify-content:center;width:100%} .gBtn:empty{display:none} .gBtn iframe{color-scheme:light;background:transparent!important}
-  .orLine{display:flex;align-items:center;gap:10px;width:100%;color:var(--muted);font-size:13px} .orLine::before,.orLine::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.12)}
+  .orLine[hidden]{display:none!important} .orLine{display:flex;align-items:center;gap:10px;width:100%;color:var(--muted);font-size:13px} .orLine::before,.orLine::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.12)}
   .aFoot{color:var(--muted);font-size:13px;text-underline-offset:3px;margin-top:4px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);width:100%;text-align:center} .aFoot:hover{color:#fff}
   .passWrap{position:relative;width:100%} .passWrap .field{padding-right:3.2em;padding-left:3.2em}
   .eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;border-radius:10px;background:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -433,7 +433,7 @@
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3c-.6.8-.6 1.7 0 2.5M12 3c-.6.8-.6 1.7 0 2.5"/></svg>Invitame un cafecito</a></div>
-      <span class="ver" id="ver">v2.5.3</span>
+      <span class="ver" id="ver">v2.5.4</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -478,7 +478,7 @@
             <li><b>✓</b>No perdés tu progreso si borrás el navegador o cambiás de celu</li>
           </ul>
           <div class="gBtn" id="gBtn"></div>
-          <div class="orLine"><span>o con tu mail</span></div>
+          <div class="orLine" id="orLine"><span>o con tu mail</span></div>
           <input id="acctEmail" class="field" type="email" maxlength="254" placeholder="tu@mail.com" autocomplete="email" inputmode="email" autocapitalize="off">
           <div class="row"><button class="sb" id="aNext1" type="button">Continuar</button><button class="gh" id="aBack0" type="button">Volver</button></div>
         </div>
@@ -1650,6 +1650,7 @@ $('albGrid').addEventListener('click', e => { const t = e.target.closest('.tile'
 $('albBtn').addEventListener('click', openAlbum);
 $('albBack').addEventListener('click', () => setMode('menu'));
 // ---------- Cuenta (opcional): Google o mail + contraseña, con nick opcional. Guarda el álbum y reserva el nick ----------
+const GOOGLE_LOGIN = false;   // interruptor: true cuando el dominio esté autorizado en Google Cloud (Orígenes autorizados de JavaScript)
 const GOOGLE_CLIENT_ID = '673518924318-4ht3mfa852s6vh3q84jfukul79oae93k.apps.googleusercontent.com';
 let acct = (() => { try { const a = JSON.parse(LS.get('sancor_acct', 'null')); return a && a.token ? { ...a, nick: a.nick || a.name } : null; } catch { return null; } })();   // { token, nick, email }
 async function accApi(body) {
@@ -1691,6 +1692,7 @@ function renderAcct() {
 }
 let gsi = 0;
 function loadGoogle() { // botón oficial de Google (Google Identity Services)
+  if (!GOOGLE_LOGIN) { $('orLine').hidden = true; return; }   // apagado: solo mail y contraseña
   const draw = () => { try { $('gBtn').innerHTML = ''; google.accounts.id.renderButton($('gBtn'), { theme: 'filled_black', size: 'large', shape: 'pill', text: 'continue_with', locale: 'es', width: Math.min(320, $('gBtn').clientWidth || 300) }); } catch (e) {} };
   if (gsi === 2) { draw(); return; } if (gsi === 1) return; gsi = 1;
   const sc = document.createElement('script'); sc.src = 'https://accounts.google.com/gsi/client?hl=es'; sc.async = true;
@@ -1749,7 +1751,7 @@ $('acctOut').addEventListener('click', () => { const t = acct && acct.token; dro
 function renderAccBox() {
   const n = $('nameAcc'), b = $('albAcc');
   if (acct) { b.innerHTML = `<span>☁️ Tu álbum está guardado en tu cuenta (<b>${escH(acct.nick)}</b>).</span><a data-acc>Ver cuenta</a>`; n.innerHTML = `Jugando con tu cuenta · <a data-acc>ver</a>`; }
-  else { b.innerHTML = `<span><b>Guardá tu álbum para siempre.</b> Entrá con Google o con tu mail y no lo perdés aunque cambies de celu. También reservás tu nick en el ranking.</span><a data-acc>Crear cuenta o iniciar sesión</a>`;
+  else { b.innerHTML = `<span><b>Guardá tu álbum para siempre.</b> Entrá con ${GOOGLE_LOGIN ? 'Google o con tu mail' : 'tu mail'} y no lo perdés aunque cambies de celu. También reservás tu nick en el ranking.</span><a data-acc>Crear cuenta o iniciar sesión</a>`;
     n.innerHTML = `¿Querés guardar tu álbum y reservar tu nick? <a data-acc>Creá tu cuenta</a>`; }
   $('nameInput').disabled = !!(acct && acct.nick); if (acct && acct.nick) $('nameInput').value = acct.nick;
 }
