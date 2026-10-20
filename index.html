@@ -179,6 +179,14 @@
   .albInfo b{display:block;color:#fff;font-size:1.05em}
   .accBox{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;background:rgba(116,192,245,.06);box-shadow:inset 0 0 0 1px rgba(116,192,245,.16);font-size:clamp(13px,1.7cqw,15px);color:#c9d2f0;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center}
   .accBox a,.nameAcc a,.acctIn a{color:#ffb3cf;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+  /* historial del Torneo en Tu cuenta */
+  .hist{width:100%;display:flex;flex-direction:column;gap:10px} .hist:empty{display:none}
+  .hTiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px} .hTile{padding:10px 8px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);text-align:center}
+  .hTile b{display:block;font:800 clamp(20px,3cqw,26px)/1.1 var(--display);color:#fff;font-variant-numeric:tabular-nums} .hTile span{font-size:12px;color:var(--muted)}
+  .hHead{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left}
+  .hList{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:168px;overflow-y:auto}
+  .hList li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.03);font-size:14px;color:#c9d3f0}
+  .hList li b{color:#fff;font-variant-numeric:tabular-nums} .hList li .d{color:var(--muted);font-size:13px} .hList li.won{background:rgba(255,201,40,.08)} .hEmpty{font-size:14px;color:var(--muted);text-align:center;margin:0}
   .nickSt{margin:-4px 0 0;min-height:1.2em;font-size:13px;text-align:left;width:100%} .nickSt.ok{color:#7fffd4} .nickSt.bad{color:#ff8fb1}
   /* aviso en navegadores de apps (Instagram, X, Facebook…): sugiere abrir el juego en el navegador del celu */
   #inapp{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;padding:0 12px max(12px,env(safe-area-inset-bottom));pointer-events:none}
@@ -578,6 +586,7 @@
         <div class="aStep" data-s="4">
           <svg class="okMark" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="23"/><path d="M15 27l7 7 15-16"/></svg>
           <p class="aHint" id="acctIn"></p>
+          <div class="hist" id="acctHist" aria-live="polite"></div>
           <div class="row"><button class="gh" id="aEditNick" type="button">Cambiar apodo</button><button class="gh" id="acctOut" type="button">Cerrar sesión</button></div>
         </div>
         <div class="acctErr" id="acctErr" role="alert"></div>
@@ -1781,8 +1790,19 @@ function afterAcct() { // si vino del Torneo: con la sesión iniciada sigue solo
   if (!(acct && acct.nick && acctBack === 'mode' && gameMode === 'torneo')) return;
   setTimeout(() => { if ($('card').dataset.mode === 'account' && acct) { $('aWhy').hidden = true; openName(); } }, 1100);
 }
+let histTok = 0;
+async function loadHist() { // historial del Torneo: resumen y últimas partidas
+  const box = $('acctHist'), tok = ++histTok; if (!acct) { box.innerHTML = ''; return; }
+  box.innerHTML = '<p class="hEmpty">Cargando tu historial…</p>';
+  const r = await accApi({ action: 'history', token: acct.token }); if (tok !== histTok) return;
+  if (r.error || !r.stats) { box.innerHTML = ''; return; }
+  const f = n => Number(n || 0).toLocaleString('es-AR'), st = r.stats;
+  const tiles = `<div class="hTiles"><div class="hTile"><b>${f(st.games)}</b><span>Partidas</span></div><div class="hTile"><b>${f(st.best)}</b><span>Mejor puntaje</span></div><div class="hTile"><b>${st.maxWave ? st.maxWave + '/' + MAX_WAVE : '—'}</b><span>Ronda máxima</span></div></div>`;
+  const list = r.games.length ? `<div class="hHead">Últimas partidas del Torneo</div><ul class="hList">${r.games.map(g => { const d = new Date(g.t); return `<li class="${g.won ? 'won' : ''}"><span class="d">${d.getDate()}/${d.getMonth() + 1}</span><span>${g.won ? '🏆 ¡Ganaste!' : 'Ronda ' + g.w}</span><b>${f(g.s)}</b></li>`; }).join('')}</ul>` : '<p class="hEmpty">Todavía no jugaste el Torneo.</p>';
+  box.innerHTML = tiles + list;
+}
 function renderAcct() {
-  if (acct) { $('acctIn').innerHTML = `Conectado como <b>${escH(acct.nick || 'sin apodo')}</b>${acct.email ? `<br><span style="color:var(--muted)">${escH(acct.email)}</span>` : ''}<br>Tu álbum se guarda solo.`; goStep(4); return; }
+  if (acct) { loadHist(); $('acctIn').innerHTML = `Conectado como <b>${escH(acct.nick || 'sin apodo')}</b>${acct.email ? `<br><span style="color:var(--muted)">${escH(acct.email)}</span>` : ''}<br>Tu álbum se guarda solo.`; goStep(4); return; }
   goStep(1); if (!$('acctEmail').value) $('acctEmail').value = ''; loadGoogle();
 }
 let gsi = 0;
@@ -2015,6 +2035,7 @@ function endGame(why = 'Fin del show', won = false) {
   if (won) { $('finalSub').textContent = `puntos · ${gameMode === 'casual' ? 'Casual' : playerName} · ¡Superaste las ${MAX_WAVE} rondas!`; SFX.clear(); setTimeout(() => SFX.record(), 700); } else SFX.over();
   SFX.pad(.03); SFX.musicStop();
   submitScore();
+  if (gameMode === 'torneo' && acct && acct.token) accApi({ action: 'game', token: acct.token, score, wave, won }).catch(() => {});   // historial del Torneo
 }
 let gameMode = 'torneo';   // 'casual' (cualquier nivel, sin ranking ni figuritas) o 'torneo' (con cuenta: ranking, figuritas e historial)
 $('newBtn').addEventListener('click', () => { setMode('mode'); SFX.ui('card'); });
