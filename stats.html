@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Visitantes · Drones Invasores</title>
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700;800&family=Roboto:wght@400;500;600&display=swap">
+<style>
+  :root{--bg:#070a1a;--card:#0e1433;--line:rgba(255,255,255,.08);--ink:#f4f6ff;--muted:#8ea0d0;--bar:#74c0f5;--bar-hi:#a8dafb}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 Roboto,system-ui,sans-serif;padding:24px 16px 40px}
+  main{max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+  h1{margin:0;font:800 clamp(26px,5vw,36px)/1 'Roboto Condensed',sans-serif;text-transform:uppercase;letter-spacing:.02em}
+  .sub{color:var(--muted);margin:-8px 0 4px}
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .tile,.chart{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .tile span{display:block;color:var(--muted);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+  .tile b{display:block;font:800 clamp(36px,8vw,56px)/1.1 'Roboto Condensed',sans-serif;font-variant-numeric:tabular-nums}
+  .chart h2{margin:0 0 12px;font:700 18px 'Roboto Condensed',sans-serif}
+  .plot{position:relative;height:220px;display:grid;grid-template-columns:repeat(30,1fr);gap:2px;align-items:end;border-bottom:1px solid var(--line)}
+  .gl{position:absolute;left:0;right:0;border-top:1px dashed var(--line);font-size:11px;color:var(--muted);pointer-events:none} .gl i{position:absolute;right:0;top:-15px;font-style:normal}
+  .col{position:relative;height:100%;display:flex;align-items:flex-end;cursor:default}
+  .col i{display:block;width:100%;min-height:2px;background:var(--bar);border-radius:4px 4px 0 0}
+  .col:hover i,.col:focus-visible i{background:var(--bar-hi)} .col:focus-visible{outline:none}
+  .tip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1b2350;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12px;white-space:nowrap;opacity:0;pointer-events:none;z-index:2}
+  .col:hover .tip,.col:focus-visible .tip{opacity:1} .tip b{display:block;font-size:14px}
+  .x{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:6px}
+  details{color:var(--muted)} summary{cursor:pointer} table{border-collapse:collapse;margin-top:8px;font-size:13px} td,th{padding:3px 14px 3px 0;text-align:left} td:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .note{color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Visitantes únicos</h1>
+  <p class="sub">Drones Invasores · personas distintas que abrieron el juego</p>
+  <div class="tiles"><div class="tile"><span>Total</span><b id="tot">…</b></div><div class="tile"><span>Hoy</span><b id="today">…</b></div></div>
+  <section class="chart"><h2>Por día · últimos 30 días</h2><div class="plot" id="plot" role="img" aria-label="Visitantes únicos por día"></div><div class="x"><span id="x0"></span><span id="x1"></span></div>
+    <details><summary>Ver como tabla</summary><table id="tbl"></table></details></section>
+  <p class="note">Cuenta navegadores distintos con un id al azar (sin datos personales), desde que se activó el contador. Es una estimación con ~1% de error. Hora de Argentina.</p>
+</main>
+<script>
+const fmt = n => Number(n).toLocaleString('es-AR'), dd = d => { const [y, m, x] = d.split('-'); return `${+x}/${+m}`; };
+fetch('/api/visit').then(r => r.json()).then(({ total, today, days }) => {
+  document.getElementById('tot').textContent = fmt(total); document.getElementById('today').textContent = fmt(today);
+  const max = Math.max(4, ...days.map(d => d.n)), step = Math.pow(10, Math.floor(Math.log10(max))), top = Math.ceil(max / step) * step, plot = document.getElementById('plot');
+  plot.innerHTML = [top / 2, top].map(v => `<div class="gl" style="bottom:${v / top * 100}%"><i>${fmt(v)}</i></div>`).join('') +
+    days.map(d => `<div class="col" tabindex="0"><i style="height:${d.n / top * 100}%"></i><span class="tip"><b>${fmt(d.n)}</b>${dd(d.d)}</span></div>`).join('');
+  document.getElementById('x0').textContent = dd(days[0].d); document.getElementById('x1').textContent = 'Hoy';
+  document.getElementById('tbl').innerHTML = '<tr><th>Día</th><th>Visitantes</th></tr>' + days.slice().reverse().map(d => `<tr><td>${dd(d.d)}</td><td>${fmt(d.n)}</td></tr>`).join('');
+}).catch(() => { document.getElementById('tot').textContent = '—'; document.getElementById('today').textContent = '—'; });
+</script>
+</body>
+</html>

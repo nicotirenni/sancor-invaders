@@ -1,4 +1,21 @@
 {
-  "rewrites": [{ "source": "/r", "destination": "/api/share" }, { "source": "/privacidad", "destination": "/privacidad.html" }],
-  "functions": { "api/og.js": { "includeFiles": "{api/_fonts/**,og.jpg}" } }
+  "rewrites": [
+    {
+      "source": "/r",
+      "destination": "/api/share"
+    },
+    {
+      "source": "/privacidad",
+      "destination": "/privacidad.html"
+    },
+    {
+      "source": "/stats",
+      "destination": "/stats.html"
+    }
+  ],
+  "functions": {
+    "api/og.js": {
+      "includeFiles": "{api/_fonts/**,og.jpg}"
+    }
+  }
 }
