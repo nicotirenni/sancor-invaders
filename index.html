@@ -180,6 +180,11 @@
   .accBox{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;background:rgba(116,192,245,.06);box-shadow:inset 0 0 0 1px rgba(116,192,245,.16);font-size:clamp(13px,1.7cqw,15px);color:#c9d2f0;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center}
   .accBox a,.nameAcc a,.acctIn a{color:#ffb3cf;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
   .nickSt{margin:-4px 0 0;min-height:1.2em;font-size:13px;text-align:left;width:100%} .nickSt.ok{color:#7fffd4} .nickSt.bad{color:#ff8fb1}
+  /* aviso en navegadores de apps (Instagram, X, Facebook…): sugiere abrir el juego en el navegador del celu */
+  #inapp{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;padding:0 12px max(12px,env(safe-area-inset-bottom));pointer-events:none}
+  #inapp[hidden]{display:none} #inapp .ia{pointer-events:auto;width:min(440px,100%);display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:16px;background:#121a40;border:1px solid rgba(116,192,245,.35);box-shadow:0 12px 40px rgba(0,0,0,.6);animation:chUp .4s ease-out both}
+  #inapp b{font:800 18px var(--display);text-transform:uppercase;color:#fff} #inapp p{margin:0;font-size:14px;line-height:1.4;color:#c9d3f0} #inapp p strong{color:#fff}
+  #inapp .iaBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px} #inapp .iaBtns>*{width:100%;box-sizing:border-box;text-align:center;text-decoration:none} #inapp .sb .sb-in{width:100%;box-sizing:border-box}
   .aWhy{margin:0;padding:10px 14px;border-radius:12px;background:rgba(255,201,40,.1);border:1px solid rgba(255,201,40,.3);color:#ffe3a3;font-size:14px;text-align:center} .aWhy[hidden]{display:none} .aWhy b{color:var(--gold)}
   .nameAcc{font-size:clamp(12px,1.7cqw,15px);color:var(--muted);text-align:center}
   .perks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;text-align:left;font-size:clamp(13px,1.8cqw,16px);color:#c9d2f0;width:100%}
@@ -442,6 +447,11 @@
   <div class="prow"><button class="sb" id="resumeBtn" type="button">Continuar</button><button class="gh" id="quitBtn" type="button">Salir al menú</button></div></div></div>
 <div id="intro"><canvas id="introCv"></canvas><button id="introSkip" type="button">Saltar ›</button></div>
 <canvas id="sparks"></canvas>
+<div id="inapp" hidden role="dialog" aria-labelledby="iaT"><div class="ia">
+  <b id="iaT">Abrilo en tu navegador</b>
+  <p id="iaP"></p>
+  <div class="iaBtns"><a class="sb" id="iaOpen" href="#">Abrir en Chrome</a><button class="gh" id="iaStay" type="button">Seguir acá</button></div>
+</div></div>
 <div id="hud"><div id="hudRow">
   <div class="hl"><div class="k"><span>PUNTOS</span> · <span id="hWave">RONDA 1</span></div><b id="hScore">0</b></div>
   <div class="hr"><div class="k">RESPETO</div><div class="bar"><i id="hBar"></i></div><div class="lives" id="hLives" aria-label="Vidas"><i></i><i></i><i></i></div></div>
@@ -838,7 +848,7 @@ const stadiumImg = new Image(); let stadiumTile = null;
 stadiumImg.onload = () => { stadiumTile = stadiumImg; layoutStadium(); };
 let stadiumPxH = 0, stadiumLift = 0; // stadiumLift: en celulares el fondo sube para dejar lugar al dedo
 function layoutStadium() { // el fondo ocupa todo el ancho de la pantalla; si queda muy alto se recorta el cielo de arriba (sin repetir la imagen)
-  const c = document.getElementById('stadium'); if (!stadiumTile) return;
+  const c = document.getElementById('stadium'); if (!stadiumTile || !c || !c.parentElement) return;
   const dpr = Math.min(devicePixelRatio || 1, 2), vw = c.parentElement.clientWidth, full = vw * stadiumTile.height / stadiumTile.width;
   const th = stadiumPxH > 0 ? Math.min(stadiumPxH, full) : full;
   c.style.height = th + 'px'; c.style.bottom = (-th * .2 + stadiumLift) + 'px'; c.width = Math.round(vw * dpr); c.height = Math.round(th * dpr);
@@ -1215,9 +1225,12 @@ function banner(t, sub) {
 // ---------- Jugador y ranking ----------
 // Registro de errores: avisa al servidor (sin datos personales) para poder diagnosticar fallas que solo pasan en algunos navegadores
 const reported = new Set();
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) { // celulares viejos
+  r = Math.max(0, Math.min(typeof r === 'number' ? r : (r && r[0]) || 0, w / 2, h / 2)); this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r); this.arcTo(x + w, y + h, x, y + h, r); this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r); this.closePath(); return this; };
 function report(k, e, x) {
   try {
     const m = e ? String(e.message || e) : '', key = k + m; if (reported.has(key) || reported.size > 12) return; reported.add(key);
+    if (/^Script error\.?$|ethereum|Java object is gone|chrome-extension:|moz-extension:|safari-(web-)?extension:|iabjs:|webkit-masked-url:/.test(m + ' ' + (e && e.stack || ''))) return;   // ruido de extensiones y apps, no del juego
     const v = (document.getElementById('ver') || {}).textContent || '';
     const body = JSON.stringify({ k, m, s: e && e.stack ? String(e.stack).slice(0, 600) : '', st: typeof state !== 'undefined' ? state : '', w: typeof wave !== 'undefined' ? wave : 0, v, ua: navigator.userAgent, br: !!navigator.brave, x: x || '' });
     if (location.protocol.startsWith('http')) fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
@@ -1245,9 +1258,11 @@ const SFX = (() => {
     // sala (reverberación) suave y compartida, como en shadow-platform
     { const n = Math.floor(ac.sampleRate * .8), ib = ac.createBuffer(2, n, ac.sampleRate); let seed = 777; const r = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
       for (let c = 0; c < 2; c++) { const d = ib.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (r() * 2 - 1) * Math.pow(1 - i / n, 2.8); }
-      revIn = ac.createGain(); const conv = ac.createConvolver(), rlp = ac.createBiquadFilter(), rout = ac.createGain(); conv.buffer = ib; rlp.type = 'lowpass'; rlp.frequency.value = 3200; rout.gain.value = .5;
+      revIn = ac.createGain(); const conv = ac.createConvolver(), rlp = ac.createBiquadFilter(), rout = ac.createGain();
+      try { conv.buffer = ib; } catch (e) { revIn = null; }   // Chrome en iPhone: la frecuencia del audio cambia y el Convolver la rechaza; se sigue sin sala
+      if (revIn) { rlp.type = 'lowpass'; rlp.frequency.value = 3200; rout.gain.value = .5;
       revIn.connect(rlp); rlp.connect(conv); conv.connect(rout); rout.connect(master);
-      const ss = ac.createGain(); ss.gain.value = .12; sfxBus.connect(ss); ss.connect(revIn); const ms = ac.createGain(); ms.gain.value = .07; musLP.connect(ms); ms.connect(revIn); }
+      const ss = ac.createGain(); ss.gain.value = .12; sfxBus.connect(ss); ss.connect(revIn); const ms = ac.createGain(); ms.gain.value = .07; musLP.connect(ms); ms.connect(revIn); } }
     { const N = 32, re = new Float32Array(N), im = new Float32Array(N); for (let k = 1; k < N; k++) re[k] = 4 / (k * Math.PI) * Math.sin(k * Math.PI * .25); pw = ac.createPeriodicWave(re, im); }   // pulso 25 %
     sfxBus.gain.value = vol.sfx; musBus.gain.value = vol.mus;
     const lim = ac.createDynamicsCompressor(); lim.threshold.value = -6; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .12;   // limitador: evita la saturación (crujidos)
@@ -2081,7 +2096,7 @@ function kickSparks() { if (!sparkRun) { sparkRun = true; requestAnimationFrame(
 
 // ---------- Medidas: el juego ocupa todo el alto, el HUD va arriba del viewport ----------
 function layoutAll() {
-  const wrap = $('wrap'), vw = wrap.clientWidth, vh = wrap.clientHeight; if (!(vw > 0 && vh > 0)) return;
+  const wrap = $('wrap'); if (!wrap) return; const vw = wrap.clientWidth, vh = wrap.clientHeight; if (!(vw > 0 && vh > 0)) return;
   let sw;
   if (vw / vh >= 4 / 3) { sw = vh * 4 / 3; H = 600; } else { sw = vw; H = Math.min(1700, W * vh / vw); }
   const sh = sw * H / W; $('stage').style.width = sw + 'px'; $('stage').style.height = sh + 'px';
@@ -2328,10 +2343,10 @@ function loop(now) {
   // el fondo se anima a 30fps (20 si el equipo va justo); el juego solo se redibuja cuando algo cambia
   if (frameN % (perf ? 3 : 2) === 0) drawBg(now / 1000);
   const key = state + paused; if (key !== lastKey) { lastKey = key; settle = 4; }
-  if ($('card').dataset.mode === 'tuto' && !$('card').hidden) drawTuto(now);
+  { const c = $('card'); if (c && c.dataset.mode === 'tuto' && !c.hidden) drawTuto(now); }
   try { if (playing) draw(now / 1000); else if (settle > 0 && state !== 'menu') { settle--; draw(now / 1000); } } catch (e) { report('err-draw', e); }
   // vigilante: si el juego estuvo frenado mucho tiempo o el fin de ronda quedó sin cartel, se registra y se destraba
-  if (raw > 3000 && document.visibilityState === 'visible' && now - visAt > 1500 && state !== 'menu') report('gap', null, Math.round(raw) + 'ms');
+  if (raw > 3000 && raw < 60000 && document.visibilityState === 'visible' && now - visAt > 1500 && state !== 'menu') report('gap', null, Math.round(raw) + 'ms');   // más de 1 minuto: el celu se bloqueó o cambió de app
   if (state === 'clear' && $('card').hidden && $('cheer').hidden && $('reveal').hidden && performance.now() - clearAt > 6000 && clearResults) { report('stuck-clear'); const r = clearResults; clearResults = null; r(); }
   requestAnimationFrame(loop);
 }
@@ -2343,9 +2358,18 @@ const splitTitle = (() => {
   el.innerHTML = `${w1}<span class="sun" aria-hidden="true"><img src="/img/sol-de-mayo.svg" alt=""></span>${w2}`;   // Sol de Mayo: sobre DRONES y debajo de INVASORES
   const place = () => { const ws = el.querySelectorAll('.w'); if (ws.length < 2) return; const r = el.getBoundingClientRect(), S = ws[0].lastElementChild.getBoundingClientRect(), I = ws[1].firstElementChild.getBoundingClientRect();
     el.style.setProperty('--sx', ((S.left + S.width / 2 + I.left + I.width / 2) / 2 - r.left) + 'px'); };   // en compu: entre la mitad de la S y la I
-  new ResizeObserver(place).observe(el); if (document.fonts && document.fonts.ready) document.fonts.ready.then(place); place();
+  new ResizeObserver(place).observe(el); if (document.fonts && document.fonts.ready) document.fonts.ready.then(place).catch(() => {}); place();
   return () => { el.classList.remove('in'); void el.offsetWidth; requestAnimationFrame(() => el.classList.add('in')); };
 })();
+// Navegadores dentro de apps (Instagram, Facebook, X, LinkedIn, TikTok…): limitan el sonido y la pantalla; se sugiere abrirlo afuera, una vez por sesión
+(() => { const ua = navigator.userAgent, app = /Instagram/i.test(ua) ? 'Instagram' : /FBAN|FBAV|FB_IAB/i.test(ua) ? 'Facebook' : /Twitter/i.test(ua) ? 'X' : /LinkedInApp/i.test(ua) ? 'LinkedIn' : /TikTok|musical_ly/i.test(ua) ? 'TikTok' : /; wv\)/.test(ua) ? 'esta app' : '';
+  if (!app) return; try { if (sessionStorage.getItem('sancor_inapp')) return; } catch (e) {}
+  const android = /Android/i.test(ua), close = () => { $('inapp').hidden = true; try { sessionStorage.setItem('sancor_inapp', '1'); } catch (e) {} };
+  $('iaP').innerHTML = `Estás en el navegador de ${app}, que limita el sonido y la pantalla. ` + (android ? 'Para jugar mejor, abrilo en <strong>Chrome</strong>.' : 'Para jugar mejor, tocá <strong>⋯</strong> (arriba a la derecha) y elegí <strong>Abrir en el navegador</strong>.');
+  const o = $('iaOpen'); if (android) o.href = `intent://${location.host}${location.pathname}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(location.href)};end`;
+  else { (o.querySelector('.sb-in') || o).textContent = 'Copiar link'; o.addEventListener('click', e => { e.preventDefault(); try { navigator.clipboard.writeText(location.origin + '/'); (o.querySelector('.sb-in') || o).textContent = '¡Copiado!'; } catch (er) {} }); }
+  $('iaStay').addEventListener('click', close); o.addEventListener('click', () => { if (android) close(); });
+  const show = () => { if (state === 'menu' && $('news').hidden && $('card').dataset.mode === 'menu') setTimeout(() => { $('inapp').hidden = false; }, 600); else setTimeout(show, 500); }; show(); })();   // aparece al llegar al menú, después de la intro
 // Visitante único: un id al azar por navegador, avisado una vez por día (sin nombre, mail ni IP guardados)
 (() => { try { let id = LS.get('sancor_vid', ''); if (!/^[a-z0-9]{8,32}$/.test(id)) { id = (Math.random().toString(36).slice(2) + Date.now().toString(36)).slice(0, 20); LS.set('sancor_vid', id); }
   const d = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }); if (LS.get('sancor_vday', '') === d) return;
@@ -2466,7 +2490,7 @@ const Intro = (() => {
   addEventListener('keydown', e => { if (done) return; if (e.key === 'Escape') finish(); else begin(); });
   $('introSkip').addEventListener('click', e => { e.stopPropagation(); finish(); });
   addEventListener('resize', () => { if (!done) build(); });
-  return { frame: t => frame(t), open() { state = 'intro'; build(); loaded.then(() => { if (!run && !done) frame(.3); }); if (document.fonts) { document.fonts.load('8px "Press Start 2P"'); document.fonts.load('800 12px "Roboto Condensed"'); } raf = requestAnimationFrame(loop); } };
+  return { frame: t => frame(t), open() { state = 'intro'; build(); loaded.then(() => { if (!run && !done) frame(.3); }); if (document.fonts) { document.fonts.load('8px "Press Start 2P"').catch(() => {}); document.fonts.load('800 12px "Roboto Condensed"').catch(() => {}); } raf = requestAnimationFrame(loop); } };
 })();
 Intro.open();
 
