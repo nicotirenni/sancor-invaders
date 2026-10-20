@@ -179,6 +179,7 @@
   .albInfo b{display:block;color:#fff;font-size:1.05em}
   .accBox{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;background:rgba(116,192,245,.06);box-shadow:inset 0 0 0 1px rgba(116,192,245,.16);font-size:clamp(13px,1.7cqw,15px);color:#c9d2f0;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center}
   .accBox a,.nameAcc a,.acctIn a{color:#ffb3cf;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+  .nickSt{margin:-4px 0 0;min-height:1.2em;font-size:13px;text-align:left;width:100%} .nickSt.ok{color:#7fffd4} .nickSt.bad{color:#ff8fb1}
   .aWhy{margin:0;padding:10px 14px;border-radius:12px;background:rgba(255,201,40,.1);border:1px solid rgba(255,201,40,.3);color:#ffe3a3;font-size:14px;text-align:center} .aWhy[hidden]{display:none} .aWhy b{color:var(--gold)}
   .nameAcc{font-size:clamp(12px,1.7cqw,15px);color:var(--muted);text-align:center}
   .perks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;text-align:left;font-size:clamp(13px,1.8cqw,16px);color:#c9d2f0;width:100%}
@@ -544,7 +545,7 @@
         <div class="aStep" data-s="1">
           <ul class="perks">
             <li><b>✓</b>Tu álbum queda guardado y lo ves en cualquier dispositivo</li>
-            <li><b>✓</b>Tu nick queda reservado en el ranking: nadie más puede usarlo</li>
+            <li><b>✓</b>Tu apodo queda reservado en el ranking: nadie más puede usarlo</li>
             <li><b>✓</b>No perdés tu progreso si borrás el navegador o cambiás de celu</li>
           </ul>
           <div class="gBtn" id="gBtn"></div>
@@ -559,14 +560,15 @@
           <div class="row"><button class="sb" id="aLogin" type="button">Confirmar</button><button class="gh" id="aBack1" type="button">Volver</button></div>
         </div>
         <div class="aStep" data-s="3">
-          <p class="aHint">Elegí cómo te van a ver en el ranking. Es opcional y tu mail nunca se muestra.</p>
-          <input id="acctNick" class="field" type="text" maxlength="16" placeholder="Tu nick" autocomplete="nickname" autocapitalize="words">
-          <div class="row"><button class="sb" id="aNickSave" type="button">Guardar nick</button><button class="gh" id="aNickSkip" type="button">Saltar</button></div>
+          <p class="aHint">Elegí tu apodo: es como te van a ver en el ranking y nadie más puede usarlo. Tu mail nunca se muestra.</p>
+          <input id="acctNick" class="field" type="text" maxlength="16" placeholder="Tu apodo" autocomplete="nickname" autocapitalize="words">
+          <p class="nickSt" id="nickSt" aria-live="polite"></p>
+          <div class="row"><button class="sb" id="aNickSave" type="button">Guardar apodo</button><button class="gh" id="aNickBack" type="button">Volver</button></div>
         </div>
         <div class="aStep" data-s="4">
           <svg class="okMark" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="23"/><path d="M15 27l7 7 15-16"/></svg>
           <p class="aHint" id="acctIn"></p>
-          <div class="row"><button class="gh" id="aEditNick" type="button">Cambiar nick</button><button class="gh" id="acctOut" type="button">Cerrar sesión</button></div>
+          <div class="row"><button class="gh" id="aEditNick" type="button">Cambiar apodo</button><button class="gh" id="acctOut" type="button">Cerrar sesión</button></div>
         </div>
         <div class="acctErr" id="acctErr" role="alert"></div>
         <button class="gh" id="acctBack" type="button">Volver</button>
@@ -1730,7 +1732,7 @@ let acct = (() => { try { const a = JSON.parse(LS.get('sancor_acct', 'null')); r
 async function accApi(body) {
   const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 9000);
   try { const r = await fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal });
-    const j = await r.json().catch(() => ({})); if (j.notFound) return { notFound: true }; return r.ok ? j : { error: r.status === 501 || r.status === 404 ? 'Las cuentas funcionan en dronesinvasores.com' : (j.error || 'No se pudo conectar. Probá de nuevo.'), status: r.status };
+    const j = await r.json().catch(() => ({})); if (j.notFound) return { notFound: true }; return r.ok ? j : { error: r.status === 501 || r.status === 404 ? 'Las cuentas funcionan en dronesinvasores.com' : (j.error || 'No se pudo conectar. Probá de nuevo.'), status: r.status, nickTaken: !!j.nickTaken };
   } catch { return { error: 'No se pudo conectar. Probá de nuevo.' }; } finally { clearTimeout(to); }
 }
 function mergeAlbum(p) { // une el álbum local con el de la cuenta sin perder nada (incluidos los logros por pegar)
@@ -1755,17 +1757,17 @@ function goStep(n) {
   document.querySelectorAll('#acctSteps b').forEach((el, i) => el.classList.toggle('ok', i + 1 < n));
   $('acct').classList.toggle('done', n === 4); $('acct').classList.toggle('s2', n === 2);
   if (n !== 2) { $('acctPass').type = 'password'; $('aEye').setAttribute('aria-pressed', 'false'); } $('acctErr').textContent = ''; $('acctErr').classList.remove('ok');
-  $('acctTitle').textContent = n === 4 ? 'Tu cuenta' : n === 3 ? 'Tu nick' : 'Creá tu cuenta';
+  $('acctTitle').textContent = n === 4 ? 'Tu cuenta' : n === 3 ? 'Tu apodo' : 'Creá tu cuenta';
   aValidate(); setTimeout(aValidate, 0);
   const f = { 1: 'acctEmail', 2: 'acctPass', 3: 'acctNick' }[n]; if (f && matchMedia('(pointer:fine)').matches) setTimeout(() => $(f).focus(), 60);
 }
 function openAcct(back) { acctBack = back || $('card').dataset.mode; $('aWhy').hidden = !(acctBack === 'mode' && gameMode === 'torneo'); setMode('account'); SFX.ui('card'); renderAcct(); }
 function afterAcct() { // si vino del Torneo: con la sesión iniciada sigue solo a elegir la nave
-  if (!(acct && acctBack === 'mode' && gameMode === 'torneo')) return;
+  if (!(acct && acct.nick && acctBack === 'mode' && gameMode === 'torneo')) return;
   setTimeout(() => { if ($('card').dataset.mode === 'account' && acct) { $('aWhy').hidden = true; openName(); } }, 1100);
 }
 function renderAcct() {
-  if (acct) { $('acctIn').innerHTML = `Conectado como <b>${escH(acct.nick || 'sin nick')}</b>${acct.email ? `<br><span style="color:var(--muted)">${escH(acct.email)}</span>` : ''}<br>Tu álbum se guarda solo.`; goStep(4); return; }
+  if (acct) { $('acctIn').innerHTML = `Conectado como <b>${escH(acct.nick || 'sin apodo')}</b>${acct.email ? `<br><span style="color:var(--muted)">${escH(acct.email)}</span>` : ''}<br>Tu álbum se guarda solo.`; goStep(4); return; }
   goStep(1); if (!$('acctEmail').value) $('acctEmail').value = ''; loadGoogle();
 }
 let gsi = 0;
@@ -1813,17 +1815,26 @@ async function finishNick(nick) {
   if (aMode === 'register') {
     aErr('Creando tu cuenta…');
     const r = await accApi({ action: 'register', email: pending.email, pass: pending.pass, nick, progress: album });
-    if (r.error) { aErr(r.error); if (r.status === 409) goStep(2); return; }
+    if (r.error) { aErr(r.error); if (r.status === 409 && !r.nickTaken) goStep(2); return; }   // apodo tomado: se queda acá para elegir otro
     pending = null; $('acctPass').value = ''; setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox();
-    aOk(r.nickTaken ? `Ese nick ya estaba tomado: te quedó “${r.nick}”. Podés cambiarlo cuando quieras.` : '¡Listo! Tu cuenta está creada.'); afterAcct();
+    aOk('¡Listo! Tu cuenta está creada.'); afterAcct();
     return;
   }
   if (nick) { aErr('Guardando…'); const r = await accApi({ action: 'nick', token: acct.token, nick }); if (r.error) { aErr(r.error); return; } setAcct(r); }
   SFX.ui('save'); renderAcct(); renderAccBox(); aOk('¡Listo!'); afterAcct();
 }
-$('aNickSave').addEventListener('click', () => { const n = cleanName($('acctNick').value); if (n.length < 2) { aErr('El nick tiene que tener al menos 2 letras.'); return; } finishNick(n); });
+$('aNickSave').addEventListener('click', () => { const n = cleanName($('acctNick').value); if (n.length < 2) { aErr('El apodo tiene que tener al menos 2 letras.'); return; } if (nickFree === false) { aErr('Ese apodo ya lo usa otra persona. Probá con otro.'); return; } finishNick(n); });
+$('aNickBack').addEventListener('click', () => { if (aMode === 'register') goStep(2); else if (acct && acct.nick) renderAcct(); else $('acctBack').click(); });
+// mientras escribe: avisa si el apodo está libre (sin distinguir mayúsculas)
+let nickT = 0, nickFree = null;
+$('acctNick').addEventListener('input', () => {
+  clearTimeout(nickT); nickFree = null; const st = $('nickSt'), n = cleanName($('acctNick').value); st.className = 'nickSt'; st.textContent = ''; $('acctErr').textContent = '';
+  if (n.length < 2) return;
+  nickT = setTimeout(async () => { const r = await accApi({ action: 'checkNick', nick: n, token: acct && acct.token });
+    if (cleanName($('acctNick').value) !== n || typeof r.free !== 'boolean') return; nickFree = r.free;   // si no se pudo consultar, decide el servidor al guardar
+    st.className = 'nickSt ' + (r.free ? 'ok' : 'bad'); st.textContent = r.free ? '✓ Disponible' : '✗ Ya lo usa otra persona'; }, 350);
+});
 $('acctNick').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aNickSave').click(); } });
-$('aNickSkip').addEventListener('click', () => finishNick(''));
 $('aEditNick').addEventListener('click', () => { aMode = 'nick'; $('acctNick').value = acct.nick || ''; goStep(3); });
 $('acctOut').addEventListener('click', () => { const t = acct && acct.token; dropAcct(); if (t) accApi({ action: 'logout', token: t }); try { google.accounts.id.disableAutoSelect(); } catch (e) {} renderAcct(); });
 function renderAccBox() {
@@ -1906,7 +1917,7 @@ function drawTuto(now) { // escenas animadas con los mismos elementos del juego
 const inpBlur = () => { try { $('nameInput').blur(); } catch (e) {} };
 function tryStart() {
   if (gameMode === 'casual') { inpBlur(); return openLevels(); }   // Casual: sin nombre, directo a elegir nivel
-  if (!acct) return openAcct('mode');   // Torneo: siempre con cuenta
+  if (!acct || !acct.nick) return $('modeTorneo').click();   // Torneo: siempre con cuenta y apodo
   startWave = 1;
   const inp = $('nameInput'), name = cleanName(inp.value);
   if (!name) { inp.classList.add('bad'); inp.focus(); setTimeout(() => inp.classList.remove('bad'), 600); return; }
@@ -1995,7 +2006,7 @@ $('newBtn').addEventListener('click', () => { setMode('mode'); SFX.ui('card'); }
 $('modeBack').addEventListener('click', () => setMode('menu'));
 const setGameMode = m => { gameMode = m; $('card').classList.toggle('casual', m === 'casual'); const b = $('playBtn'); (b.querySelector('.sb-in') || b).textContent = m === 'casual' ? 'Elegir nivel' : 'Empezar'; };
 $('modeCasual').addEventListener('click', () => { setGameMode('casual'); openName(); });                      // Casual: nave → selector de niveles
-$('modeTorneo').addEventListener('click', () => { setGameMode('torneo'); startWave = 1; if (acct) openName(); else openAcct('mode'); });   // Torneo: con cuenta, siempre desde la ronda 1
+$('modeTorneo').addEventListener('click', () => { setGameMode('torneo'); startWave = 1; if (acct && acct.nick) openName(); else { openAcct('mode'); if (acct) { aMode = 'nick'; $('acctNick').value = ''; goStep(3); } } });   // el Torneo exige cuenta con apodo   // Torneo: con cuenta, siempre desde la ronda 1
 // Dificultad de cada nivel (0 a 1) a partir de lo que trae: drones que disparan, cadencia, puntería, velocidad, vida, ráfagas y los nuestros que pasan
 const LV_DIFF = (() => {
   const raw = Array.from({ length: MAX_WAVE }, (_, i) => { const w = i + 1, L = lv(w);
