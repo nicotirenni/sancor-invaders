@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="es">
 <head>
+<!-- Íconos: Lucide (lucide.dev, ISC), pegados como SVG. Logos de redes y Cafecito: oficiales. -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
@@ -353,7 +354,7 @@
   #mute:hover,#mute:focus-visible{border-color:var(--pink);outline:none} #mute .x{display:none} #mute.off .x{display:inline} #mute.off .w{display:none} #mute.off{color:#6f7fb0}
   #intro{position:fixed;inset:0;z-index:50;background:#04060f;transition:opacity .45s} #intro.out{opacity:0;pointer-events:none} #intro[hidden]{display:none}
   #introCv{position:absolute;inset:0;width:100%;height:100%}
-  #introSkip{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));font:12px 'Press Start 2P',monospace;color:#cfd6f0;background:rgba(10,14,32,.7);border:1px solid #313857;border-radius:8px;padding:10px 14px;cursor:pointer}
+  #introSkip{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));font:600 14px var(--body);color:#cfd6f0;background:rgba(10,14,32,.7);border:1px solid #313857;border-radius:8px;padding:10px 14px;cursor:pointer}
   #introSkip:hover{color:#fff;border-color:var(--pink)}
   #sparks{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
   /* ShinyText (ReactBits) */
@@ -428,12 +429,12 @@
   <p>Juego realizado por Nico Tirenni.</p>
 </main>
 <canvas id="bg"></canvas>
-<button id="mute" type="button" aria-label="Activar o silenciar el sonido" title="Sonido"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="w" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="x" d="M16 9l5 6M21 9l-5 6"/></svg></button>
-<button id="pauseBtn" type="button" aria-label="Pausar" title="Pausa (P)" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+<button id="mute" type="button" aria-label="Activar o silenciar el sonido" title="Sonido"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path class="w" d="M16 9a5 5 0 0 1 0 6M19.364 18.364a9 9 0 0 0 0-12.728"/><path class="x" d="M22 9l-6 6M16 9l6 6"/></svg></button>
+<button id="pauseBtn" type="button" aria-label="Pausar" title="Pausa (P)" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg></button>
 <div id="pauseOv" hidden><div class="pbox"><div class="podTitle">Pausa</div>
   <div class="vols">
-    <div class="vol" data-k="sfx"><div class="vlab"><span>Efectos</span><b>100</b></div><div class="es"><span class="ei" data-s="l"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/></svg></span><div class="et"><div class="etr"><div class="ef"></div></div></div><span class="ei" data-s="r"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></span></div></div>
-    <div class="vol" data-k="mus"><div class="vlab"><span>Música</span><b>100</b></div><div class="es"><span class="ei" data-s="l"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span><div class="et"><div class="etr"><div class="ef"></div></div></div><span class="ei" data-s="r"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span></div></div>
+    <div class="vol" data-k="sfx"><div class="vlab"><span>Efectos</span><b>100</b></div><div class="es"><span class="ei" data-s="l"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/></svg></span><div class="et"><div class="etr"><div class="ef"></div></div></div><span class="ei" data-s="r"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></svg></span></div></div>
+    <div class="vol" data-k="mus"><div class="vlab"><span>Música</span><b>100</b></div><div class="es"><span class="ei" data-s="l"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><div class="et"><div class="etr"><div class="ef"></div></div></div><span class="ei" data-s="r"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span></div></div>
   </div>
   <div class="prow"><button class="sb" id="resumeBtn" type="button">Continuar</button><button class="gh" id="quitBtn" type="button">Salir al menú</button></div></div></div>
 <div id="intro"><canvas id="introCv"></canvas><button id="introSkip" type="button">Saltar ›</button></div>
@@ -474,7 +475,7 @@
         <button class="gh" id="podBtn" type="button">Ver ranking</button>
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
-      <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3c-.6.8-.6 1.7 0 2.5M12 3c-.6.8-.6 1.7 0 2.5"/></svg>Invitame un cafecito</a></div>
+      <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>Invitame un cafecito</a></div>
       <span class="ver" id="ver">v2.7.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
@@ -493,12 +494,12 @@
         <div class="podTitle">Modo de juego</div>
         <div class="modeOpts">
           <button class="modeOpt" type="button" id="modeCasual">
-            <span class="mHead"><span class="mIc" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="11" rx="5.5"/><path d="M7 10.5v4M5 12.5h4"/><circle cx="16" cy="11.5" r="1" fill="currentColor"/><circle cx="18" cy="14" r="1" fill="currentColor"/></svg></span><span><b>Casual</b><br><span class="mSub">Practicá a tu ritmo</span></span></span>
+            <span class="mHead"><span class="mIc" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg></span><span><b>Casual</b><br><span class="mSub">Practicá a tu ritmo</span></span></span>
             <ul><li class="y">Elegí cualquiera de los 20 niveles</li><li class="y">Sin cuenta: entrás directo</li><li class="n">No suma al ranking ni da figuritas</li></ul>
             <span class="mGo">Jugar casual</span>
           </button>
           <button class="modeOpt tor" type="button" id="modeTorneo">
-            <span class="mHead"><span class="mIc" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M12 14v3M8 21h8M9 17h6l1 4H8Z"/></svg></span><span><b>Torneo</b><br><span class="mSub">Para competir de verdad</span></span></span>
+            <span class="mHead"><span class="mIc" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></span><span><b>Torneo</b><br><span class="mSub">Para competir de verdad</span></span></span>
             <ul><li class="y">Ranking global con tu nick reservado</li><li class="y">Ganás figuritas para el álbum</li><li class="y">Historial y foto de perfil</li><li class="k">Necesitás cuenta (es gratis)</li></ul>
             <span class="mGo">Jugar torneo</span>
           </button>
@@ -550,7 +551,7 @@
         </div>
         <div class="aStep" data-s="2">
           <p class="aHint" id="aEmailShow"></p>
-          <div class="passWrap"><input id="acctPass" class="field" type="password" maxlength="64" placeholder="Contraseña (mínimo 6)" autocomplete="current-password"><button class="eye" id="aEye" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path class="slash" d="M4 4l16 16"/></svg></button></div>
+          <div class="passWrap"><input id="acctPass" class="field" type="password" maxlength="64" placeholder="Contraseña (mínimo 6)" autocomplete="current-password"><button class="eye" id="aEye" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
           <p class="aHint aSmall">Si ya tenés cuenta, entrás. Si es la primera vez, la creamos con esta contraseña.</p>
           <div class="row"><button class="sb" id="aLogin" type="button">Confirmar</button><button class="gh" id="aBack1" type="button">Volver</button></div>
         </div>
@@ -591,7 +592,7 @@
           <a class="shi shi-x" id="shX" target="_blank" rel="noopener noreferrer" aria-label="Compartir en X" title="X"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
           <a class="shi shi-in" id="shIn" target="_blank" rel="noopener noreferrer" aria-label="Compartir en LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg></a>
           <a class="shi shi-fb" id="shFb" target="_blank" rel="noopener noreferrer" aria-label="Compartir en Facebook" title="Facebook"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.5 0-1.96.93-1.96 1.89v2.26h3.32l-.53 3.5h-2.8V24C19.62 23.1 24 18.1 24 12.07"/></svg></a>
-          <button class="shi shi-ig" id="shIg" type="button" aria-label="Compartir en Instagram" title="Instagram"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></svg></button>
+          <button class="shi shi-ig" id="shIg" type="button" aria-label="Compartir en Instagram" title="Instagram"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg></button>
         </div>
         <span class="shMsg" id="shMsg" aria-live="polite"></span>
       </div>
@@ -606,7 +607,7 @@
         <button class="gh casualOnly" id="lvPickBtn2" type="button">Elegir nivel</button>
         <button class="gh" id="menuBtn" type="button">Menú</button>
       </div>
-      <p class="cafe" id="cafe">¿Te gusta el juego? <a href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3c-.6.8-.6 1.7 0 2.5M12 3c-.6.8-.6 1.7 0 2.5"/></svg>Invitame un cafecito</a></p>
+      <p class="cafe" id="cafe">¿Te gusta el juego? <a href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>Invitame un cafecito</a></p>
       <button class="gh" id="backBtn" type="button">Volver</button>
     </div>
   </div>
@@ -2328,7 +2329,7 @@ splitTitle(); document.documentElement.classList.add('scene-menu'); layoutAll();
 // ================= Intro animada: la despedida de Messi y el show de drones (pixel art 16 bits + parallax, 10 s) =================
 const Intro = (() => {
   // Intro de 15 s con ilustraciones pixel art (mismo estilo que el álbum), animadas con zoom lento, luces y los drones del juego
-  const box = $('intro'), cv = $('introCv'), g = cv.getContext('2d'), DUR = 15, FONT = '"Press Start 2P", monospace';
+  const box = $('intro'), cv = $('introCv'), g = cv.getContext('2d'), DUR = 15, FONT = '"Press Start 2P", monospace', CAP = '800 {s}px "Roboto Condensed", sans-serif';   // subtítulos con la tipografía de títulos; el logo final sigue pixelado
   const SRC = ['img/intro1.webp', 'img/intro2.webp', 'img/intro3.webp'];
   const imgs = SRC.map(s => { const im = new Image(); im.decoding = 'async'; im.src = s; return im; });
   const loaded = Promise.all(imgs.map(im => im.decode ? im.decode().catch(() => {}) : new Promise(r => { im.onload = im.onerror = r; })));
@@ -2338,7 +2339,7 @@ const Intro = (() => {
   // tiempos (s): 3 escenas, un texto por escena, con tiempo para leer
   const T = { s2: 3.1, s3: 5.7, droneA: 5.9, ship: 10.6, laser: 11.4, boom: 11.55, title: 12.6 };
   const CAPS = [[.35, 2.9, '6 DE OCTUBRE · MONUMENTAL', 'LA DESPEDIDA DE MESSI'], [3.4, 5.5, '80.000 HINCHAS', 'ESPERABAN SU HOMENAJE'],
-    [6.0, 9.5, 'PERO LOS DRONES', 'ESCRIBIERON OTRA COSA...'], [9.7, 12.55, '¡DEFENDE AL G.O.A.T.!', '']];
+    [6.0, 9.5, 'PERO LOS DRONES', 'ESCRIBIERON OTRA COSA...'], [9.7, 12.55, '¡DEFENDÉ AL G.O.A.T.!', '']];
   function build() {
     D = Math.min(2, devicePixelRatio || 1); W = Math.round(innerWidth * D); H = Math.round(innerHeight * D);
     cv.width = W; cv.height = H; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
@@ -2360,16 +2361,16 @@ const Intro = (() => {
   function caption(t) {
     const c = CAPS.find(k => t >= k[0] && t < k[1]); if (!c) return;
     const a = Math.min(sm(c[0], c[0] + .25, t), 1 - sm(c[1] - .25, c[1], t));
-    const max = Math.floor((W * .92) / FS), lines = [...wrap(c[2], max), ...(c[3] ? wrap(c[3], max) : [])], lh = FS * 1.7;
+    const max = Math.floor((W * .92) / (FS * .82)), lines = [...wrap(c[2], max), ...(c[3] ? wrap(c[3], max) : [])], lh = FS * 2;
     const shown = Math.floor((t - c[0]) * 30), n = lines.reduce((s, l) => s + l.length, 0);
     if (shown < n && Math.floor(shown / 3) !== blipN) { blipN = Math.floor(shown / 3); SFX.fx('blip'); }
     const bh = lines.length * lh + FS * 2.2, y0 = H - bh - 46 * D;
     const gr = g.createLinearGradient(0, y0 - FS * 2, 0, H); gr.addColorStop(0, 'rgba(4,6,15,0)'); gr.addColorStop(.35, 'rgba(4,6,15,.72)'); gr.addColorStop(1, 'rgba(4,6,15,.9)');
     g.globalAlpha = a; g.fillStyle = gr; g.fillRect(0, y0 - FS * 2, W, H - y0 + FS * 2);
-    g.font = FS + 'px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'top'; let left = shown;
+    g.font = CAP.replace('{s}', Math.round(FS * 1.5)); g.letterSpacing = Math.round(FS * .08) + 'px'; g.textAlign = 'center'; g.textBaseline = 'top'; let left = shown;
     lines.forEach((l, i) => { const s = l.slice(0, Math.max(0, left)); left -= l.length; const y = y0 + FS * 1.1 + i * lh;
       g.fillStyle = '#05080f'; g.fillText(s, W / 2 + Math.max(1, FS / 8), y + Math.max(1, FS / 8)); g.fillStyle = i === 0 ? '#ffffff' : '#9fd4fa'; g.fillText(s, W / 2, y); });
-    g.globalAlpha = 1;
+    g.globalAlpha = 1; g.letterSpacing = '0px';
   }
   function glow(x, y, r, col, a) { g.globalAlpha = a; g.fillStyle = col; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.globalAlpha = 1; }
   function frame(t) {
@@ -2424,7 +2425,7 @@ const Intro = (() => {
     if (done) return;
     const t = run ? (now - t0) / 1000 : 0;
     if (run) { sounds(t); frame(t); if (t >= DUR) return finish(); }
-    else { frame(.3); g.fillStyle = 'rgba(4,6,15,.6)'; g.fillRect(0, 0, W, H); if (Math.floor(now / 500) % 2 === 0) { g.font = FS + 'px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ffffff'; g.fillText(matchMedia('(pointer:coarse)').matches ? 'TOCA PARA EMPEZAR' : 'HACE CLIC PARA EMPEZAR', W / 2, H * .55); } }
+    else { frame(.3); g.fillStyle = 'rgba(4,6,15,.6)'; g.fillRect(0, 0, W, H); if (Math.floor(now / 500) % 2 === 0) { g.font = CAP.replace('{s}', Math.round(FS * 1.5)); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ffffff'; g.fillText(matchMedia('(pointer:coarse)').matches ? 'TOCÁ PARA EMPEZAR' : 'HACÉ CLIC PARA EMPEZAR', W / 2, H * .55); } }
     raf = requestAnimationFrame(loop);
   }
   async function begin() { // el audio se habilita con este gesto; la intro arranca cuando el sonido y las imágenes están listos
@@ -2440,7 +2441,7 @@ const Intro = (() => {
   addEventListener('keydown', e => { if (done) return; if (e.key === 'Escape') finish(); else begin(); });
   $('introSkip').addEventListener('click', e => { e.stopPropagation(); finish(); });
   addEventListener('resize', () => { if (!done) build(); });
-  return { frame: t => frame(t), open() { state = 'intro'; build(); loaded.then(() => { if (!run && !done) frame(.3); }); if (document.fonts) document.fonts.load('8px "Press Start 2P"'); raf = requestAnimationFrame(loop); } };
+  return { frame: t => frame(t), open() { state = 'intro'; build(); loaded.then(() => { if (!run && !done) frame(.3); }); if (document.fonts) { document.fonts.load('8px "Press Start 2P"'); document.fonts.load('800 12px "Roboto Condensed"'); } raf = requestAnimationFrame(loop); } };
 })();
 Intro.open();
 
