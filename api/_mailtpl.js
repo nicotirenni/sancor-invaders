@@ -2,8 +2,12 @@
 const SITE = 'https://www.dronesinvasores.com';
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-function codeMailHtml(code, purpose) {
-  const reset = purpose === 'reset';
+// link del botón: abre el juego con el código ya cargado. Va después del # para que no llegue al servidor ni quede en registros.
+const verifyLink = (code, purpose, email) => `${SITE}/#v=${purpose === 'reset' ? 'p' : 'r'}.${Buffer.from(String(email)).toString('base64url')}.${code}`;
+
+function codeMailHtml(code, purpose, email) {
+  const reset = purpose === 'reset', link = verifyLink(code, purpose, email);
+  const cta = reset ? 'Cambiar contraseña en el juego' : 'Validar en el juego';
   const title = reset ? 'Cambiá tu contraseña' : 'Confirmá tu mail';
   const lead = reset ? 'Usá este código para elegir una contraseña nueva en Drones Invasores.' : 'Usá este código para terminar de crear tu cuenta en Drones Invasores.';
   const font = "'Roboto','Helvetica Neue',Helvetica,Arial,sans-serif";
@@ -23,7 +27,13 @@ function codeMailHtml(code, purpose) {
         <tr><td align="center" style="padding:0 0 12px">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#171c30" style="background:#171c30;border:1px solid #ffc928;border-radius:12px;padding:16px 26px 16px 36px;font:700 40px/1 'SF Mono',Menlo,Consolas,'Courier New',monospace;letter-spacing:10px;color:#ffc928">${esc(code)}</td></tr></table>
         </td></tr>
-        <tr><td align="center" style="font:400 14px/1.5 ${font};color:#8fa0d0;padding:0 0 28px">Vence en 10 minutos.</td></tr>
+        <tr><td align="center" style="font:400 14px/1.5 ${font};color:#8fa0d0;padding:0 0 24px">Vence en 10 minutos.</td></tr>
+        <tr><td align="center" style="padding:0 0 28px">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" bgcolor="#d62068" style="background:#d62068;border-radius:10px">
+            <a href="${esc(link)}" target="_blank" style="display:inline-block;padding:14px 28px;font:700 16px/1 ${font};color:#ffffff;text-decoration:none;border-radius:10px">${esc(cta)}</a>
+          </td></tr></table>
+          <div style="font:400 12px/1.5 ${font};color:#5d6a95;padding:10px 0 0">Abre dronesinvasores.com con el código ya cargado.</div>
+        </td></tr>
         <tr><td style="border-top:1px solid #232c5a;padding:22px 0 0;font:400 13px/1.55 ${font};color:#8fa0d0" align="center">Si no pediste este código, ignorá este mail: nadie puede usar tu cuenta sin él.</td></tr>
       </table>
     </td></tr>

@@ -43,11 +43,11 @@ async function checkCode(purpose, email, code, consume) {
   if (consume) await redis([['DEL', k]]);
   return 'ok';
 }
-const codeMail = (code, purpose) => {
+const codeMail = (code, purpose, email) => {
   const what = purpose === 'reset' ? 'cambiar tu contraseña' : 'crear tu cuenta';
   return { subject: `Tu código de Drones Invasores: ${code}`,
     text: `Tu código para ${what} en Drones Invasores es ${code}. Vence en 10 minutos. Si no lo pediste, ignorá este mail.`,
-    html: codeMailHtml(code, purpose) };
+    html: codeMailHtml(code, purpose, email) };
 };
 
 async function claimNick(nick, key) { // reserva el nick para la cuenta; true si quedó suyo
@@ -110,7 +110,7 @@ module.exports = async (req, res) => {
       if (!free) return res.status(429).json({ error: 'Esperá unos segundos para pedir otro código.', wait: true });
       const code = String(crypto.randomInt(0, 1e6)).padStart(6, '0');
       await redis([['SET', codeKey(purpose, email), JSON.stringify({ h: codeHash(code), tries: 0 }), 'EX', 600]]);
-      const sent = await sendMail({ to: email, ...codeMail(code, purpose) });
+      const sent = await sendMail({ to: email, ...codeMail(code, purpose, email) });
       if (!sent.ok) { await redis([['DEL', codeKey(purpose, email)], ['DEL', `sancor:code:cd:${purpose}:${id}`]]); return res.status(502).json({ error: 'No pudimos mandar el mail. Probá de nuevo en un rato.' }); }
       return res.status(200).json({ sent: true });
     }
