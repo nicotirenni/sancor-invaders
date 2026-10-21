@@ -1866,7 +1866,10 @@ $('reveal').addEventListener('click', e => { if (rvStep === 1) revealFlip(); els
 addEventListener('keydown', e => { if (!rvStep) return; if (['Enter', 'Space', 'Escape'].includes(e.code)) { e.preventDefault(); e.stopImmediatePropagation(); closeReveal(); } }, true);
 
 let albSel = -1;
-function openAlbum() { setMode('album'); SFX.ui('card'); albSel = -1; renderAlbum(); }
+let albWanted = false;   // pidió ver el álbum sin sesión: después de entrar se le abre
+function openAlbum() { // el álbum es de la cuenta: sin sesión iniciada, primero hay que entrar
+  if (!acct) { albWanted = true; aTab = 'login'; openAcct('menu'); setTimeout(() => aOk('Iniciá sesión para ver tu álbum de figuritas.'), 0); return; }
+  setMode('album'); SFX.ui('card'); albSel = -1; renderAlbum(); }
 function renderAlbum() {
   const n = albN(), g = $('albGrid');
   $('albSub').textContent = n === 9 ? '¡Álbum completo! Sos el 10.' : `${n} de 9 figuritas`;
@@ -1897,7 +1900,7 @@ function mergeAlbum(p) { // une el álbum local con el de la cuenta sin perder n
   const pend = [...new Set([...(album.pend || []), ...(Array.isArray(p.pend) ? p.pend : [])])].filter(i => Number.isInteger(i) && i >= 0 && i < 9 && !got[i]);
   album = { got, pend, drones: Math.max(album.drones || 0, p.drones || 0), powers: Math.max(album.powers || 0, p.powers || 0), best: Math.max(album.best || 0, p.best || 0) }; LS.set('sancor_album', JSON.stringify(album)); $('albCount').textContent = `${albN()}/9`; }
 let syncT = 0;
-function dropAcct() { acct = null; LS.set('sancor_acct', 'null'); renderAccBox(); }
+function dropAcct() { acct = null; LS.set('sancor_acct', 'null'); album = ALB0(); LS.set('sancor_album', JSON.stringify(album)); $('albCount').textContent = '0/9'; renderAccBox(); }   // al salir, las figuritas quedan solo en la cuenta
 function acctSync() { if (!acct) return; clearTimeout(syncT); syncT = setTimeout(async () => { const r = await accApi({ action: 'sync', token: acct.token, progress: album }); if (r.progress) mergeAlbum(r.progress); else if (r.status === 401) dropAcct(); }, 1200); }
 function setAcct(r) {
   acct = { token: r.token || (acct && acct.token), nick: r.nick, email: r.email, pass: r.pass ?? (acct && acct.pass) }; LS.set('sancor_acct', JSON.stringify(acct));
@@ -1977,6 +1980,7 @@ function goStep(n) {
 }
 function openAcct(back) { acctBack = back || $('card').dataset.mode; setMode('account'); SFX.ui('card'); renderAcct(); }
 function afterAcct() { // si vino del Torneo: con la sesión iniciada sigue solo a elegir la nave
+  if (acct && albWanted) { albWanted = false; setTimeout(() => { if ($('card').dataset.mode === 'account' && acct) openAlbum(); }, 1100); return; }   // vino a ver el álbum
   if (!(acct && acct.nick && acctBack === 'mode' && gameMode === 'torneo')) return;
   setTimeout(() => { if ($('card').dataset.mode === 'account' && acct) openName(); }, 1100);
 }
@@ -2170,6 +2174,7 @@ $('aDelGo').addEventListener('click', async () => { // eliminar la cuenta (con l
   renderAcct(); aOk('Tu cuenta fue eliminada.');
 });
 function renderAccBox() {
+  $('albCount').hidden = !acct;   // sin sesión no se muestra cuántas figuritas hay
   const pb = $('profBtn'); pb.classList.toggle('on', !!(acct && acct.nick)); pb.querySelector('.ini').textContent = acct && acct.nick ? [...acct.nick][0] : '';
   pb.setAttribute('aria-label', acct && acct.nick ? `Tu cuenta: ${acct.nick}` : 'Iniciar sesión o crear cuenta'); pb.title = acct && acct.nick ? acct.nick : 'Iniciar sesión';
   const n = $('nameAcc'), b = $('albAcc');
@@ -2180,7 +2185,7 @@ function renderAccBox() {
   $('nameStep').classList.toggle('hasNick', !!(acct && acct.nick));   // con cuenta, el nick sale de la cuenta: no se pide nombre
 }
 document.addEventListener('click', e => { if (e.target.closest('[data-acc]')) { e.preventDefault(); openAcct(); } });
-$('acctBack').addEventListener('click', () => { if (acctBack === 'album') renderAlbum(); setMode(acctBack === 'account' ? 'menu' : acctBack); renderAccBox(); });
+$('acctBack').addEventListener('click', () => { albWanted = false; if (acctBack === 'album') renderAlbum(); setMode(acctBack === 'account' ? 'menu' : acctBack); renderAccBox(); });
 $('albCount').textContent = `${albN()}/9`;
 if (acct) accApi({ action: 'me', token: acct.token }).then(r => { if (r.progress) { setAcct(r); renderAccBox(); acctSync(); } else if (r.status === 401) dropAcct(); });
 setTimeout(renderAccBox, 0);
