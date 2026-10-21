@@ -215,6 +215,8 @@
   .aTabs button{border:0;border-radius:9px;background:none;color:var(--muted);font:600 clamp(14px,1.8cqw,16px)/1 var(--body);padding:11px 8px;cursor:pointer;transition:background .2s,color .2s} .aTabs button:hover{color:#fff}
   .aTabs button[aria-selected=true]{background:var(--pink);color:#fff;box-shadow:0 0 14px rgba(214,32,104,.3)} .aTabs button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   .acct.login .steps{display:none} .acctErr a{color:#fff;text-underline-offset:3px;font-weight:600}
+  .aLink{border:0;background:none;color:var(--muted);font:500 14px/1.2 var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px} .aLink:hover{color:#fff} .aLink:disabled{opacity:.5;cursor:default;text-decoration:none}
+  .field.code{font-variant-numeric:tabular-nums} .field.code:not(:placeholder-shown){letter-spacing:.3em} .acct.nocode .field.code,.acct.nocode #aResend1{display:none}   /* sin envío de mails configurado: no se pide código */
   .aSmall{font-size:13px;color:var(--muted)} .acct:not(.done) #acctBack{display:none}
   #acct .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;margin-top:4px} #acct .row>.gh{order:-1}   /* desktop: dos columnas iguales, volver a la izquierda */
   #acct .row>*{width:100%;min-width:0;max-width:none;margin:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} #acct>#acctBack{width:100%;box-sizing:border-box}   /* mismo ancho que el input */
@@ -594,6 +596,14 @@
           <input id="loginEmail" class="field" type="email" maxlength="254" placeholder="tu@mail.com" autocomplete="email" inputmode="email" autocapitalize="off">
           <div class="passWrap"><input id="loginPass" class="field" type="password" maxlength="64" placeholder="Contraseña" autocomplete="current-password"><button class="eye" id="lEye" data-for="loginPass" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
           <div class="row"><button class="sb" id="aLoginGo" type="button">Iniciar sesión</button><button class="gh" id="aBackL" type="button">Volver</button></div>
+          <button class="aLink" id="aForgot" type="button">¿Olvidaste tu contraseña?</button>
+        </div>
+        <div class="aStep" data-s="5">
+          <p class="aHint" id="aResetShow"></p>
+          <input id="resetCode" class="field code" type="text" inputmode="numeric" maxlength="6" placeholder="Código de 6 dígitos" autocomplete="one-time-code" pattern="[0-9]*">
+          <div class="passWrap"><input id="resetPass" class="field" type="password" maxlength="64" placeholder="Contraseña nueva" autocomplete="new-password"><button class="eye" data-for="resetPass" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
+          <div class="row"><button class="sb" id="aResetGo" type="button">Guardar y entrar</button><button class="gh" id="aBackR" type="button">Volver</button></div>
+          <button class="aLink" id="aResend2" type="button">Reenviar código</button>
         </div>
         <div class="aStep" data-s="1">
           <ul class="perks">
@@ -608,9 +618,11 @@
         </div>
         <div class="aStep" data-s="2">
           <p class="aHint" id="aEmailShow"></p>
-          <div class="passWrap"><input id="acctPass" class="field" type="password" maxlength="64" placeholder="Contraseña (mínimo 6)" autocomplete="new-password"><button class="eye" id="aEye" data-for="acctPass" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
+          <input id="regCode" class="field code" type="text" inputmode="numeric" maxlength="6" placeholder="Código de 6 dígitos" autocomplete="one-time-code" pattern="[0-9]*">
+          <div class="passWrap"><input id="acctPass" class="field" type="password" maxlength="64" placeholder="Contraseña" autocomplete="new-password"><button class="eye" id="aEye" data-for="acctPass" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
           <p class="aHint aSmall">Elegí una contraseña para tu cuenta: mínimo 6 caracteres.</p>
           <div class="row"><button class="sb" id="aLogin" type="button">Continuar</button><button class="gh" id="aBack1" type="button">Volver</button></div>
+          <button class="aLink" id="aResend1" type="button">Reenviar código</button>
         </div>
         <div class="aStep" data-s="3">
           <p class="aHint">Elegí tu apodo: es como te van a ver en el ranking y nadie más puede usarlo. Tu mail nunca se muestra.</p>
@@ -1835,12 +1847,12 @@ function goStep(n) {
   document.querySelectorAll('#acct .aStep').forEach(el => { const on = +el.dataset.s === n; el.classList.toggle('on', on); el.classList.toggle('back', on && back); });
   document.querySelectorAll('#acctSteps i').forEach(el => { const k = +el.dataset.s; el.classList.toggle('on', k === n); el.classList.toggle('ok', k < n); el.textContent = k < n ? '✓' : k; });
   document.querySelectorAll('#acctSteps b').forEach((el, i) => el.classList.toggle('ok', i + 1 < n));
-  $('acct').classList.toggle('done', n === 4); $('acct').classList.toggle('s2', n === 2); $('acct').classList.toggle('login', n === 0); $('acct').classList.toggle('tabs', n <= 1);
+  $('acct').classList.toggle('done', n === 4); $('acct').classList.toggle('s2', n === 2); $('acct').classList.toggle('login', n === 0 || n === 5); $('acct').classList.toggle('tabs', n <= 1);
   document.querySelectorAll('#aTabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === (n === 0 ? 'login' : 'register'))));
-  ['acctPass', 'loginPass'].forEach(id => { $(id).type = 'password'; }); document.querySelectorAll('#acct .eye').forEach(b => b.setAttribute('aria-pressed', 'false')); $('acctErr').textContent = ''; $('acctErr').classList.remove('ok');
-  $('acctTitle').textContent = n === 4 ? 'Tu cuenta' : n === 3 ? 'Tu apodo' : n === 0 ? 'Iniciá sesión' : 'Creá tu cuenta';
+  ['acctPass', 'loginPass', 'resetPass'].forEach(id => { $(id).type = 'password'; }); document.querySelectorAll('#acct .eye').forEach(b => b.setAttribute('aria-pressed', 'false')); $('acctErr').textContent = ''; $('acctErr').classList.remove('ok');
+  $('acctTitle').textContent = n === 4 ? 'Tu cuenta' : n === 3 ? 'Tu apodo' : n === 0 ? 'Iniciá sesión' : n === 5 ? 'Nueva contraseña' : 'Creá tu cuenta';
   aValidate(); setTimeout(aValidate, 0);
-  const f = { 0: $('loginEmail').value ? 'loginPass' : 'loginEmail', 1: 'acctEmail', 2: 'acctPass', 3: 'acctNick' }[n]; if (f && matchMedia('(pointer:fine)').matches) setTimeout(() => $(f).focus(), 60);
+  const f = { 0: $('loginEmail').value ? 'loginPass' : 'loginEmail', 1: 'acctEmail', 2: needCode ? 'regCode' : 'acctPass', 3: 'acctNick', 5: 'resetCode' }[n]; if (f && matchMedia('(pointer:fine)').matches) setTimeout(() => $(f).focus(), 60);
 }
 function openAcct(back) { acctBack = back || $('card').dataset.mode; $('aWhy').hidden = !(acctBack === 'mode' && gameMode === 'torneo'); setMode('account'); SFX.ui('card'); renderAcct(); }
 function afterAcct() { // si vino del Torneo: con la sesión iniciada sigue solo a elegir la nave
@@ -1888,15 +1900,53 @@ async function onGoogle(resp) {
 }
 const aErr = t => { const e = $('acctErr'); e.textContent = t; e.classList.remove('ok'); };
 const aOk = t => { const e = $('acctErr'); e.textContent = t; e.classList.add('ok'); };
+const CODE_OK = c => /^\d{6}$/.test(c); let needCode = true;   // se apaga si el servidor no tiene envío de mails
+async function askCode(email, purpose, btn) { // pide el código por mail; devuelve false si hubo un error que impide seguir
+  aErr('Mandando el código…'); if (btn) btn.disabled = true;
+  const r = await accApi({ action: 'sendCode', email, purpose });
+  if (r.skip) { needCode = false; $('acct').classList.add('nocode'); $('acctErr').textContent = ''; return true; }
+  needCode = true; $('acct').classList.remove('nocode');
+  if (r.notFound) { const e = $('acctErr'); e.classList.remove('ok'); e.innerHTML = 'No hay ninguna cuenta con ese mail. <a href="#" data-tab="register">Crear cuenta con este mail</a>'; if (btn) btn.disabled = false; return false; }
+  if (r.error && !(r.status === 429 && /segundos/.test(r.error))) { if (btn) btn.disabled = false; if (r.status === 409 && purpose === 'register') { setTab('login', email); aErr(r.error); } else aErr(r.error); return false; }
+  aOk(r.error || 'Te mandamos un código. Si no llega, revisá spam.');
+  if (btn) { let t = 45; btn.textContent = `Reenviar código (${t})`; const id = setInterval(() => { t--; if (t <= 0) { clearInterval(id); btn.disabled = false; btn.textContent = 'Reenviar código'; } else btn.textContent = `Reenviar código (${t})`; }, 1000); }
+  return true;
+}
 const EMAIL_OK = e => /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/.test(e);
 function aValidate() {
   $('aNext1').disabled = !EMAIL_OK($('acctEmail').value.trim());
   $('aLoginGo').disabled = !EMAIL_OK($('loginEmail').value.trim()) || $('loginPass').value.length < 6;
-  $('aLogin').disabled = $('acctPass').value.length < 6;
+  $('aLogin').disabled = $('acctPass').value.length < 6 || (needCode && !CODE_OK($('regCode').value));
+  $('aResetGo').disabled = $('resetPass').value.length < 6 || !CODE_OK($('resetCode').value);
   $('aNickSave').disabled = cleanName($('acctNick').value).length < 2;
 }
-['acctEmail', 'acctPass', 'acctNick', 'loginEmail', 'loginPass'].forEach(id => $(id).addEventListener('input', aValidate));
-$('aNext1').addEventListener('click', () => { const e = $('acctEmail').value.trim(); if (!EMAIL_OK(e)) { aErr('Revisá el mail: parece que no es válido.'); return; } $('aEmailShow').innerHTML = `Mail: <b>${escH(e)}</b>`; goStep(2); SFX.ui('place'); });
+['acctEmail', 'acctPass', 'acctNick', 'loginEmail', 'loginPass', 'regCode', 'resetCode', 'resetPass'].forEach(id => $(id).addEventListener('input', aValidate));
+['regCode', 'resetCode'].forEach(id => $(id).addEventListener('input', () => { const i = $(id), v = i.value.replace(/\D/g, '').slice(0, 6); if (v !== i.value) i.value = v; aValidate(); }));
+$('aNext1').addEventListener('click', async () => { // Crear cuenta, paso 1: manda el código al mail y pasa al paso 2
+  const e = $('acctEmail').value.trim(); if (!EMAIL_OK(e)) { aErr('Revisá el mail: parece que no es válido.'); return; }
+  $('aNext1').disabled = true; const go = await askCode(e, 'register', $('aResend1')); $('aNext1').disabled = false; if (!go) return;
+  const msg = $('acctErr').textContent, ok = $('acctErr').classList.contains('ok');
+  $('regCode').value = ''; $('aEmailShow').innerHTML = needCode ? `Escribí el código que mandamos a <b>${escH(e)}</b> y elegí tu contraseña.` : `Mail: <b>${escH(e)}</b>`;
+  goStep(2); SFX.ui('place'); if (msg) (ok ? aOk : aErr)(msg);
+});
+$('aResend1').addEventListener('click', () => askCode($('acctEmail').value.trim(), 'register', $('aResend1')));
+$('aForgot').addEventListener('click', async () => { // Olvidé mi contraseña: manda un código al mail escrito
+  const e = $('loginEmail').value.trim(); if (!EMAIL_OK(e)) { aErr('Escribí tu mail arriba y tocá de nuevo "¿Olvidaste tu contraseña?".'); $('loginEmail').focus(); return; }
+  const go = await askCode(e, 'reset', $('aResend2')); if (!go) return;
+  if (!needCode) { aErr('Por ahora no se puede recuperar la contraseña por mail.'); return; }
+  const msg = $('acctErr').textContent; $('resetCode').value = ''; $('resetPass').value = '';
+  $('aResetShow').innerHTML = `Escribí el código que mandamos a <b>${escH(e)}</b> y tu contraseña nueva.`; goStep(5); aOk(msg);
+});
+$('aResend2').addEventListener('click', () => askCode($('loginEmail').value.trim(), 'reset', $('aResend2')));
+$('aBackR').addEventListener('click', () => goStep(0));
+$('resetPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aResetGo').click(); } });
+$('aResetGo').addEventListener('click', async () => {
+  const email = $('loginEmail').value.trim(), code = $('resetCode').value, pass = $('resetPass').value;
+  if (!CODE_OK(code)) { aErr('El código tiene 6 números.'); return; } if (pass.length < 6) { aErr('La contraseña tiene que tener al menos 6 caracteres.'); return; }
+  aErr('Guardando…'); const r = await accApi({ action: 'reset', email, code, pass, progress: album });
+  if (r.error) { aErr(r.error); return; }
+  $('resetPass').value = ''; $('resetCode').value = ''; rememberEmail(email); setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox(); aOk('¡Listo! Cambiaste tu contraseña.'); afterAcct();
+});
 $('acctEmail').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aNext1').click(); } });
 $('aBack1').addEventListener('click', e => { e.preventDefault(); goStep(1); });
 $('aBack0').addEventListener('click', () => $('acctBack').click());
@@ -1915,16 +1965,19 @@ $('aLoginGo').addEventListener('click', async () => { // Iniciar sesión: mail +
   $('loginPass').value = ''; rememberEmail(email); setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox(); aOk('¡Hola de nuevo!'); afterAcct();
 });
 $('acctPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aLogin').click(); } });
-$('aLogin').addEventListener('click', () => { // Crear cuenta, paso 2: guarda la contraseña y sigue al apodo (la cuenta se crea al guardarlo)
-  const email = $('acctEmail').value.trim(), pass = $('acctPass').value;
+$('aLogin').addEventListener('click', async () => { // Crear cuenta, paso 2: comprueba el código, guarda la contraseña y sigue al apodo (la cuenta se crea al guardarlo)
+  const email = $('acctEmail').value.trim(), pass = $('acctPass').value, code = $('regCode').value;
+  if (needCode && !CODE_OK(code)) { aErr('El código tiene 6 números.'); return; }
   if (pass.length < 6) { aErr('La contraseña tiene que tener al menos 6 caracteres.'); return; }
-  pending = { email, pass }; aMode = 'register'; if (!$('acctNick').value) $('acctNick').value = playerName || cleanName(email.split('@')[0]); goStep(3); SFX.ui('place');
+  if (needCode) { aErr('Comprobando el código…'); const r = await accApi({ action: 'checkCode', email, code, purpose: 'register' }); if (r.error) { aErr(r.error); return; } }
+  pending = { email, pass, code }; aMode = 'register'; if (!$('acctNick').value) $('acctNick').value = playerName || cleanName(email.split('@')[0]); goStep(3); SFX.ui('place');
 });
 async function finishNick(nick) {
   const err = $('acctErr');
   if (aMode === 'register') {
     aErr('Creando tu cuenta…');
-    const r = await accApi({ action: 'register', email: pending.email, pass: pending.pass, nick, progress: album });
+    const r = await accApi({ action: 'register', email: pending.email, pass: pending.pass, code: pending.code, nick, progress: album });
+    if (r.status === 400 && /código/.test(r.error || '')) { goStep(2); aErr(r.error); return; }   // el código venció mientras elegía el apodo
     if (r.status === 409 && !r.nickTaken) { const e = pending.email; setTab('login', e); aErr('Ese mail ya tiene cuenta: iniciá sesión con tu contraseña.'); return; }   // el mail ya existe: lo pasa a "Iniciar sesión"
     if (r.error) { aErr(r.error); return; }   // apodo tomado: se queda acá para elegir otro
     rememberEmail(pending.email); pending = null; $('acctPass').value = ''; setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox();
