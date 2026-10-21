@@ -2203,7 +2203,7 @@ void main() {
       items: opts.items || [], bend: opts.bend ?? 3, textColor: opts.textColor || '#ffffff', borderRadius: clamp(opts.borderRadius ?? .05, 0, .5),
       scrollSpeed: Math.max(0, opts.scrollSpeed ?? 2), scrollEase: clamp(opts.scrollEase ?? .05, .001, 1), itemSize: clamp(opts.itemSize ?? 1, .2, 2),
       itemAspect: clamp(opts.itemAspect ?? .78, .2, 5), gap: Math.max(0, opts.gap ?? .26), wave: Math.max(0, opts.wave ?? 1), fadeEdges: clamp(opts.fadeEdges ?? .12, 0, .5),
-      shadow: clamp(opts.shadow ?? .25, 0, 1), grayscale: !!opts.grayscale, showTitles: opts.showTitles ?? true, snap: opts.snap ?? true, autoScroll: opts.autoScroll || 0,
+      shadow: clamp(opts.shadow ?? .25, 0, 1), decorate: opts.decorate, grayscale: !!opts.grayscale, showTitles: opts.showTitles ?? true, snap: opts.snap ?? true, autoScroll: opts.autoScroll || 0,
       intro: opts.intro ?? true, onItemClick: opts.onItemClick, onActiveChange: opts.onActiveChange, dpr: opts.dpr, font: opts.font || 'bold 30px sans-serif'
     };
     container.classList.add('circular-gallery'); container.setAttribute('role', 'region'); container.setAttribute('aria-roledescription', 'carrusel'); container.setAttribute('aria-label', opts.label || 'Galería');
@@ -2245,7 +2245,8 @@ void main() {
       const image = new Image(); image.decoding = 'async';
       image.onload = () => { if (dead || !textures.has(url)) return;
         const texture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, texture); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); gl.generateMipmap(gl.TEXTURE_2D);
+        const src = (s.decorate && s.decorate(image, url)) || image;   // opcional: dibujar encima de la imagen (ej. número del nivel)
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         if (anisotropy) { const max = gl.getParameter(anisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT); gl.texParameterf(gl.TEXTURE_2D, anisotropy.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, max)); }
@@ -2429,13 +2430,25 @@ function showLevel(w) {
   const b = $('lvPlay'); (b.querySelector('.sb-in') || b).textContent = `Jugar nivel ${w}`;
 }
 const playLevel = w => { startWave = w; if (LS.get('sancor_tuto', '') !== '1') openTuto(start); else start(); };
+// número del nivel sobre la captura: degradé de #292929 a transparente en el tercio inferior, con el número centrado en 2 dígitos
+function lvNumber(img, url) {
+  const i = LV_IMG_URLS.indexOf(url); if (i < 0) return null;
+  const W = img.naturalWidth, H = img.naturalHeight, c = document.createElement('canvas'), x = c.getContext('2d'); c.width = W; c.height = H;
+  x.drawImage(img, 0, 0, W, H);
+  const g = x.createLinearGradient(0, H * 2 / 3, 0, H); g.addColorStop(0, 'rgba(41,41,41,0)'); g.addColorStop(1, '#292929');
+  x.fillStyle = g; x.fillRect(0, H * 2 / 3, W, H / 3);
+  x.fillStyle = '#fff'; x.font = `800 ${Math.round(H / 3 * .5)}px "Roboto Condensed", "Arial Narrow", sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText(String(i + 1).padStart(2, '0'), W / 2, H * 5 / 6);
+  return c;
+}
+const LV_IMG_URLS = Array.from({ length: 20 }, (_, i) => `img/levels/lv${i + 1}.webp`);
 function openLevels() {
   setMode('levels'); SFX.ui('card');
   if (!lvGallery && !$('lvGrid').dataset.on) {
     try {
-      lvGallery = CircularGallery($('lvGal'), { items: LV_DIFF.map((d, i) => ({ image: `img/levels/lv${i + 1}.webp`, text: `Nivel ${i + 1}`, alt: `Nivel ${i + 1}` })), label: 'Niveles',
+      lvGallery = CircularGallery($('lvGal'), { items: LV_DIFF.map((d, i) => ({ image: LV_IMG_URLS[i], text: `Nivel ${i + 1}`, alt: `Nivel ${i + 1}` })), label: 'Niveles',
         bend: 3, borderRadius: .06, scrollEase: .06, itemAspect: .78, gap: .22, fadeEdges: .1, font: 'bold 26px "Roboto Condensed"', textColor: '#c9d3f0', activeText: '#ffffff',
-        ringColor: '#ffc928', activeRing: true, dimInactive: .35, onActiveChange: i => { showLevel(i + 1); SFX.ui('hover'); }, onItemClick: (item, i) => playLevel(i + 1) });
+        ringColor: '#ffc928', activeRing: true, dimInactive: .35, showTitles: false, decorate: lvNumber, onActiveChange: i => { showLevel(i + 1); SFX.ui('hover'); }, onItemClick: (item, i) => playLevel(i + 1) });
     } catch (e) { lvGallery = null; report('err-gallery', e); }
     if (!lvGallery) {   // sin WebGL2: grilla de tarjetas
       $('lvGrid').hidden = false; $('lvGrid').dataset.on = '1';
