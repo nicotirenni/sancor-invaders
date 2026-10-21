@@ -239,7 +239,7 @@
   @keyframes dmIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
   #delModal h2{margin:0;font:800 22px/1.15 var(--display);color:#fff} #delModal #delD{margin:0 0 4px;font-size:14px;line-height:1.5;color:#c9d2f0}
   #delModal .field{width:100%;height:36px;padding:4px 12px;font:400 14px/1.4 var(--body);text-align:left;border-radius:6px} #delModal .field:focus{border-color:#ff5a78;box-shadow:0 0 0 3px rgba(255,90,120,.3)}
-  #delModal .dmErr{margin:-4px 0 0;font-size:13px;color:#ff8da1} #delModal .dmErr:empty{display:none}   /* sin mensaje: 24 px del campo a los botones */
+  #delModal .sb:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.5);pointer-events:none} #delModal #delD b{color:#fff} #delModal .dmErr{margin:-4px 0 0;font-size:13px;color:#ff8da1} #delModal .dmErr:empty{display:none}   /* sin mensaje: 24 px del campo a los botones */
   #delModal .dmBtns{display:grid;grid-template-columns:1fr;gap:6px;margin-top:12px} #delModal .dmBtns>*{width:100%;min-width:0;box-sizing:border-box;margin:0} #delModal #aDelNo{background:none;box-shadow:none;border:0;color:var(--muted);padding:.7em 1em} #delModal #aDelNo::before{display:none} #delModal #aDelNo:hover,#delModal #aDelNo:focus-visible{color:#fff;background:rgba(255,255,255,.04)} #delModal .dmBtns .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center}
   @media (max-width:599px){#delModal .field{font-size:16px}}
   .sb.danger{background:#b3123f} .sb.danger .sb-in{background:#b3123f}
@@ -521,7 +521,7 @@
 <canvas id="sparks"></canvas>
 <div id="delModal" hidden role="dialog" aria-modal="true" aria-labelledby="delT" aria-describedby="delD"><div class="dm">
   <h2 id="delT">Eliminar tu cuenta</h2>
-  <p id="delD">Se borran para siempre tu mail, tu apodo, tu álbum guardado, tu historial del Torneo y tus puntajes del ranking. Esta acción no se puede deshacer.</p>
+  <p id="delD">Se borran para siempre tu mail, tu apodo, tu álbum guardado, tu historial del Torneo y tus puntajes del ranking. Esta acción no se puede deshacer.<span id="delGHint"> Para confirmar, escribí <b>Drones Invasores</b>.</span></p>
   <div class="passWrap" id="delPassWrap"><input id="delPass" class="field" type="password" maxlength="64" placeholder="Escribí tu contraseña" autocomplete="current-password" aria-label="Tu contraseña"></div>
   <p class="dmErr" id="delErr" role="alert"></p>
   <div class="dmBtns"><button class="sb danger" id="aDelGo" type="button">Eliminar definitivamente</button><button class="gh" id="aDelNo" type="button">Cancelar</button></div>
@@ -2130,19 +2130,22 @@ $('acctOut').addEventListener('click', () => { const t = acct && acct.token; if 
 $('profBtn').addEventListener('click', () => openAcct());   // ícono de perfil: entra a la cuenta (o a iniciar sesión / crear cuenta)
 const delMsg = t => { $('delErr').textContent = t; };
 function closeDel() { $('delModal').hidden = true; $('delPass').value = ''; delMsg(''); $('aDel').focus(); }
-$('aDel').addEventListener('click', () => { // abre el modal; las cuentas creadas con Google no tienen contraseña y no la piden
-  $('delPassWrap').hidden = !!(acct && acct.pass === false); $('delPass').value = ''; delMsg(''); $('delModal').hidden = false; SFX.ui('card');
-  setTimeout(() => ($('delPassWrap').hidden ? $('aDelNo') : $('delPass')).focus(), 50); });
+const delGoogle = () => !!(acct && acct.pass === false);   // cuenta creada con Google: no tiene contraseña, confirma escribiendo el nombre del juego
+const delReady = () => delGoogle() ? $('delPass').value.trim().toLowerCase() === 'drones invasores' : $('delPass').value.length > 0;
+$('delPass').addEventListener('input', () => { $('aDelGo').disabled = !delReady(); delMsg(''); });
+$('aDel').addEventListener('click', () => { // abre el modal: pide la contraseña (o "Drones Invasores" si la cuenta es de Google)
+  const g = delGoogle(), i = $('delPass'); $('delGHint').hidden = !g;
+  i.type = g ? 'text' : 'password'; i.placeholder = g ? 'Escribí Drones Invasores' : 'Escribí tu contraseña'; i.autocomplete = g ? 'off' : 'current-password'; i.setAttribute('aria-label', g ? 'Confirmación' : 'Tu contraseña');
+  i.value = ''; $('aDelGo').disabled = true; delMsg(''); $('delModal').hidden = false; SFX.ui('card'); setTimeout(() => i.focus(), 50); });
 $('aDelNo').addEventListener('click', closeDel);
 $('delModal').addEventListener('click', e => { if (e.target === $('delModal')) closeDel(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('delModal').hidden) closeDel(); });
 $('delPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aDelGo').click(); } });
 $('aDelGo').addEventListener('click', async () => { // eliminar la cuenta (con la contraseña si la tiene)
-  if (!acct) return; const needPass = !$('delPassWrap').hidden, pass = $('delPass').value;
-  if (needPass && !pass) { delMsg('Escribí tu contraseña para confirmar.'); $('delPass').focus(); return; }
+  if (!acct || !delReady()) return; const g = delGoogle(), val = $('delPass').value;
   $('aDelGo').disabled = true; delMsg('Eliminando…');
-  const r = await accApi({ action: 'delete', token: acct.token, pass }); $('aDelGo').disabled = false;
-  if (r.error) { delMsg(r.error); $('delPass').select(); return; }
+  const r = await accApi({ action: 'delete', token: acct.token, ...(g ? { confirm: val } : { pass: val }) }); $('aDelGo').disabled = false;
+  if (r.error) { delMsg(r.error); $('aDelGo').disabled = !delReady(); $('delPass').select(); return; }
   $('delModal').hidden = true; $('delPass').value = ''; delMsg('');
   try { google.accounts.id.disableAutoSelect(); } catch (e) {}
   LS.set('sancor_lastEmail', ''); $('loginEmail').value = $('acctEmail').value = ''; aTab = 'register'; dropAcct();

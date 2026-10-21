@@ -166,6 +166,7 @@ module.exports = async (req, res) => {
       if (action === 'delete') { // eliminar la cuenta: mail, contraseña, apodo, álbum, historial y sus puntajes en el ranking
         if (u.hash) { const a = Buffer.from(hash(String(b.pass || ''), u.salt), 'hex'), c = Buffer.from(u.hash, 'hex');
           if (a.length !== c.length || !crypto.timingSafeEqual(a, c)) return res.status(401).json({ error: 'La contraseña no es correcta.' }); }
+        else if (String(b.confirm || '').trim().toLowerCase() !== 'drones invasores') return res.status(400).json({ error: 'Escribí "Drones Invasores" para confirmar.' });   // cuenta de Google: confirma escribiendo el nombre del juego
         const cmds = [['DEL', key], ['DEL', histKey(key)], ['DEL', 'sancor:tok:' + b.token], ['DEL', codeKey('register', u.email)], ['DEL', codeKey('reset', u.email)]];
         if (u.nick) { const [owner] = await redis([['GET', nickKey(u.nick)]]); if (owner === key) cmds.push(['DEL', nickKey(u.nick)]); }
         await redis(cmds);
