@@ -2243,14 +2243,17 @@ void main() {
       const existing = textures.get(url); if (existing) return existing;
       const entry = { texture: null, aspect: 1, ready: 0, loaded: false }; textures.set(url, entry);
       const image = new Image(); image.decoding = 'async';
-      image.onload = () => { if (dead || !textures.has(url)) return;
-        const texture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, texture); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        const src = (s.decorate && s.decorate(image, url)) || image;   // opcional: dibujar encima de la imagen (ej. número del nivel)
+      const upload = src => { const texture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, texture); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         if (anisotropy) { const max = gl.getParameter(anisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT); gl.texParameterf(gl.TEXTURE_2D, anisotropy.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, max)); }
-        entry.texture = texture; entry.aspect = image.naturalWidth / Math.max(1, image.naturalHeight); entry.loaded = true; wake(); };
+        return texture; };
+      image.onload = () => { if (dead || !textures.has(url)) return;
+        // opcional: dibujar encima de la imagen (ej. número del nivel), con una versión aparte para la tarjeta elegida
+        entry.texture = upload((s.decorate && s.decorate(image, url, false)) || image);
+        const active = s.decorate && s.decorate(image, url, true); if (active) entry.activeTexture = upload(active);
+        entry.aspect = image.naturalWidth / Math.max(1, image.naturalHeight); entry.loaded = true; wake(); };
       image.src = url; return entry;
     };
     const measure = () => { const height = .6 * view.height * s.itemSize, width = height * s.itemAspect, scale = Math.min(1, (view.width * .82) / width);
@@ -2286,7 +2289,7 @@ void main() {
       if (s.shadow > 0) { gl.uniform1f(u.uShadow, s.shadow); gl.uniform1f(u.uBlur, blur); gl.uniform2f(u.uShadowOffset, 0, -blur * .45); gl.uniform1f(u.uPad, blur * 1.6); gl.bindTexture(gl.TEXTURE_2D, blank);
         cards.forEach(card => { place(card); gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0); }); }
       gl.uniform1f(u.uShadow, 0); gl.uniform1f(u.uPad, 10 * ratio);
-      cards.forEach(card => { place(card); const entry = card.entry; gl.bindTexture(gl.TEXTURE_2D, entry.texture || blank); gl.uniform1f(u.uImageAspect, entry.aspect); gl.uniform1f(u.uReady, entry.ready);
+      cards.forEach(card => { place(card); const entry = card.entry; gl.bindTexture(gl.TEXTURE_2D, (card.slot === state.active && entry.activeTexture) || entry.texture || blank); gl.uniform1f(u.uImageAspect, entry.aspect); gl.uniform1f(u.uReady, entry.ready);
         gl.uniform1f(u.uGray, card.gray); gl.uniform1f(u.uDim, card.slot === state.active ? 0 : (s.dimInactive || 0)); gl.uniform1f(u.uRing, card.slot === state.active ? Math.max(state.ring, s.activeRing ? 1 : 0) : 0); gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0); });
     };
     const placeLabels = metrics => {
@@ -2395,7 +2398,7 @@ void main() {
         container.removeEventListener('pointercancel', onPointerCancel); container.removeEventListener('pointerleave', onPointerLeave); container.removeEventListener('wheel', onWheel);
         container.removeEventListener('keydown', onKeyDown); container.removeEventListener('focusin', onFocusIn); container.removeEventListener('focusout', onFocusOut);
         document.removeEventListener('visibilitychange', onVisibility); document.removeEventListener('keydown', onAnyKey, true); document.removeEventListener('pointerdown', onAnyPointer, true);
-        textures.forEach(e => e.texture && gl.deleteTexture(e.texture)); gl.deleteTexture(blank); gl.deleteProgram(program.program); gl.deleteBuffer(vertexBuffer); gl.deleteBuffer(indexBuffer); gl.deleteVertexArray(vao);
+        textures.forEach(e => { e.texture && gl.deleteTexture(e.texture); e.activeTexture && gl.deleteTexture(e.activeTexture); }); gl.deleteTexture(blank); gl.deleteProgram(program.program); gl.deleteBuffer(vertexBuffer); gl.deleteBuffer(indexBuffer); gl.deleteVertexArray(vao);
         gl.getExtension('WEBGL_lose_context')?.loseContext(); container.innerHTML = '';
       }
     };
@@ -2430,15 +2433,15 @@ function showLevel(w) {
   const b = $('lvPlay'); (b.querySelector('.sb-in') || b).textContent = `Jugar nivel ${w}`;
 }
 const playLevel = w => { startWave = w; if (LS.get('sancor_tuto', '') !== '1') openTuto(start); else start(); };
-// número del nivel sobre la captura: capa con degradé en curva suave (transparente → #1f1f1f) en el tercio inferior; el número va abajo, centrado, en 2 dígitos y con 8 px de margen
-function lvNumber(img, url) {
+// número del nivel sobre la captura: capa con degradé en curva suave (transparente → #1f1f1f) en el tercio inferior; el número va abajo, centrado, en 2 dígitos, con 8 px de margen
+function lvNumber(img, url, active) {
   const i = LV_IMG_URLS.indexOf(url); if (i < 0) return null;
   const W = img.naturalWidth, H = img.naturalHeight, c = document.createElement('canvas'), x = c.getContext('2d'); c.width = W; c.height = H;
   x.drawImage(img, 0, 0, W, H);
   const g = x.createLinearGradient(0, H * 2 / 3, 0, H); [[0, 0], [.2, .18], [.45, .5], [.7, .9], [1, 1]].forEach(([at, a]) => g.addColorStop(at, `rgba(31,31,31,${a})`));   // curva suave hacia #1f1f1f
   x.fillStyle = g; x.fillRect(0, H * 2 / 3, W, H / 3);
   const pad = 8 * H / Math.max(1, ($('lvGal').clientHeight || 300) * .6);   // 8 px de pantalla, pasados a píxeles de la imagen (la tarjeta mide ~60% del alto de la galería)
-  x.fillStyle = 'rgba(255,255,255,.5)'; x.font = `800 ${Math.round(H / 3 * .5)}px "Roboto Condensed", "Arial Narrow", sans-serif`; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+  x.fillStyle = active ? 'rgba(255,255,255,.7)' : 'rgba(255,255,255,.5)'; x.font = `800 ${Math.round(H / 3 * .5)}px "Roboto Condensed", "Arial Narrow", sans-serif`; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
   x.fillText(String(i + 1).padStart(2, '0'), W / 2, H - pad, W - pad * 2);   // abajo del contenedor, centrado, con 8 px de margen
   return c;
 }
