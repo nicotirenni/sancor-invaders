@@ -193,15 +193,8 @@
   #inapp[hidden]{display:none} #inapp .ia{pointer-events:auto;width:min(440px,100%);display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:16px;background:#121a40;border:1px solid rgba(116,192,245,.35);box-shadow:0 12px 40px rgba(0,0,0,.6);animation:chUp .4s ease-out both}
   #inapp b{font:800 18px var(--display);text-transform:uppercase;color:#fff} #inapp p{margin:0;font-size:14px;line-height:1.4;color:#c9d3f0} #inapp p strong{color:#fff}
   #inapp .iaBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px} #inapp .iaBtns>*{width:100%;box-sizing:border-box;text-align:center;text-decoration:none} #inapp .sb .sb-in{width:100%;box-sizing:border-box}
-  .aWhy{margin:0;padding:10px 14px;border-radius:12px;background:rgba(255,201,40,.1);border:1px solid rgba(255,201,40,.3);color:#ffe3a3;font-size:14px;text-align:center} .aWhy[hidden]{display:none} .aWhy b{color:var(--gold)}
   .nameAcc{font-size:clamp(12px,1.7cqw,15px);color:var(--muted);text-align:center}
-  .perks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;text-align:left;font-size:clamp(13px,1.8cqw,16px);color:#c9d2f0;width:100%}
-  .perks li{display:flex;gap:.6em;align-items:flex-start} .perks b{color:#7fffd4;flex:none}
   .acctErr{min-height:1.2em;color:#ff8da1;font-size:14px;text-align:center} .acctErr.ok{color:#7fffd4}
-  .steps{display:flex;align-items:center;gap:6px} .steps i{font-style:normal;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:700 13px/1 var(--body);color:var(--muted);background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);transition:all .3s}
-  .steps b{width:34px;height:2px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden;position:relative} .steps b::after{content:"";position:absolute;inset:0;background:var(--pink);transform:scaleX(0);transform-origin:left;transition:transform .35s}
-  .steps i.on{color:#fff;box-shadow:inset 0 0 0 2px var(--pink);transform:scale(1.08)} .steps i.ok{background:var(--pink);color:#fff;box-shadow:none} .steps b.ok::after{transform:none}
-  .acct.done .steps{display:none}
   .aStep{display:none;flex-direction:column;align-items:center;gap:12px;width:100%} .aStep.on{display:flex;animation:stepIn .35s ease-out} .aStep.on.back{animation-name:stepBack}
   @keyframes stepIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}} @keyframes stepBack{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
   .aStep .field{width:100%} .aHint{margin:0;text-align:center;color:#c9d2f0;font-size:clamp(13px,1.8cqw,16px);line-height:1.45}
@@ -211,10 +204,7 @@
   .passWrap{position:relative;width:100%} .passWrap .field{padding-right:3.2em;padding-left:3.2em}
   .eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;border-radius:10px;background:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
   .eye:hover,.eye:focus-visible{color:#fff;background:rgba(255,255,255,.06);outline:none} .eye[aria-pressed=true] .slash{display:none}
-  .aTabs{display:none;grid-template-columns:1fr 1fr;gap:4px;width:100%;padding:4px;box-sizing:border-box;border-radius:12px;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)} .acct.tabs .aTabs{display:grid}   /* pestañas Iniciar sesión / Crear cuenta */
-  .aTabs button{border:0;border-radius:9px;background:none;color:var(--muted);font:600 clamp(14px,1.8cqw,16px)/1 var(--body);padding:11px 8px;cursor:pointer;transition:background .2s,color .2s} .aTabs button:hover{color:#fff}
-  .aTabs button[aria-selected=true]{background:var(--pink);color:#fff;box-shadow:0 0 14px rgba(214,32,104,.3)} .aTabs button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-  .acct.login .steps{display:none} .acctErr a{color:#fff;text-underline-offset:3px;font-weight:600}
+  .acctErr a{color:#fff;text-underline-offset:3px;font-weight:600}
   /* CodeSlots (React Bits), portado a CSS + JS sin React: casilleros para el código del mail */
   .code-slots{--cs-accent:#f5f5f5;--cs-ink:#f5f5f5;--cs-slot:#27272a;--cs-digit:#18181b;--cs-danger:#ff3b30;--cs-size:44px;--cs-height:52px;--cs-gap:8px;--cs-radius:12px;--cs-font:22px;position:relative;display:inline-block}
   .code-slots__row{position:relative;display:inline-flex;gap:var(--cs-gap);cursor:text;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:opacity .2s ease}
@@ -237,9 +227,13 @@
   .codeBox{display:flex;justify-content:center;width:100%}
   .aLink{border:0;background:none;color:var(--muted);font:500 14px/1.2 var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px} .aLink:hover{color:#fff} .aLink:disabled{opacity:.5;cursor:default;text-decoration:none}
     .aSmall{font-size:13px;color:var(--muted)} .acct:not(.done) #acctBack{display:none}
-  #acct .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;margin-top:4px} #acct .row>.gh{order:-1}   /* desktop: dos columnas iguales, volver a la izquierda */
+  #acct .row{display:grid;grid-template-columns:1fr;gap:6px;width:100%;margin-top:4px} #acct .row>.gh{order:1}   /* un botón principal a todo el ancho; Volver debajo */
+  #acct .aStep:not([data-s="6"]) .row>.gh{background:none;border-color:transparent;box-shadow:none;color:var(--muted);padding:.7em 1em} #acct .aStep:not([data-s="6"]) .row>.gh::before{display:none} #acct .aStep:not([data-s="6"]) .row>.gh:hover,#acct .aStep:not([data-s="6"]) .row>.gh:focus-visible{color:#fff;background:rgba(255,255,255,.04)}   /* Volver: botón terciario, solo texto */
+  #acct .aStep[data-s="6"] .row{grid-template-columns:1fr 1fr;gap:14px}
+  .aSwitch{margin:4px 0 0;font-size:14px;color:var(--muted);text-align:center} .aSwitch a{color:#fff;text-underline-offset:3px;font-weight:600} .aSwitch a:hover{color:var(--gold)}
+  .aForgot{align-self:flex-end;margin-top:-6px;padding:2px 4px;font-size:13px}
   #acct .row>*{width:100%;min-width:0;max-width:none;margin:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} #acct>#acctBack{width:100%;box-sizing:border-box}   /* mismo ancho que el input */
-  @media (max-width:699px){ #acct .row{grid-template-columns:1fr;gap:10px} #acct .row>.gh{order:1} #acct .row>*,#acctBack{width:100%;min-width:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} }   /* mobile: apilados, volver abajo */
+  @media (max-width:699px){ #acct .aStep[data-s="6"] .row{grid-template-columns:1fr;gap:10px} #acct .row>*,#acctBack{width:100%;min-width:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} }   /* mobile: apilados, volver abajo */
   #acct .sb:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.5);pointer-events:none}
   .okMark{width:56px;height:56px} .okMark circle{fill:none;stroke:#7fffd4;stroke-width:3;stroke-dasharray:145;stroke-dashoffset:145;animation:draw .5s ease-out forwards}
   .okMark path{fill:none;stroke:#7fffd4;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:draw .35s .4s ease-out forwards} @keyframes draw{to{stroke-dashoffset:0}}
@@ -608,14 +602,14 @@
       </div>
       <div class="acct" id="acct">
         <div class="podTitle" id="acctTitle">Tu cuenta</div>
-        <p class="aWhy" id="aWhy" hidden>🏆 El <b>Torneo</b> necesita cuenta: así tu puntaje y tus figuritas quedan a tu nombre.</p>
-        <div class="aTabs" id="aTabs" role="tablist" aria-label="Cuenta"><button type="button" role="tab" id="tabLogin" data-tab="login" aria-selected="false">Iniciar sesión</button><button type="button" role="tab" id="tabReg" data-tab="register" aria-selected="true">Crear cuenta</button></div>
-        <div class="steps" id="acctSteps" aria-hidden="true"><i data-s="1">1</i><b></b><i data-s="2">2</i><b></b><i data-s="3">3</i><b></b><i data-s="4">4</i></div>
         <div class="aStep" data-s="0">
+          <div class="gBtn" id="gBtnL"></div>
+          <div class="orLine" id="orLineL"><span>o</span></div>
           <input id="loginEmail" class="field" type="email" maxlength="254" placeholder="tu@mail.com" autocomplete="email" inputmode="email" autocapitalize="off">
           <div class="passWrap"><input id="loginPass" class="field" type="password" maxlength="64" placeholder="Contraseña" autocomplete="current-password"><button class="eye" id="lEye" data-for="loginPass" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
-          <div class="row"><button class="sb" id="aLoginGo" type="button">Iniciar sesión</button><button class="gh" id="aBackL" type="button">Volver</button></div>
-          <button class="aLink" id="aForgot" type="button">¿Olvidaste tu contraseña?</button>
+          <button class="aLink aForgot" id="aForgot" type="button">¿Olvidaste tu contraseña?</button>
+          <div class="row"><button class="sb" id="aLoginGo" type="button">Entrar a jugar</button><button class="gh" id="aBackL" type="button">Volver</button></div>
+          <p class="aSwitch">¿No tenés cuenta? <a href="#" data-tab="register">Creá una</a></p>
         </div>
         <div class="aStep" data-s="5">
           <p class="aHint" id="aResetShow"></p>
@@ -625,15 +619,11 @@
           <button class="aLink" id="aResend2" type="button">Reenviar código</button>
         </div>
         <div class="aStep" data-s="1">
-          <ul class="perks">
-            <li><b>✓</b>Tu álbum queda guardado y lo ves en cualquier dispositivo</li>
-            <li><b>✓</b>Tu apodo queda reservado en el ranking: nadie más puede usarlo</li>
-            <li><b>✓</b>No perdés tu progreso si borrás el navegador o cambiás de celu</li>
-          </ul>
           <div class="gBtn" id="gBtn"></div>
-          <div class="orLine" id="orLine"><span>o con tu mail</span></div>
+          <div class="orLine" id="orLine"><span>o</span></div>
           <input id="acctEmail" class="field" type="email" maxlength="254" placeholder="tu@mail.com" autocomplete="email" inputmode="email" autocapitalize="off">
-          <div class="row"><button class="sb" id="aNext1" type="button">Continuar</button><button class="gh" id="aBack0" type="button">Volver</button></div>
+          <div class="row"><button class="sb" id="aNext1" type="button">Empezá a jugar</button><button class="gh" id="aBack0" type="button">Volver</button></div>
+          <p class="aSwitch">¿Ya tenés cuenta? <a href="#" data-tab="login">Iniciá sesión</a></p>
         </div>
         <div class="aStep" data-s="2">
           <p class="aHint" id="aEmailShow"></p>
@@ -1927,20 +1917,17 @@ let acctBack = 'menu', aStep = 1, aMode = '', pending = null, aTab = LS.get('san
 function goStep(n) {
   const back = n < aStep; aStep = n;
   document.querySelectorAll('#acct .aStep').forEach(el => { const on = +el.dataset.s === n; el.classList.toggle('on', on); el.classList.toggle('back', on && back); });
-  document.querySelectorAll('#acctSteps i').forEach(el => { const k = +el.dataset.s; el.classList.toggle('on', k === n); el.classList.toggle('ok', k < n); el.textContent = k < n ? '✓' : k; });
-  document.querySelectorAll('#acctSteps b').forEach((el, i) => el.classList.toggle('ok', i + 1 < n));
-  $('acct').classList.toggle('done', n === 6); $('acct').classList.toggle('login', n === 0 || n === 5); $('acct').classList.toggle('tabs', n <= 1);
-  document.querySelectorAll('#aTabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === (n === 0 ? 'login' : 'register'))));
+  $('acct').classList.toggle('done', n === 6); 
   ['acctPass', 'acctPass2', 'loginPass', 'resetPass'].forEach(id => { $(id).type = 'password'; }); document.querySelectorAll('#acct .eye').forEach(b => b.setAttribute('aria-pressed', 'false')); $('acctErr').textContent = ''; $('acctErr').classList.remove('ok');
   $('acctTitle').textContent = n === 6 ? 'Tu cuenta' : n === 4 ? 'Tu apodo' : n === 0 ? 'Iniciá sesión' : n === 5 ? 'Nueva contraseña' : 'Creá tu cuenta';
   aValidate(); setTimeout(aValidate, 0);
   const f = { 0: $('loginEmail').value ? 'loginPass' : 'loginEmail', 1: 'acctEmail', 3: 'acctPass', 4: 'acctNick' }[n]; if (f && matchMedia('(pointer:fine)').matches) setTimeout(() => $(f).focus(), 60);
   if (n === 2 || n === 5) setTimeout(() => (n === 2 ? regSlots : resetSlots).focus(), 80);   // los casilleros del código toman el foco también en el celu, así aparece el teclado numérico
 }
-function openAcct(back) { acctBack = back || $('card').dataset.mode; $('aWhy').hidden = !(acctBack === 'mode' && gameMode === 'torneo'); setMode('account'); SFX.ui('card'); renderAcct(); }
+function openAcct(back) { acctBack = back || $('card').dataset.mode; setMode('account'); SFX.ui('card'); renderAcct(); }
 function afterAcct() { // si vino del Torneo: con la sesión iniciada sigue solo a elegir la nave
   if (!(acct && acct.nick && acctBack === 'mode' && gameMode === 'torneo')) return;
-  setTimeout(() => { if ($('card').dataset.mode === 'account' && acct) { $('aWhy').hidden = true; openName(); } }, 1100);
+  setTimeout(() => { if ($('card').dataset.mode === 'account' && acct) openName(); }, 1100);
 }
 let histTok = 0;
 async function loadHist() { // historial del Torneo: resumen y últimas partidas
@@ -1967,8 +1954,8 @@ document.addEventListener('click', e => { const t = e.target.closest('#acct [dat
 const rememberEmail = e => { if (e) LS.set('sancor_lastEmail', e); };
 let gsi = 0;
 function loadGoogle() { // botón oficial de Google (Google Identity Services)
-  if (!GOOGLE_LOGIN) { $('orLine').hidden = true; return; }   // apagado: solo mail y contraseña
-  const draw = () => { try { $('gBtn').innerHTML = ''; google.accounts.id.renderButton($('gBtn'), { theme: 'filled_black', size: 'large', shape: 'pill', text: 'continue_with', locale: 'es', width: Math.min(320, $('gBtn').clientWidth || 300) }); } catch (e) {} };
+  if (!GOOGLE_LOGIN) { $('orLine').hidden = $('orLineL').hidden = true; return; }   // apagado: solo mail y contraseña
+  const draw = () => { try { ['gBtn', 'gBtnL'].forEach(id => { $(id).innerHTML = ''; google.accounts.id.renderButton($(id), { theme: 'filled_black', size: 'large', shape: 'rectangular', text: id === 'gBtn' ? 'signup_with' : 'signin_with', locale: 'es', width: Math.min(400, $('acct').clientWidth - 40 || 320) }); }); } catch (e) {} };
   if (gsi === 2) { draw(); return; } if (gsi === 1) return; gsi = 1;
   const sc = document.createElement('script'); sc.src = 'https://accounts.google.com/gsi/client?hl=es'; sc.async = true;
   sc.onload = () => { try { google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogle, ux_mode: 'popup', auto_select: false, cancel_on_tap_outside: true }); gsi = 2; draw(); } catch (e) { gsi = 0; } };
