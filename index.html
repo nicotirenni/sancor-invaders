@@ -3053,7 +3053,8 @@ function revealMenu() { // al terminar la presentación: el menú entra de a poc
 (() => { try { if (window.AUTOMATED) return; let id = LS.get('sancor_vid', ''); if (!/^[a-z0-9]{8,32}$/.test(id)) { id = (Math.random().toString(36).slice(2) + Date.now().toString(36)).slice(0, 20); LS.set('sancor_vid', id); }
   const d = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }); if (LS.get('sancor_vday', '') === d) return;
   fetch('/api/visit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }), keepalive: true }).then(r => { if (r.ok) LS.set('sancor_vday', d); }).catch(() => {}); } catch (e) {} })();
-splitTitle(); document.documentElement.classList.add('scene-menu'); layoutAll(); buildWave(); $('banner').classList.remove('on');
+if ($('intro').hidden) splitTitle();   // con la presentación en pantalla, el logo espera a que termine
+document.documentElement.classList.add('scene-menu'); layoutAll(); buildWave(); $('banner').classList.remove('on');
 // ================= Intro animada: la despedida de Messi y el show de drones (pixel art 16 bits + parallax, 10 s) =================
 const Intro = (() => {
   // Intro de 15 s con ilustraciones pixel art (mismo estilo que el álbum), animadas con zoom lento, luces y los drones del juego
@@ -3163,7 +3164,7 @@ const Intro = (() => {
   }
   function finish() {
     if (done) return; done = true; cancelAnimationFrame(raf); box.classList.add('out'); setTimeout(() => { box.hidden = true; }, 480);
-    state = 'menu'; SFX.ensure(); SFX.musicStart(112, 'menu'); setTimeout(splitTitle, 250); revealMenu(); setTimeout(openNews, 3300);   // el logo arranca cuando la presentación ya se está yendo
+    state = 'menu'; SFX.ensure(); SFX.musicStart(112, 'menu'); const tl = $('title'); tl.classList.add('noanim'); tl.classList.remove('in'); setTimeout(splitTitle, 250);   // el logo queda oculto hasta que arranca su animación revealMenu(); setTimeout(openNews, 3300);   // el logo arranca cuando la presentación ya se está yendo
   }
   box.addEventListener('click', e => { if (e.target.id === 'introSkip') return; begin(); });
   addEventListener('keydown', e => { if (done) return; if (e.key === 'Escape') finish(); else begin(); });
