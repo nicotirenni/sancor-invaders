@@ -27,7 +27,7 @@ const putUser = (key, u) => redis([['SET', key, JSON.stringify(u)]]);
 const histKey = key => 'sancor:hist:' + key.slice('sancor:acct:'.length);
 const cleanStats = st => { st = st && typeof st === 'object' ? st : {}; const n = (v, m) => Math.max(0, Math.min(m, Math.floor(Number(v) || 0)));
   return { games: n(st.games, 1e6), wins: n(st.wins, 1e6), best: n(st.best, 15e5), maxWave: n(st.maxWave, 20), total: n(st.total, 1e12) }; };
-const out = async (key, u, extra = {}) => ({ token: await newToken(key), nick: u.nick, email: u.email, google: !!u.google, progress: cleanProgress(u.progress), ...extra });
+const out = async (key, u, extra = {}) => ({ token: await newToken(key), nick: u.nick, email: u.email, google: !!u.google, pass: !!u.hash, progress: cleanProgress(u.progress), ...extra });
 
 // Códigos de confirmación por mail (6 dígitos, vencen en 10 minutos, 5 intentos). Sin clave de Resend no se piden.
 const mailId = email => crypto.createHash('sha256').update(email).digest('hex').slice(0, 32);
@@ -150,7 +150,7 @@ module.exports = async (req, res) => {
       u.progress = merge(u.progress, b.progress); await putUser(key, u);
       return res.status(200).json(await out(key, u));
     }
-    if (['sync', 'me', 'nick', 'game', 'history'].includes(action)) {
+    if (['sync', 'me', 'nick', 'game', 'history', 'delete'].includes(action)) {
       const key = await userOfToken(b.token);
       if (!key) return res.status(401).json({ error: 'Sesión vencida. Volvé a iniciar sesión.' });
       const u = await getUser(key); if (!u) return res.status(401).json({ error: 'La cuenta no existe.' });
@@ -162,6 +162,20 @@ module.exports = async (req, res) => {
           if (u.nick) await redis([['DEL', nickKey(u.nick)]]);
         }
         u.nick = want; await putUser(key, u);
+      }
+      if (action === 'delete') { // eliminar la cuenta: mail, contraseña, apodo, álbum, historial y sus puntajes en el ranking
+        if (u.hash) { const a = Buffer.from(hash(String(b.pass || ''), u.salt), 'hex'), c = Buffer.from(u.hash, 'hex');
+          if (a.length !== c.length || !crypto.timingSafeEqual(a, c)) return res.status(401).json({ error: 'La contraseña no es correcta.' }); }
+        const cmds = [['DEL', key], ['DEL', histKey(key)], ['DEL', 'sancor:tok:' + b.token], ['DEL', codeKey('register', u.email)], ['DEL', codeKey('reset', u.email)]];
+        if (u.nick) { const [owner] = await redis([['GET', nickKey(u.nick)]]); if (owner === key) cmds.push(['DEL', nickKey(u.nick)]); }
+        await redis(cmds);
+        if (u.nick) { // saca del ranking los puntajes con su apodo (cada entrada es "apodo␁fecha␁azar")
+          const pre = u.nick + '\u0001'; let cur = '0';
+          for (let i = 0; i < 50; i++) { const [[next, items]] = await redis([['ZSCAN', 'sancor:scores', cur, 'COUNT', 500]]);
+            const mine = items.filter((m, j) => j % 2 === 0 && m.startsWith(pre)); if (mine.length) await redis([['ZREM', 'sancor:scores', ...mine]]);
+            cur = String(next); if (cur === '0') break; }
+        }
+        return res.status(200).json({ deleted: true });
       }
       if (action === 'sync') { u.progress = merge(u.progress, b.progress); await putUser(key, u); }
       if (action === 'game') { // partida de Torneo terminada
@@ -178,7 +192,7 @@ module.exports = async (req, res) => {
         const [list] = await redis([['LRANGE', histKey(key), 0, 29]]);
         return res.status(200).json({ stats: cleanStats(u.stats), games: (list || []).map(x => { try { return JSON.parse(x); } catch { return null; } }).filter(Boolean) });
       }
-      return res.status(200).json({ nick: u.nick, email: u.email, google: !!u.google, progress: cleanProgress(u.progress) });
+      return res.status(200).json({ nick: u.nick, email: u.email, google: !!u.google, pass: !!u.hash, progress: cleanProgress(u.progress) });
     }
     if (action === 'checkNick') { // ¿está libre este apodo? (para avisar mientras se escribe)
       const ip = ipOf(req), want = cleanName(b.nick);
