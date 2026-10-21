@@ -1,4 +1,4 @@
-// Cuentas de Drones Invasores: con Google o con mail + contraseña, y un nick opcional (el nombre público del ranking).
+// Cuentas de Drones Invasores: con Google o con mail + contraseña, y un apodo obligatorio y único (el nombre público del ranking).
 // Guardan el álbum en la nube y reservan el nick en el ranking. El mail nunca se devuelve a otros jugadores.
 const crypto = require('crypto');
 const { redis, ready, cleanName, nickKey, acctKey, ipOf, bodyOf, userOfToken } = require('./_redis');
@@ -22,6 +22,10 @@ function merge(a, b) { // nunca se pierde nada: une figuritas y se queda con los
 async function newToken(key) { const t = crypto.randomBytes(24).toString('base64url'); await redis([['SET', 'sancor:tok:' + t, key, 'EX', YEAR]]); return t; }
 const getUser = async key => { const [raw] = await redis([['GET', key]]); return raw ? JSON.parse(raw) : null; };
 const putUser = (key, u) => redis([['SET', key, JSON.stringify(u)]]);
+// Historial del Torneo: resumen en la cuenta + las últimas 30 partidas en una lista aparte
+const histKey = key => 'sancor:hist:' + key.slice('sancor:acct:'.length);
+const cleanStats = st => { st = st && typeof st === 'object' ? st : {}; const n = (v, m) => Math.max(0, Math.min(m, Math.floor(Number(v) || 0)));
+  return { games: n(st.games, 1e6), wins: n(st.wins, 1e6), best: n(st.best, 15e5), maxWave: n(st.maxWave, 20), total: n(st.total, 1e12) }; };
 const out = async (key, u, extra = {}) => ({ token: await newToken(key), nick: u.nick, email: u.email, google: !!u.google, progress: cleanProgress(u.progress), ...extra });
 
 async function claimNick(nick, key) { // reserva el nick para la cuenta; true si quedó suyo
@@ -75,14 +79,16 @@ module.exports = async (req, res) => {
       if (pass.length < 6 || pass.length > 64) return res.status(400).json({ error: 'La contraseña tiene que tener entre 6 y 64 caracteres.' });
       const key = acctKey(email);
       if (action === 'register') {
+        const want = cleanName(b.nick);   // el apodo es obligatorio y único: si está tomado, no se crea la cuenta y se pide otro
+        if (want.length < 2) return res.status(400).json({ error: 'Elegí un apodo de al menos 2 letras.', field: 'nick' });
+        const [taken] = await redis([['EXISTS', nickKey(want)]]);
+        if (taken) return res.status(409).json({ error: 'Ese apodo ya lo usa otra persona. Probá con otro.', nickTaken: true });
         const salt = crypto.randomBytes(16).toString('hex');
-        const u = { email, salt, hash: hash(pass, salt), nick: null, progress: cleanProgress(b.progress), created: Date.now() };
+        const u = { email, salt, hash: hash(pass, salt), nick: want, progress: cleanProgress(b.progress), created: Date.now() };
         const [ok] = await redis([['SET', key, JSON.stringify(u), 'NX']]);
         if (!ok) return res.status(409).json({ error: 'Ese mail ya tiene cuenta. Tocá "Entrar".' });
-        const want = cleanName(b.nick);
-        u.nick = (want.length >= 2 && await claimNick(want, key)) ? want : await autoNick(email.split('@')[0], key);
-        await putUser(key, u);
-        return res.status(200).json(await out(key, u, { isNew: true, nickTaken: want.length >= 2 && u.nick !== want }));
+        if (!(await claimNick(want, key))) { await redis([['DEL', key]]); return res.status(409).json({ error: 'Ese apodo ya lo usa otra persona. Probá con otro.', nickTaken: true }); }   // lo tomó otro en el mismo instante
+        return res.status(200).json(await out(key, u, { isNew: true }));
       }
       const u = await getUser(key), bad = () => res.status(401).json({ error: 'Mail o contraseña incorrectos.' });
       if (!u) return res.status(404).json({ notFound: true });   // mail sin cuenta: el juego ofrece crearla
@@ -92,21 +98,43 @@ module.exports = async (req, res) => {
       u.progress = merge(u.progress, b.progress); await putUser(key, u);
       return res.status(200).json(await out(key, u));
     }
-    if (['sync', 'me', 'nick'].includes(action)) {
+    if (['sync', 'me', 'nick', 'game', 'history'].includes(action)) {
       const key = await userOfToken(b.token);
       if (!key) return res.status(401).json({ error: 'Sesión vencida. Volvé a iniciar sesión.' });
       const u = await getUser(key); if (!u) return res.status(401).json({ error: 'La cuenta no existe.' });
       if (action === 'nick') {
         const want = cleanName(b.nick);
-        if (want.length < 2) return res.status(400).json({ error: 'El nick tiene que tener al menos 2 letras.' });
+        if (want.length < 2) return res.status(400).json({ error: 'El apodo tiene que tener al menos 2 letras.' });
         if (want.toLowerCase() !== String(u.nick || '').toLowerCase()) {
-          if (!(await claimNick(want, key))) return res.status(409).json({ error: 'Ese nick ya lo usa otra persona. Probá con otro.' });
+          if (!(await claimNick(want, key))) return res.status(409).json({ error: 'Ese apodo ya lo usa otra persona. Probá con otro.', nickTaken: true });
           if (u.nick) await redis([['DEL', nickKey(u.nick)]]);
         }
         u.nick = want; await putUser(key, u);
       }
       if (action === 'sync') { u.progress = merge(u.progress, b.progress); await putUser(key, u); }
+      if (action === 'game') { // partida de Torneo terminada
+        const score = Math.floor(Number(b.score)), wave = Math.floor(Number(b.wave)), won = !!b.won;
+        if (!Number.isFinite(score) || score < 0 || score > 15e5 || !(wave >= 1 && wave <= 20)) return res.status(400).json({ error: 'datos inválidos' });
+        const [n] = await redis([['INCR', `sancor:rl:game:${key}`], ['EXPIRE', `sancor:rl:game:${key}`, 3600]]);
+        if (n > 60) return res.status(429).json({ error: 'demasiadas partidas' });
+        const st = cleanStats(u.stats); st.games++; if (won) st.wins++; st.best = Math.max(st.best, score); st.maxWave = Math.max(st.maxWave, wave); st.total += score; u.stats = st;
+        const g = { t: Date.now(), s: score, w: wave, won };
+        await redis([['SET', key, JSON.stringify(u)], ['LPUSH', histKey(key), JSON.stringify(g)], ['LTRIM', histKey(key), 0, 29], ['EXPIRE', histKey(key), 2 * YEAR]]);
+        return res.status(200).json({ stats: st });
+      }
+      if (action === 'history') {
+        const [list] = await redis([['LRANGE', histKey(key), 0, 29]]);
+        return res.status(200).json({ stats: cleanStats(u.stats), games: (list || []).map(x => { try { return JSON.parse(x); } catch { return null; } }).filter(Boolean) });
+      }
       return res.status(200).json({ nick: u.nick, email: u.email, google: !!u.google, progress: cleanProgress(u.progress) });
+    }
+    if (action === 'checkNick') { // ¿está libre este apodo? (para avisar mientras se escribe)
+      const ip = ipOf(req), want = cleanName(b.nick);
+      const [n] = await redis([['INCR', `sancor:rl:nick:${ip}`], ['EXPIRE', `sancor:rl:nick:${ip}`, 3600]]);
+      if (n > 400) return res.status(429).json({ error: 'Demasiadas consultas. Probá en un rato.' });
+      if (want.length < 2) return res.status(200).json({ free: false, short: true });
+      const [owner] = await redis([['GET', nickKey(want)]]); const mine = owner && owner === (await userOfToken(b.token));
+      return res.status(200).json({ free: !owner || !!mine });
     }
     if (action === 'logout') { if (typeof b.token === 'string') await redis([['DEL', 'sancor:tok:' + b.token]]); return res.status(200).json({ ok: true }); }
     return res.status(400).json({ error: 'acción inválida' });
