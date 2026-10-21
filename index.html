@@ -570,7 +570,7 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>Invitame un cafecito</a></div>
-      <span class="ver" id="ver">v2.9.2</span>
+      <span class="ver" id="ver">v2.10.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -1943,7 +1943,8 @@ function CodeSlots(container, o = {}) {
       clearTimeout(drainT); drainT = setTimeout(() => { draining = false; commit(Array(n).fill('')); paint(); }, reduce ? 300 : (filled.length - 1) * cascade + settle * 1000); } }
     paint(); }
   paint(); if (o.autoFocus) input.focus();
-  return { get value() { return slots.join(''); }, setStatus, get status() { return status; }, focus: () => input.focus(),
+  function set(code) { clearTimeout(drainT); draining = false; slots.forEach((c, i) => { if (c) drain(i); }); slots = Array(n).fill(''); active = 0; if (status !== 'idle') setStatus('idle'); insert(code, 0); }   // carga un código de afuera (link del mail)
+  return { get value() { return slots.join(''); }, setStatus, set, get status() { return status; }, focus: () => input.focus(),
     clear() { clearTimeout(drainT); draining = false; slots.forEach((c, i) => { if (c) drain(i); }); slots = Array(n).fill(''); active = 0; if (status !== 'idle') setStatus('idle'); paint(); },
     setDisabled(v) { o.disabled = v; input.disabled = v; row.toggleAttribute('data-disabled', v); paint(); } };
 }
@@ -3163,6 +3164,27 @@ const Intro = (() => {
   return { frame: t => frame(t), open() { state = 'intro'; build(); loaded.then(() => { if (!run && !done) frame(.3); }); if (document.fonts) { document.fonts.load('8px "Press Start 2P"').catch(() => {}); document.fonts.load('800 12px "Roboto Condensed"').catch(() => {}); } raf = requestAnimationFrame(loop); } };
 })();
 Intro.open();
+
+// link del mail ("Validar en el juego"): #v=<r|p>.<mail en base64url>.<código> → salta la intro, abre la cuenta y carga el código
+function mailLink() {
+  const m = /^#v=([rp])\.([\w-]+)\.(\d{6})$/.exec(location.hash); if (!m) return;
+  history.replaceState(null, '', location.pathname + location.search);   // saca el código de la barra de direcciones
+  let email = ''; try { email = new TextDecoder().decode(Uint8Array.from(atob(m[2].replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0))).trim(); } catch (e) { return; }
+  if (!EMAIL_OK(email)) return;
+  if (!$('intro').hidden) $('introSkip').click();
+  setTimeout(() => {
+    if (acct) { openAcct('menu'); return; }   // ya tiene la sesión iniciada en este equipo
+    needCode = true; pending = null;
+    if (m[1] === 'r') { // crear cuenta: sigue en el paso del código y después pasa a la contraseña; al terminar va a elegir nave del Torneo
+      setGameMode('torneo'); aTab = 'register'; openAcct('mode'); $('acctEmail').value = email;
+      $('aEmailShow').innerHTML = `Código del mail que mandamos a <b>${escH(email)}</b>.`; goStep(2); regSlots.set(m[3]);
+    } else { // cambiar contraseña: el código queda cargado y falta la contraseña nueva
+      aTab = 'login'; openAcct('menu'); $('loginEmail').value = email;
+      $('aResetShow').innerHTML = `Código cargado para <b>${escH(email)}</b>. Elegí tu contraseña nueva.`; goStep(5); resetSlots.set(m[3]); setTimeout(() => $('resetPass').focus(), 120);
+    }
+  }, 650);
+}
+mailLink(); addEventListener('hashchange', mailLink);   // también si el link se abre en una pestaña del juego que ya estaba abierta
 
 // en el menú los drones ya están armados detrás del cartel
 groups.forEach(g => g.age = 3);
