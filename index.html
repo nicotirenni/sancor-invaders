@@ -290,13 +290,13 @@
   .lvHead{display:flex;align-items:center;gap:10px;flex-wrap:wrap} .lvHead b{font:800 24px/1 var(--display);text-transform:uppercase;color:#fff} .lvGenre{font-size:14px;color:var(--muted)}
   .lvDiff{margin-left:auto;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0b0f24;background:var(--c)}
   .lvMeters{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px}
-  .lvM{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;row-gap:3px;align-items:center;font-size:13px;color:#c9d3f0;text-align:left}
+  .lvM{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;row-gap:3px;align-items:center;font-size:13px;color:#c9d3f0;text-align:left;min-height:38px}   /* alto fijo: el dato largo de los niveles difíciles ocupa 2 renglones y no debe mover el resto */
   .lvM .ic{grid-row:span 2;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:rgba(255,255,255,.06);color:#fff} .lvM .ic svg{width:17px;height:17px}
   .lvM .t{display:flex;justify-content:space-between;gap:8px} .lvM .t b{color:#fff;font-weight:600} .lvM .t span{color:var(--muted);text-align:right}
   .pips{display:flex;gap:3px} .pips i{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.1)} .pips i.on{background:var(--pc)}
-  .lvTip{margin:0;font-size:13px;color:#ffe3a3;text-align:left} .lvTip:empty{display:none}
-  .lvBtns{width:100%;display:grid;grid-template-columns:2fr 1fr;gap:10px} .lvBtns>*{width:100%;box-sizing:border-box} .lvBtns .sb .sb-in{width:100%;box-sizing:border-box}
-  @media (max-width:699px){.lvGal{height:clamp(220px,34vh,320px)} .lvMeters{grid-template-columns:1fr} .lvInfo{padding:12px} .lvHead b{font-size:21px} .lvBtns{grid-template-columns:1fr}}
+  .lvTip{margin:0;font-size:13px;color:#ffe3a3;text-align:left;display:grid} .lvTip>span{grid-area:1/1;visibility:hidden} .lvTip>span.on{visibility:visible}   /* todas las novedades apiladas e invisibles: el panel siempre mide lo que la más larga, haya novedad o no */
+  .lvBtns{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px} .lvBtns #lvBack{order:-1}   /* compu: Volver a la izquierda, Jugar a la derecha, mismo ancho */ .lvBtns>*{width:100%;box-sizing:border-box} .lvBtns .sb .sb-in{width:100%;box-sizing:border-box}
+  @media (max-width:699px){.lvGal{height:clamp(220px,34vh,320px)} .lvMeters{grid-template-columns:1fr} .lvInfo{padding:12px} .lvHead b{font-size:21px} .lvBtns{grid-template-columns:1fr} .lvBtns #lvBack{order:0}}
   .lvGrid{display:grid;grid-template-columns:repeat(10,1fr);gap:8px;width:100%}
   .lvT{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;height:118px;padding:12px 4px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#121730;color:#fff;cursor:pointer;font:inherit;overflow:hidden;transition:transform .15s,border-color .15s,background .15s}
   .lvT::before{content:'';position:absolute;left:0;right:0;bottom:0;height:calc(var(--d) * 100%);background:linear-gradient(180deg,color-mix(in srgb,var(--c) 38%,transparent),color-mix(in srgb,var(--c) 8%,transparent));border-top:2px solid var(--c);transition:height .5s}
@@ -551,7 +551,7 @@
         <div class="lvInfo" id="lvInfo" aria-live="polite">
           <div class="lvHead"><b id="lvName">Nivel 1</b><span class="lvGenre" id="lvGenre"></span><span class="lvDiff" id="lvDiff"></span></div>
           <div class="lvMeters" id="lvMeters"></div>
-          <p class="lvTip" id="lvTip"></p>
+          <div class="lvTip" id="lvTip"></div>
         </div>
         <div class="row lvBtns"><button class="sb" id="lvPlay" type="button">Jugar nivel 1</button><button class="gh" id="lvBack" type="button">Volver</button></div>
       </div>
@@ -2429,7 +2429,8 @@ function showLevel(w) {
   $('lvName').textContent = `Nivel ${w}`; $('lvGenre').textContent = `♪ ${g}`;
   const dd = $('lvDiff'); dd.textContent = d < .3 ? 'Fácil' : d < .55 ? 'Media' : d < .8 ? 'Difícil' : 'Muy difícil'; dd.style.setProperty('--c', c);
   $('lvMeters').innerHTML = lvFacts(w).map(f => `<div class="lvM"><span class="ic" aria-hidden="true">${f.ic}</span><div class="t"><b>${f.n}</b><span>${f.t}</span></div><div class="pips" style="--pc:${c}" aria-label="${f.p} de 5">${[0, 1, 2, 3, 4].map(i => `<i class="${i < f.p ? 'on' : ''}"></i>`).join('')}</div></div>`).join('');
-  $('lvTip').textContent = LV_TIPS[w] ? '★ Novedad: ' + LV_TIPS[w] : '';
+  const tip = $('lvTip'); if (!tip.children.length) Object.keys(LV_TIPS).forEach(k => { const el = document.createElement('span'); el.dataset.w = k; el.textContent = '★ Novedad: ' + LV_TIPS[k]; tip.appendChild(el); });
+  [...tip.children].forEach(el => { const on = +el.dataset.w === w; el.classList.toggle('on', on); el.setAttribute('aria-hidden', !on); });
   const b = $('lvPlay'); (b.querySelector('.sb-in') || b).textContent = `Jugar nivel ${w}`;
 }
 const playLevel = w => { startWave = w; if (LS.get('sancor_tuto', '') !== '1') openTuto(start); else start(); };
