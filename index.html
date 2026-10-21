@@ -2311,16 +2311,16 @@ void main() {
       if (auto) state.target += s.autoScroll * state.spacing * .25 * dt;
       const before = state.scroll;
       if (state.drag) { state.scroll += (state.target - state.scroll) * (1 - Math.pow(1 - s.scrollEase, dt * 60)); state.sv = 0; }
-      else { const n = Math.ceil(dt / .008), body = { x: state.scroll, v: state.sv }; // resorte con rebote (sin rebote si el sistema pide reducir movimiento)
-        for (let k = 0; k < n; k++) spring(body, state.target, reduce ? 260 : 170, reduce ? 1 : .5, dt / n); state.scroll = body.x; state.sv = body.v; }
+      else { const n = Math.ceil(dt / .008), body = { x: state.scroll, v: state.sv }; // resorte con rebote (es corto y lo dispara el usuario: se usa siempre, como en la muestra)
+        for (let k = 0; k < n; k++) spring(body, state.target, 170, .5, dt / n); state.scroll = body.x; state.sv = body.v; }
       if (Math.abs(state.target - state.scroll) < .05 && Math.abs(state.sv) < 1) { state.scroll = state.target; state.sv = 0; }
       const velocity = (state.scroll - before) / dt; state.velocity += (velocity - state.velocity) * (1 - Math.exp(-dt / .08)); if (Math.abs(state.velocity) < .5) state.velocity = 0;
       state.waveTime += dt * 2.4;
-      { const n = Math.ceil(dt / .008), lean = reduce ? 0 : clamp(((state.scroll - before) / dt / Math.max(state.spacing, 1)) * .09, -1, 1);
+      { const n = Math.ceil(dt / .008), lean = clamp(((state.scroll - before) / dt / Math.max(state.spacing, 1)) * .09, -1, 1);
         for (let k = 0; k < n; k++) { spring(state.tilt, lean, 260, .45, dt / n); spring(state.pop, 1, 300, .35, dt / n); }
         if (Math.abs(state.tilt.x) < .001 && Math.abs(state.tilt.v) < .01) state.tilt.x = state.tilt.v = 0;
         if (Math.abs(state.pop.x - 1) < .001 && Math.abs(state.pop.v) < .01) { state.pop.x = 1; state.pop.v = 0; }
-        const rest = !state.drag && state.scroll === state.target; if (rest && !state.rest && !reduce) state.pop.v = 2.6; state.rest = rest; }
+        const rest = !state.drag && state.scroll === state.target; if (rest && !state.rest) state.pop.v = 2.6; state.rest = rest; }
       state.ring += ((state.keyboard ? 1 : 0) - state.ring) * (1 - Math.exp(-dt / .1)); if (Math.abs((state.keyboard ? 1 : 0) - state.ring) < .002) state.ring = state.keyboard ? 1 : 0;
       if (state.intro < 1) state.intro = Math.min(1, state.intro + dt / INTRO_SECONDS);
       let settling = false;
