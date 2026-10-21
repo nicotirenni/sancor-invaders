@@ -2,6 +2,7 @@
 // Guardan el álbum en la nube y reservan el nick en el ranking. El mail nunca se devuelve a otros jugadores.
 const crypto = require('crypto');
 const { redis, ready, cleanName, nickKey, acctKey, ipOf, bodyOf, userOfToken } = require('./_redis');
+const { sendMail, mailReady } = require('./_mail');
 const YEAR = 365 * 24 * 3600, TILES = 9;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '673518924318-4ht3mfa852s6vh3q84jfukul79oae93k.apps.googleusercontent.com';
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
@@ -27,6 +28,26 @@ const histKey = key => 'sancor:hist:' + key.slice('sancor:acct:'.length);
 const cleanStats = st => { st = st && typeof st === 'object' ? st : {}; const n = (v, m) => Math.max(0, Math.min(m, Math.floor(Number(v) || 0)));
   return { games: n(st.games, 1e6), wins: n(st.wins, 1e6), best: n(st.best, 15e5), maxWave: n(st.maxWave, 20), total: n(st.total, 1e12) }; };
 const out = async (key, u, extra = {}) => ({ token: await newToken(key), nick: u.nick, email: u.email, google: !!u.google, progress: cleanProgress(u.progress), ...extra });
+
+// Códigos de confirmación por mail (6 dígitos, vencen en 10 minutos, 5 intentos). Sin clave de Resend no se piden.
+const mailId = email => crypto.createHash('sha256').update(email).digest('hex').slice(0, 32);
+const codeKey = (purpose, email) => `sancor:code:${purpose}:${mailId(email)}`;
+const codeHash = c => crypto.createHash('sha256').update('sancor-code:' + c).digest('hex');
+const CODE_ERR = { expired: 'El código venció o no lo pediste. Pedí uno nuevo.', locked: 'Demasiados intentos con ese código. Pedí uno nuevo.', bad: 'El código no es correcto. Revisá el mail.' };
+async function checkCode(purpose, email, code, consume) {
+  const k = codeKey(purpose, email), [raw] = await redis([['GET', k]]); if (!raw) return 'expired';
+  const c = JSON.parse(raw); if (c.tries >= 5) return 'locked';
+  const ok = /^\d{6}$/.test(String(code || '')) && crypto.timingSafeEqual(Buffer.from(codeHash(String(code)), 'hex'), Buffer.from(c.h, 'hex'));
+  if (!ok) { c.tries++; await redis([['SET', k, JSON.stringify(c), 'KEEPTTL']]); return c.tries >= 5 ? 'locked' : 'bad'; }
+  if (consume) await redis([['DEL', k]]);
+  return 'ok';
+}
+const codeMail = (code, purpose) => {
+  const what = purpose === 'reset' ? 'cambiar tu contraseña' : 'crear tu cuenta';
+  return { subject: `Tu código de Drones Invasores: ${code}`,
+    text: `Tu código para ${what} en Drones Invasores es ${code}. Vence en 10 minutos. Si no lo pediste, ignorá este mail.`,
+    html: `<div style="font-family:Arial,sans-serif;background:#05060f;color:#f4f7ff;padding:32px 24px;text-align:center"><p style="margin:0 0 6px;font-size:13px;letter-spacing:.2em;color:#8fa0d0">DRONES INVASORES</p><p style="margin:0 0 20px;font-size:16px">Tu código para ${what}:</p><p style="margin:0 0 20px;font-size:40px;font-weight:800;letter-spacing:.25em;color:#ffc928">${code}</p><p style="margin:0;font-size:13px;color:#8fa0d0">Vence en 10 minutos. Si no lo pediste, ignorá este mail.</p></div>` };
+};
 
 async function claimNick(nick, key) { // reserva el nick para la cuenta; true si quedó suyo
   const [ok] = await redis([['SET', nickKey(nick), key, 'NX']]);
@@ -56,7 +77,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ error: 'método no permitido' }); }
   try {
     const b = bodyOf(req), action = b.action;
-    if (['register', 'login', 'google'].includes(action)) {
+    if (['register', 'login', 'google', 'sendCode', 'checkCode', 'reset'].includes(action)) {
       const ip = ipOf(req);
       const [tries] = await redis([['INCR', `sancor:rl:acc:${ip}`], ['EXPIRE', `sancor:rl:acc:${ip}`, 3600]]);
       if (tries > 40) return res.status(429).json({ error: 'Demasiados intentos. Probá en un rato.' });
@@ -73,12 +94,42 @@ module.exports = async (req, res) => {
       await putUser(key, u);
       return res.status(200).json(await out(key, u, { isNew }));
     }
+    if (action === 'sendCode' || action === 'checkCode') { // pedir o comprobar el código de confirmación
+      const email = String(b.email || '').trim().toLowerCase(), purpose = b.purpose === 'reset' ? 'reset' : 'register';
+      if (!EMAIL_RE.test(email) || email.length > 254) return res.status(400).json({ error: 'Revisá el mail: parece que no es válido.' });
+      if (!mailReady()) return res.status(200).json({ skip: true });   // sin envío de mails configurado: se sigue sin código
+      if (action === 'checkCode') { const r = await checkCode(purpose, email, b.code, false); return r === 'ok' ? res.status(200).json({ ok: true }) : res.status(400).json({ error: CODE_ERR[r], reason: r }); }
+      const id = mailId(email), [n] = await redis([['INCR', `sancor:rl:code:${id}`], ['EXPIRE', `sancor:rl:code:${id}`, 3600]]);
+      if (n > 5) return res.status(429).json({ error: 'Pediste muchos códigos para este mail. Probá en una hora.' });
+      const u = await getUser(acctKey(email));
+      if (purpose === 'register' && u) return res.status(409).json({ error: 'Ese mail ya tiene cuenta: iniciá sesión con tu contraseña.', emailTaken: true });
+      if (purpose === 'reset' && !u) return res.status(404).json({ notFound: true });
+      if (purpose === 'reset' && !u.hash) return res.status(400).json({ error: 'Esa cuenta se creó con Google: entrá con "Continuar con Google".' });
+      const [free] = await redis([['SET', `sancor:code:cd:${purpose}:${id}`, '1', 'EX', 45, 'NX']]);
+      if (!free) return res.status(429).json({ error: 'Esperá unos segundos para pedir otro código.', wait: true });
+      const code = String(crypto.randomInt(0, 1e6)).padStart(6, '0');
+      await redis([['SET', codeKey(purpose, email), JSON.stringify({ h: codeHash(code), tries: 0 }), 'EX', 600]]);
+      const sent = await sendMail({ to: email, ...codeMail(code, purpose) });
+      if (!sent.ok) { await redis([['DEL', codeKey(purpose, email)], ['DEL', `sancor:code:cd:${purpose}:${id}`]]); return res.status(502).json({ error: 'No pudimos mandar el mail. Probá de nuevo en un rato.' }); }
+      return res.status(200).json({ sent: true });
+    }
+    if (action === 'reset') { // olvidé mi contraseña: código + contraseña nueva, y entra
+      const email = String(b.email || '').trim().toLowerCase(), pass = String(b.pass || '');
+      if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Revisá el mail: parece que no es válido.' });
+      if (pass.length < 6 || pass.length > 64) return res.status(400).json({ error: 'La contraseña tiene que tener entre 6 y 64 caracteres.' });
+      if (!mailReady()) return res.status(501).json({ error: 'Por ahora no se puede recuperar la contraseña.' });
+      const key = acctKey(email), u = await getUser(key); if (!u) return res.status(404).json({ notFound: true });
+      const r = await checkCode('reset', email, b.code, true); if (r !== 'ok') return res.status(400).json({ error: CODE_ERR[r], reason: r });
+      u.salt = crypto.randomBytes(16).toString('hex'); u.hash = hash(pass, u.salt); u.progress = merge(u.progress, b.progress); await putUser(key, u);
+      return res.status(200).json(await out(key, u));
+    }
     if (action === 'register' || action === 'login') {
       const email = String(b.email || '').trim().toLowerCase(), pass = String(b.pass || '');
       if (!EMAIL_RE.test(email) || email.length > 254) return res.status(400).json({ error: 'Revisá el mail: parece que no es válido.' });
       if (pass.length < 6 || pass.length > 64) return res.status(400).json({ error: 'La contraseña tiene que tener entre 6 y 64 caracteres.' });
       const key = acctKey(email);
       if (action === 'register') {
+        if (mailReady()) { const c = await checkCode('register', email, b.code, false); if (c !== 'ok') return res.status(400).json({ error: CODE_ERR[c], reason: c }); }   // mail confirmado con el código
         const want = cleanName(b.nick);   // el apodo es obligatorio y único: si está tomado, no se crea la cuenta y se pide otro
         if (want.length < 2) return res.status(400).json({ error: 'Elegí un apodo de al menos 2 letras.', field: 'nick' });
         const [taken] = await redis([['EXISTS', nickKey(want)]]);
@@ -86,8 +137,9 @@ module.exports = async (req, res) => {
         const salt = crypto.randomBytes(16).toString('hex');
         const u = { email, salt, hash: hash(pass, salt), nick: want, progress: cleanProgress(b.progress), created: Date.now() };
         const [ok] = await redis([['SET', key, JSON.stringify(u), 'NX']]);
-        if (!ok) return res.status(409).json({ error: 'Ese mail ya tiene cuenta. Tocá "Entrar".' });
+        if (!ok) return res.status(409).json({ error: 'Ese mail ya tiene cuenta: iniciá sesión con tu contraseña.' });
         if (!(await claimNick(want, key))) { await redis([['DEL', key]]); return res.status(409).json({ error: 'Ese apodo ya lo usa otra persona. Probá con otro.', nickTaken: true }); }   // lo tomó otro en el mismo instante
+        if (mailReady()) await redis([['DEL', codeKey('register', email)]]);
         return res.status(200).json(await out(key, u, { isNew: true }));
       }
       const u = await getUser(key), bad = () => res.status(401).json({ error: 'Mail o contraseña incorrectos.' });
