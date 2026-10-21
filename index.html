@@ -232,6 +232,17 @@
   #acct .aStep[data-s="6"] .row{grid-template-columns:1fr 1fr;gap:14px}
   .aSwitch{margin:4px 0 0;font-size:14px;color:var(--muted);text-align:center} .aSwitch a{color:#fff;text-underline-offset:3px;font-weight:600} .aSwitch a:hover{color:var(--gold)}
   .aForgot{align-self:flex-end;margin-top:-6px;padding:2px 4px;font-size:13px}
+  /* Eliminar cuenta: botón terciario rojo debajo de Volver (solo en "Tu cuenta") y modal de confirmación */
+  #acct .aDel{display:none;width:100%;background:none;box-shadow:none;border:0;color:#ff7a95;padding:.7em 1em} #acct .aDel::before{display:none} #acct .aDel:hover,#acct .aDel:focus-visible{color:#ff5a78;background:rgba(255,90,120,.08)} #acct.done .aDel{display:block}
+  #delModal{position:fixed;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:rgba(3,4,12,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)} #delModal[hidden]{display:none}
+  #delModal .dm{width:min(400px,100%);box-sizing:border-box;padding:24px;border-radius:16px;background:linear-gradient(180deg,#0e1433,#080c22);box-shadow:0 0 0 1px rgba(255,90,120,.35),0 20px 60px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:12px;animation:dmIn .25s cubic-bezier(.23,1,.32,1)}
+  @keyframes dmIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+  #delModal h2{margin:0;font:800 22px/1.15 var(--display);color:#fff} #delModal #delD{margin:0 0 4px;font-size:14px;line-height:1.5;color:#c9d2f0}
+  #delModal .field{width:100%;height:36px;padding:4px 12px;font:400 14px/1.4 var(--body);text-align:left;border-radius:6px} #delModal .field:focus{border-color:#ff5a78;box-shadow:0 0 0 3px rgba(255,90,120,.3)}
+  #delModal .sb:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.5);pointer-events:none} #delModal #delD b{color:#fff} #delModal .dmErr{margin:-4px 0 0;font-size:13px;color:#ff8da1} #delModal .dmErr:empty{display:none}   /* sin mensaje: 24 px del campo a los botones */
+  #delModal .dmBtns{display:grid;grid-template-columns:1fr;gap:6px;margin-top:12px} #delModal .dmBtns>*{width:100%;min-width:0;box-sizing:border-box;margin:0} #delModal #aDelNo{background:none;box-shadow:none;border:0;color:var(--muted);padding:.7em 1em} #delModal #aDelNo::before{display:none} #delModal #aDelNo:hover,#delModal #aDelNo:focus-visible{color:#fff;background:rgba(255,255,255,.04)} #delModal .dmBtns .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center}
+  @media (max-width:599px){#delModal .field{font-size:16px}}
+  .sb.danger{background:#b3123f} .sb.danger .sb-in{background:#b3123f}
   /* campos de la cuenta con tamaño estándar (como el Input de shadcn): 36 px de alto, texto de 14 px, borde fino y anillo de foco */
   #acct .field{height:36px;padding:4px 12px;font:400 14px/1.4 var(--body);letter-spacing:0;text-align:left;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:border-color .15s,box-shadow .15s}
   #acct .field:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(214,32,104,.3)}
@@ -242,6 +253,7 @@
   #acct .row>*{width:100%;min-width:0;max-width:none;margin:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} #acct>#acctBack{width:100%;box-sizing:border-box}   /* mismo ancho que el input */
   @media (max-width:699px){ #acct .aStep[data-s="6"] .row{grid-template-columns:1fr;gap:10px} #acct .row>*,#acctBack{width:100%;min-width:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} }   /* mobile: apilados, volver abajo */
   #acct .sb:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.5);pointer-events:none}
+  .avatar{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:#171c30;color:#cfd6f0;box-shadow:0 0 0 1px #313857 inset,0 1px 2px rgba(0,0,0,.35)}   /* foto de perfil por defecto: círculo con ícono de usuario relleno */
   .okMark{width:56px;height:56px} .okMark circle{fill:none;stroke:#7fffd4;stroke-width:3;stroke-dasharray:145;stroke-dashoffset:145;animation:draw .5s ease-out forwards}
   .okMark path{fill:none;stroke:#7fffd4;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:draw .35s .4s ease-out forwards} @keyframes draw{to{stroke-dashoffset:0}}
   .newCards{flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;font-size:clamp(13px,1.8cqw,16px);color:#ffd77a}
@@ -442,6 +454,12 @@
   .card[data-mode=over] .sb-in{padding:.65em 1.1em} .card[data-mode=over] .gh{padding:.65em 1.1em}
   .soc{padding:.65em 1em;box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.14) inset;border:0}
   #mute,#pauseBtn{border-radius:10px;border:0;background:#171c30;color:#cfd6f0;box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px #313857 inset}
+  /* acceso al perfil: arriba a la derecha, fuera de la partida (con sesión iniciada muestra la inicial del apodo) */
+  #profBtn{position:fixed;top:max(12px,env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));z-index:7;width:40px;height:40px;padding:0;border:0;border-radius:10px;background:#171c30;color:#cfd6f0;box-shadow:0 1px 2px rgba(0,0,0,.35),0 0 0 1px #313857 inset;display:none;place-items:center;cursor:pointer}
+  html.scene-menu #profBtn,html:has(#card:not([hidden])) #profBtn{display:grid} html:has(#card[data-mode=account]:not([hidden])) #profBtn,html:has(#intro:not([hidden]):not(.out)) #profBtn{display:none}
+  #profBtn:hover,#profBtn:focus-visible{background:#212741;color:#fff;outline:2px solid var(--pink);outline-offset:2px}
+  #profBtn .ini{display:none;width:28px;height:28px;border-radius:50%;background:var(--gold);color:#1a1300;font:800 15px/28px var(--display);text-align:center;text-transform:uppercase}
+  #profBtn.on svg{display:none} #profBtn.on .ini{display:block}
   #mute:hover,#pauseBtn:hover,#mute:focus-visible,#pauseBtn:focus-visible{background:#212741;color:#fff;outline:2px solid var(--pink);outline-offset:2px}
   /* controles según el dispositivo */
   .only-mob{display:none} html.is-mobile .only-mob{display:flex} html.is-mobile .only-desk{display:none}
@@ -491,6 +509,7 @@
   <p>Juego realizado por Nico Tirenni.</p>
 </main>
 <canvas id="bg"></canvas>
+<button id="profBtn" type="button" aria-label="Tu cuenta" title="Tu cuenta"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="ini" aria-hidden="true"></span></button>
 <button id="mute" type="button" aria-label="Activar o silenciar el sonido" title="Sonido"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path class="w" d="M16 9a5 5 0 0 1 0 6M19.364 18.364a9 9 0 0 0 0-12.728"/><path class="x" d="M22 9l-6 6M16 9l6 6"/></svg></button>
 <button id="pauseBtn" type="button" aria-label="Pausar" title="Pausa (P)" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg></button>
 <div id="pauseOv" hidden><div class="pbox"><div class="podTitle">Pausa</div>
@@ -501,6 +520,13 @@
   <div class="prow"><button class="sb" id="resumeBtn" type="button">Continuar</button><button class="gh" id="quitBtn" type="button">Salir al menú</button></div></div></div>
 <div id="intro"><canvas id="introCv"></canvas><button id="introSkip" type="button">Saltar ›</button></div>
 <canvas id="sparks"></canvas>
+<div id="delModal" hidden role="dialog" aria-modal="true" aria-labelledby="delT" aria-describedby="delD"><div class="dm">
+  <h2 id="delT">Eliminar tu cuenta</h2>
+  <p id="delD">Se borran para siempre tu mail, tu apodo, tu álbum guardado, tu historial del Torneo y tus puntajes del ranking. Esta acción no se puede deshacer.<span id="delGHint"> Para confirmar, escribí <b>Drones Invasores</b>.</span></p>
+  <div class="passWrap" id="delPassWrap"><input id="delPass" class="field" type="password" maxlength="64" placeholder="Escribí tu contraseña" autocomplete="current-password" aria-label="Tu contraseña"></div>
+  <p class="dmErr" id="delErr" role="alert"></p>
+  <div class="dmBtns"><button class="sb danger" id="aDelGo" type="button">Eliminar definitivamente</button><button class="gh" id="aDelNo" type="button">Cancelar</button></div>
+</div></div>
 <div id="inapp" hidden role="dialog" aria-labelledby="iaT"><div class="ia">
   <b id="iaT">Abrilo en tu navegador</b>
   <p id="iaP"></p>
@@ -543,7 +569,7 @@
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>Invitame un cafecito</a></div>
-      <span class="ver" id="ver">v2.8.0</span>
+      <span class="ver" id="ver">v2.9.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -652,13 +678,14 @@
           <div class="row"><button class="sb" id="aNickSave" type="button">Guardar apodo</button><button class="gh" id="aNickBack" type="button">Volver</button></div>
         </div>
         <div class="aStep" data-s="6">
-          <svg class="okMark" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="23"/><path d="M15 27l7 7 15-16"/></svg>
+          <span class="avatar" aria-hidden="true"><svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor"><circle cx="12" cy="7.5" r="4.5"/><path d="M3.5 21v-1.5A5.5 5.5 0 0 1 9 14h6a5.5 5.5 0 0 1 5.5 5.5V21z"/></svg></span>
           <p class="aHint" id="acctIn"></p>
           <div class="hist" id="acctHist" aria-live="polite"></div>
           <div class="row"><button class="gh" id="aEditNick" type="button">Cambiar apodo</button><button class="gh" id="acctOut" type="button">Cerrar sesión</button></div>
         </div>
         <div class="acctErr" id="acctErr" role="alert"></div>
         <button class="gh" id="acctBack" type="button">Volver</button>
+        <button class="gh aDel" id="aDel" type="button">Eliminar cuenta</button>
         <a class="aFoot" href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>
       </div>
       <div class="tuto" id="tuto" role="group" aria-roledescription="carrusel" aria-label="Cómo jugar">
@@ -1857,7 +1884,7 @@ let syncT = 0;
 function dropAcct() { acct = null; LS.set('sancor_acct', 'null'); renderAccBox(); }
 function acctSync() { if (!acct) return; clearTimeout(syncT); syncT = setTimeout(async () => { const r = await accApi({ action: 'sync', token: acct.token, progress: album }); if (r.progress) mergeAlbum(r.progress); else if (r.status === 401) dropAcct(); }, 1200); }
 function setAcct(r) {
-  acct = { token: r.token || (acct && acct.token), nick: r.nick, email: r.email }; LS.set('sancor_acct', JSON.stringify(acct));
+  acct = { token: r.token || (acct && acct.token), nick: r.nick, email: r.email, pass: r.pass ?? (acct && acct.pass) }; LS.set('sancor_acct', JSON.stringify(acct));
   if (r.nick) { playerName = r.nick; LS.set('sancor_name', r.nick); } mergeAlbum(r.progress);
 }
 const escH = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -2101,7 +2128,33 @@ $('acctNick').addEventListener('input', () => {
 $('acctNick').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aNickSave').click(); } });
 $('aEditNick').addEventListener('click', () => { aMode = 'nick'; $('acctNick').value = acct.nick || ''; goStep(4); });
 $('acctOut').addEventListener('click', () => { const t = acct && acct.token; if (acct && acct.email) { rememberEmail(acct.email); $('loginEmail').value = acct.email; } aTab = 'login'; dropAcct(); if (t) accApi({ action: 'logout', token: t }); try { google.accounts.id.disableAutoSelect(); } catch (e) {} renderAcct(); });
+$('profBtn').addEventListener('click', () => openAcct());   // ícono de perfil: entra a la cuenta (o a iniciar sesión / crear cuenta)
+const delMsg = t => { $('delErr').textContent = t; };
+function closeDel() { $('delModal').hidden = true; $('delPass').value = ''; delMsg(''); $('aDel').focus(); }
+const delGoogle = () => !!(acct && acct.pass === false);   // cuenta creada con Google: no tiene contraseña, confirma escribiendo el nombre del juego
+const delReady = () => delGoogle() ? $('delPass').value.trim().toLowerCase() === 'drones invasores' : $('delPass').value.length > 0;
+$('delPass').addEventListener('input', () => { $('aDelGo').disabled = !delReady(); delMsg(''); });
+$('aDel').addEventListener('click', () => { // abre el modal: pide la contraseña (o "Drones Invasores" si la cuenta es de Google)
+  const g = delGoogle(), i = $('delPass'); $('delGHint').hidden = !g;
+  i.type = g ? 'text' : 'password'; i.placeholder = g ? 'Escribí Drones Invasores' : 'Escribí tu contraseña'; i.autocomplete = g ? 'off' : 'current-password'; i.setAttribute('aria-label', g ? 'Confirmación' : 'Tu contraseña');
+  i.value = ''; $('aDelGo').disabled = true; delMsg(''); $('delModal').hidden = false; SFX.ui('card'); setTimeout(() => i.focus(), 50); });
+$('aDelNo').addEventListener('click', closeDel);
+$('delModal').addEventListener('click', e => { if (e.target === $('delModal')) closeDel(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('delModal').hidden) closeDel(); });
+$('delPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aDelGo').click(); } });
+$('aDelGo').addEventListener('click', async () => { // eliminar la cuenta (con la contraseña si la tiene)
+  if (!acct || !delReady()) return; const g = delGoogle(), val = $('delPass').value;
+  $('aDelGo').disabled = true; delMsg('Eliminando…');
+  const r = await accApi({ action: 'delete', token: acct.token, ...(g ? { confirm: val } : { pass: val }) }); $('aDelGo').disabled = false;
+  if (r.error) { delMsg(r.error); $('aDelGo').disabled = !delReady(); $('delPass').select(); return; }
+  $('delModal').hidden = true; $('delPass').value = ''; delMsg('');
+  try { google.accounts.id.disableAutoSelect(); } catch (e) {}
+  LS.set('sancor_lastEmail', ''); $('loginEmail').value = $('acctEmail').value = ''; aTab = 'register'; dropAcct();
+  renderAcct(); aOk('Tu cuenta fue eliminada.');
+});
 function renderAccBox() {
+  const pb = $('profBtn'); pb.classList.toggle('on', !!(acct && acct.nick)); pb.querySelector('.ini').textContent = acct && acct.nick ? [...acct.nick][0] : '';
+  pb.setAttribute('aria-label', acct && acct.nick ? `Tu cuenta: ${acct.nick}` : 'Iniciar sesión o crear cuenta'); pb.title = acct && acct.nick ? acct.nick : 'Iniciar sesión';
   const n = $('nameAcc'), b = $('albAcc');
   if (acct) { b.innerHTML = `<span>☁️ Tu álbum está guardado en tu cuenta (<b>${escH(acct.nick)}</b>).</span><a data-acc>Ver cuenta</a>`; n.innerHTML = `🏆 Torneo · jugás como <b>${escH(acct.nick || 'sin nick')}</b> · <a data-acc>ver cuenta</a>`; }
   else { b.innerHTML = `<span><b>Guardá tu álbum para siempre.</b> Entrá con ${GOOGLE_LOGIN ? 'Google o con tu mail' : 'tu mail'} y no lo perdés aunque cambies de celu. También reservás tu nick en el ranking.</span><a data-acc>Crear cuenta o iniciar sesión</a>`;
