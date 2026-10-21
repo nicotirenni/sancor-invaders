@@ -298,7 +298,7 @@
   .modeOpt li.y::before{content:'✓';color:#7fffd4} .modeOpt li.n{color:var(--muted)} .modeOpt li.n::before{content:'–';color:var(--muted)} .modeOpt li.k{color:#ffd77a} .modeOpt li.k::before{content:'●';font-size:9px;top:4px;color:var(--gold)}
   .modeOpt .mGo{align-self:stretch;text-align:center;padding:.75em 1em;border-radius:10px;background:rgba(116,192,245,.16);color:#fff;font-weight:600} .modeOpt.tor .mGo{background:var(--pink)}
   .modePick .podTitle{font-size:clamp(30px,4.6cqw,52px);white-space:nowrap}
-  #acctTitle{font-size:clamp(28px,4.4cqw,52px);white-space:nowrap;max-width:100%} @media (max-width:599px){#acctTitle{font-size:clamp(24px,8vw,34px)}}   /* cuenta: título en una sola línea */
+  #acctTitle{font-size:32px;white-space:nowrap;max-width:100%} @media (max-width:599px){#acctTitle{font-size:24px}} @media (min-width:600px){#acct{width:360px}}   /* ancho fijo en compu: no depende del largo del título */   /* cuenta: título en una sola línea */
   .modeOpt .mHead{display:flex;align-items:center;gap:12px;margin-bottom:2px} .modeOpt .mHead .mIc{margin:0}
   @media (max-width:599px){.card[data-mode=mode]{max-height:calc(100dvh - 32px);overflow-y:auto} .modePick{gap:12px} .modePick .podTitle{font-size:clamp(24px,7vw,32px);white-space:normal;text-align:center}
     .modeOpts{grid-template-columns:1fr;gap:10px} .modeOpt{padding:14px 14px 12px;gap:4px} .modeOpt .mIc{width:36px;height:36px;border-radius:10px} .modeOpt .mIc svg{width:20px;height:20px}
