@@ -574,7 +574,7 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>Invitame un cafecito</a></div>
-      <span class="ver" id="ver">v2.10.1</span>
+      <span class="ver" id="ver">v2.11.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -1234,7 +1234,7 @@ const _dp = [0, 0];
 // Niveles: qué aparece y qué tan difícil es cada uno (20 en total; al superar el 20 se gana)
 const MAX_WAVE = 20;
 const LV_ALLIES = [0, 0, 1, 2, 2, 3, 3, 3, 4, 4, 3, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4];
-const LV_DRONES = [0, 0, 0, 0, 1, 1, 2, 2, 2, 3, 4, 3, 3, 4, 4, 5, 4, 5, 5, 6, 6];
+const LV_DRONES = [0, 0, 0, 0, 1, 2, 2, 3, 3, 4, 5, 4, 5, 5, 6, 7, 6, 7, 8, 9, 9];   // total por nivel; entran por tandas (ver makeFoes)
 const LV_FIRE   = [0, 0, 0, 0, 4, 4, 3.8, 3.6, 3.4, 3, 3, 3, 2.8, 2.8, 2.6, 2.6, 2.5, 2.4, 2, 2, 1.9];
 const LV_TIPS = { 4: '¡Cuidado! Los drones isotipo disparan', 6: 'Agarrá los corazones: recuperan un golpe', 7: 'Ahora los drones te apuntan', 8: 'Tiros más rápidos', 9: 'Disparan más seguido',
   10: 'Nivel especial: formación', 11: 'Los drones aguantan más tiros', 12: 'El invasor se mueve más rápido', 13: 'Tiros dobles', 14: 'Los drones suben y bajan', 15: 'Nivel especial: ráfagas',
@@ -1255,14 +1255,23 @@ function foePts() {
   const pts = ringPts(g.getImageData(0, 0, w, w).data, w, w, (mobileView ? 4.4 : 2.9) * S, RED);
   foeShapeMv = mobileView; return foeShape = pts.map(p => ({ x: (p.x - w / 2) / S, y: (p.y - w / 2) / S }));
 }
+// Los drones entran por tandas: de 2 hasta el nivel 12 y de 3 desde el 13. La siguiente tanda entra al destruir la actual
+// o a los 10 s (8 s desde el nivel 15), lo que pase primero
+let foeQueue = [], foeT = 0, foeBatch = 0;
+const foeEvery = () => wave >= 15 ? 8 : 10;
 function makeFoes() {
-  const L = lv(wave), n = L.drones; foes = []; ebullets = [];
+  const L = lv(wave), size = wave >= 13 ? 3 : 2; foes = []; ebullets = []; foeQueue = []; foeBatch = 0;
+  const k = Math.ceil(L.drones / size); for (let j = 0; j < k; j++) foeQueue.push(Math.floor(L.drones / k) + (j < L.drones % k ? 1 : 0));   // reparto parejo: 7 → 3+2+2
+  if (foeQueue.length) spawnFoes(true);
+}
+function spawnFoes(first) {
+  const L = lv(wave), n = foeQueue.shift(), row = foeBatch++ % 2;
   for (let i = 0; i < n; i++) {
-    const slot = (i + .5) / n;
-    const lane = (W - 80) / n, hx = 40 + lane * (i + .5);                     // cada drone tiene su carril: nunca se pisan
+    const lane = (W - 80) / n, hx = 40 + lane * (i + .5);                     // cada drone de la tanda tiene su carril: nunca se pisan
     foes.push({ i, n, hx, x: hx, y: -60 - i * 30, ty: 0, amp: Math.max(0, lane / 2 - FOE_R - 8), spd: rnd(.5, .8) * (1 + wave * .02), ph: Math.random() * 6,
-      hp: L.hp, max: L.hp, t: rnd(1.5, 3) + i * .5, flash: 0, burst: 0, burstT: 0, age: 0, row: i % 2 });
+      hp: L.hp, max: L.hp, t: rnd(1.5, 3) + i * .5, flash: 0, burst: 0, burstT: 0, age: 0, row });
   }
+  foeT = foeEvery(); if (!first) SFX.alert();
 }
 function foeFire(f, L) {
   const ang0 = L.aim ? Math.atan2(ship.y - f.y, ship.x - f.x) : Math.PI / 2;
@@ -1271,13 +1280,14 @@ function foeFire(f, L) {
   SFX.eshot(f.x);
 }
 function updateFoes(dt) {
+  if (foeQueue.length) { if (!foes.length) foeT = Math.min(foeT, 1.2); foeT -= dt; if (foeT <= 0) spawnFoes(false); }   // tanda limpia: la siguiente entra enseguida
   if (!foes.length && !ebullets.length) return;
   const L = lv(wave), logo = groups.find(g => !g.ally);
   const top = logo ? logo.y + logo.h + 36 : SANCOR_Y0 + 150, bandMax = STADIUM_TOP - 95;
   const form = L.formation ? Math.sin(performance.now() / 1000 * .7) * 90 : 0;
   for (const f of foes) {
     f.age += dt; f.flash = Math.max(0, f.flash - dt);
-    const base = Math.min(bandMax, Math.max(top, SANCOR_Y0 + 170)) + (f.n > 3 ? f.row * 40 : 0);
+    const base = Math.min(bandMax, Math.max(top, SANCOR_Y0 + 170)) + f.row * 40;   // tandas alternadas en dos alturas
     f.ty = Math.min(bandMax, base) + (L.bob ? Math.sin(f.age * 1.6 + f.ph) * 22 : 0);
     f.y += (f.ty - f.y) * Math.min(1, dt * (f.age < 2 ? 2.5 : 4));
     if (L.formation) f.x += (f.hx + form - f.x) * Math.min(1, dt * 3);
@@ -1617,6 +1627,7 @@ const SFX = (() => {
     hold(p) { if (!ac) return; clearTimeout(this._h); if (p) this._h = setTimeout(() => { try { ac.suspend(); } catch (e) {} }, 260); else { try { ac.resume(); } catch (e) {} } },   // deja sonar el efecto de pausa antes de congelar el audio
     start() { if (!ok()) return; tone('sine', 110, 220, .38, .4); seqT('pulse', [262, 330, 392, 523], .07, .1, .07, { lp: 1700, wet: .25 }); tone('pulse', 659, 659, .35, .05, { delay: .28, vib: 20, lp: 1800, wet: .4 }); },
     whoosh() { if (ok()) noise(1.3, .13, 1000, { lp0: 150, attack: .5 }); },
+    alert() { if (!ok()) return; tone('square', 990, 740, .11, .07); setTimeout(() => tone('square', 990, 740, .11, .07), 150); },   // entra una tanda nueva de drones
     eshot(x) { if (!ok()) return; const p = at(x); tone('pulse', 740, 330, .16, .035, { lp: 1600, pan: p, wet: .2 }); },                            // dispara un drone isotipo
     hurt(x) { if (!ok()) return; const p = at(x); duck(.6); tone('sawtooth', 220, 70, .45, .22, { lp: 700, pan: p }); tone('sine', 90, 40, .5, .5); noise(.35, .2, 900, { pan: p }); },   // le dieron a la nave
     boom(x) { if (!ok()) return; const p = at(x); tone('sine', 140, 40, .5, .45); noise(.5, .2, 1400, { lp0: 300, pan: p, wet: .3 }); tone('pulse', 523, 784, .12, .05, { delay: .05, lp: 1800, pan: p }); },   // cae un drone isotipo
@@ -2254,13 +2265,13 @@ let startWave = 1; // las partidas siempre arrancan en la ronda 1
 function start() {
   $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true; $('rank').textContent = '';
   wave = startWave; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
-  itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; $('pauseOv').hidden = true; newCards = []; lives = 3; ship.inv = 0; foes = []; ebullets = [];
+  itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; $('pauseOv').hidden = true; newCards = []; lives = 3; ship.inv = 0; foes = []; foeQueue = []; ebullets = [];
   document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(...levelSong(startWave)); buildWave(); $('pauseBtn').hidden = false;
 }
 let clearAt = 0, clearResults = null;
 function showLevelResults(bonus, allies) {
   state = 'clear'; clearAt = performance.now(); SFX.musicStop(); SFX.pad(0);
-  groups = []; items = []; bullets = []; parts = []; rings = []; pops = []; foes = []; ebullets = []; hudMsgT = 0; flash = 0; shake = 0;   // pantalla limpia al superar el nivel
+  groups = []; items = []; bullets = []; parts = []; rings = []; pops = []; foes = []; foeQueue = []; ebullets = []; hudMsgT = 0; flash = 0; shake = 0;   // pantalla limpia al superar el nivel
   touching = false; for (const k in keys) keys[k] = false; $('pauseBtn').hidden = true; $('banner').classList.remove('on');
   $('kicker').textContent = 'Ronda completada'; $('lvlTitle').textContent = `Ronda ${wave} de ${MAX_WAVE}`;
   const row = (a, v, pre = '', suf = '', c = '') => `<li class="${c}"><span>${a}</span><b data-v="${v}" data-pre="${pre}" data-suf="${suf}">${pre}0${suf}</b></li>`;
@@ -2661,7 +2672,7 @@ function lvFacts(w) {
   const L = lv(w), pip = v => Math.max(0, Math.min(5, Math.round(v)));
   const fire = L.drones ? pip((5 - L.fire) / 3.1 * 3 + (L.aim ? 1 : 0) + (L.shots - 1) * .5) : 0;
   return [
-    { ic: IC.drone, n: 'Drones isotipo', p: L.drones ? pip(L.drones / 6 * 4 + (L.hp > 3 ? 1 : 0)) : 0, t: L.drones ? `${L.drones} · aguantan ${L.hp} tiros${L.bob ? ' · suben y bajan' : ''}` : 'No hay' },
+    { ic: IC.drone, n: 'Drones isotipo', p: L.drones ? pip(L.drones / 9 * 4 + (L.hp > 3 ? 1 : 0)) : 0, t: L.drones ? `${L.drones} en tandas · aguantan ${L.hp} tiros${L.bob ? ' · suben y bajan' : ''}` : 'No hay' },
     { ic: IC.shot, n: 'Disparos enemigos', p: fire, t: L.drones ? `cada ~${L.fire} s${L.aim ? ' · te apuntan' : ''}${L.shots > 1 ? ` · de a ${L.shots}` : ''}` : 'No disparan' },
     { ic: IC.ally, n: 'Los nuestros (no disparar)', p: L.allies ? pip(L.allies + (L.allySp > 1 ? 1 : 0)) : 0, t: L.allies ? `pasan ${L.allies}${L.allySp > 1 ? ' · más rápido' : ''}` : 'No pasan' },
     { ic: IC.speed, n: 'Velocidad del invasor', p: pip(1 + (w - 1) / 19 * 4), t: w <= 5 ? 'Lenta' : w <= 10 ? 'Media' : w <= 15 ? 'Rápida' : 'Muy rápida' }
@@ -2929,9 +2940,9 @@ function update(dt) {
     const bonus = allies * 4; score += bonus;
     for (const g of groups) if (g.ally) for (const d of g.dots) if (d.alive && Math.random() < .3) burst(g.x + d.x, g.y + d.y, d.c, 2, 60);
     say(bonus ? `¡Sancor destruido! +${bonus} por cuidar lo nuestro` : '¡Sancor destruido!'); SFX.clear();
-    bullets = []; ebullets = [];
+    bullets = []; ebullets = []; foeQueue = [];   // ya no entran más tandas
     try { albWave(wave, lv(wave).allies > 0 && waveAllyHits === 0); grantCard(); } catch (e) { report('err-album', e); }
-    if (wave >= MAX_WAVE) { foes = []; endGame('¡Defendiste al G.O.A.T.!', true); } else showLevelResults(bonus, allies);
+    if (wave >= MAX_WAVE) { foes = []; foeQueue = []; endGame('¡Defendiste al G.O.A.T.!', true); } else showLevelResults(bonus, allies);
   } else if (lowest + STEP / 2 > STADIUM_TOP) endGame('Sancor llegó al Monumental');
   else if (respect <= 0) endGame('Se perdió el respeto');
   danger = lowest + STEP / 2 > STADIUM_TOP - 90;
