@@ -211,6 +211,10 @@
   .passWrap{position:relative;width:100%} .passWrap .field{padding-right:3.2em;padding-left:3.2em}
   .eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;border-radius:10px;background:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
   .eye:hover,.eye:focus-visible{color:#fff;background:rgba(255,255,255,.06);outline:none} .eye[aria-pressed=true] .slash{display:none}
+  .aTabs{display:none;grid-template-columns:1fr 1fr;gap:4px;width:100%;padding:4px;box-sizing:border-box;border-radius:12px;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)} .acct.tabs .aTabs{display:grid}   /* pestañas Iniciar sesión / Crear cuenta */
+  .aTabs button{border:0;border-radius:9px;background:none;color:var(--muted);font:600 clamp(14px,1.8cqw,16px)/1 var(--body);padding:11px 8px;cursor:pointer;transition:background .2s,color .2s} .aTabs button:hover{color:#fff}
+  .aTabs button[aria-selected=true]{background:var(--pink);color:#fff;box-shadow:0 0 14px rgba(214,32,104,.3)} .aTabs button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .acct.login .steps{display:none} .aSwitch{margin:0;font-size:14px;color:var(--muted);text-align:center} .aSwitch a,.acctErr a{color:#fff;text-underline-offset:3px;font-weight:600}
   .aSmall{font-size:13px;color:var(--muted)} .acct:not(.done) #acctBack{display:none}
   #acct .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;margin-top:4px} #acct .row>.gh{order:-1}   /* desktop: dos columnas iguales, volver a la izquierda */
   #acct .row>*{width:100%;min-width:0;max-width:none;margin:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} #acct>#acctBack{width:100%;box-sizing:border-box}   /* mismo ancho que el input */
@@ -583,7 +587,14 @@
       <div class="acct" id="acct">
         <div class="podTitle" id="acctTitle">Tu cuenta</div>
         <p class="aWhy" id="aWhy" hidden>🏆 El <b>Torneo</b> necesita cuenta: así tu puntaje y tus figuritas quedan a tu nombre.</p>
+        <div class="aTabs" id="aTabs" role="tablist" aria-label="Cuenta"><button type="button" role="tab" id="tabLogin" data-tab="login" aria-selected="false">Iniciar sesión</button><button type="button" role="tab" id="tabReg" data-tab="register" aria-selected="true">Crear cuenta</button></div>
         <div class="steps" id="acctSteps" aria-hidden="true"><i data-s="1">1</i><b></b><i data-s="2">2</i><b></b><i data-s="3">3</i></div>
+        <div class="aStep" data-s="0">
+          <input id="loginEmail" class="field" type="email" maxlength="254" placeholder="tu@mail.com" autocomplete="email" inputmode="email" autocapitalize="off">
+          <div class="passWrap"><input id="loginPass" class="field" type="password" maxlength="64" placeholder="Contraseña" autocomplete="current-password"><button class="eye" id="lEye" data-for="loginPass" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
+          <div class="row"><button class="sb" id="aLoginGo" type="button">Iniciar sesión</button><button class="gh" id="aBackL" type="button">Volver</button></div>
+          <p class="aSwitch">¿No tenés cuenta? <a href="#" data-tab="register">Creala acá</a></p>
+        </div>
         <div class="aStep" data-s="1">
           <ul class="perks">
             <li><b>✓</b>Tu álbum queda guardado y lo ves en cualquier dispositivo</li>
@@ -594,12 +605,13 @@
           <div class="orLine" id="orLine"><span>o con tu mail</span></div>
           <input id="acctEmail" class="field" type="email" maxlength="254" placeholder="tu@mail.com" autocomplete="email" inputmode="email" autocapitalize="off">
           <div class="row"><button class="sb" id="aNext1" type="button">Continuar</button><button class="gh" id="aBack0" type="button">Volver</button></div>
+          <p class="aSwitch">¿Ya tenés cuenta? <a href="#" data-tab="login">Iniciá sesión</a></p>
         </div>
         <div class="aStep" data-s="2">
           <p class="aHint" id="aEmailShow"></p>
-          <div class="passWrap"><input id="acctPass" class="field" type="password" maxlength="64" placeholder="Contraseña (mínimo 6)" autocomplete="current-password"><button class="eye" id="aEye" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
-          <p class="aHint aSmall">Si ya tenés cuenta, entrás. Si es la primera vez, la creamos con esta contraseña.</p>
-          <div class="row"><button class="sb" id="aLogin" type="button">Confirmar</button><button class="gh" id="aBack1" type="button">Volver</button></div>
+          <div class="passWrap"><input id="acctPass" class="field" type="password" maxlength="64" placeholder="Contraseña (mínimo 6)" autocomplete="new-password"><button class="eye" id="aEye" data-for="acctPass" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
+          <p class="aHint aSmall">Elegí una contraseña para tu cuenta: mínimo 6 caracteres.</p>
+          <div class="row"><button class="sb" id="aLogin" type="button">Continuar</button><button class="gh" id="aBack1" type="button">Volver</button></div>
         </div>
         <div class="aStep" data-s="3">
           <p class="aHint">Elegí tu apodo: es como te van a ver en el ranking y nadie más puede usarlo. Tu mail nunca se muestra.</p>
@@ -1817,18 +1829,19 @@ function setAcct(r) {
   if (r.nick) { playerName = r.nick; LS.set('sancor_name', r.nick); } mergeAlbum(r.progress);
 }
 const escH = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-// --- stepper (estilo Stepper de React Bits): 1 mail o Google · 2 contraseña · 3 nick · 4 listo ---
-let acctBack = 'menu', aStep = 1, aMode = '', pending = null;
+// --- cuenta: pestañas "Iniciar sesión" (paso 0: mail + contraseña) y "Crear cuenta" (stepper estilo React Bits: 1 mail o Google · 2 contraseña · 3 apodo) · 4 listo ---
+let acctBack = 'menu', aStep = 1, aMode = '', pending = null, aTab = LS.get('sancor_lastEmail', '') ? 'login' : 'register';   // quien ya entró alguna vez en este equipo arranca en "Iniciar sesión"
 function goStep(n) {
   const back = n < aStep; aStep = n;
   document.querySelectorAll('#acct .aStep').forEach(el => { const on = +el.dataset.s === n; el.classList.toggle('on', on); el.classList.toggle('back', on && back); });
   document.querySelectorAll('#acctSteps i').forEach(el => { const k = +el.dataset.s; el.classList.toggle('on', k === n); el.classList.toggle('ok', k < n); el.textContent = k < n ? '✓' : k; });
   document.querySelectorAll('#acctSteps b').forEach((el, i) => el.classList.toggle('ok', i + 1 < n));
-  $('acct').classList.toggle('done', n === 4); $('acct').classList.toggle('s2', n === 2);
-  if (n !== 2) { $('acctPass').type = 'password'; $('aEye').setAttribute('aria-pressed', 'false'); } $('acctErr').textContent = ''; $('acctErr').classList.remove('ok');
-  $('acctTitle').textContent = n === 4 ? 'Tu cuenta' : n === 3 ? 'Tu apodo' : 'Creá tu cuenta';
+  $('acct').classList.toggle('done', n === 4); $('acct').classList.toggle('s2', n === 2); $('acct').classList.toggle('login', n === 0); $('acct').classList.toggle('tabs', n <= 1);
+  document.querySelectorAll('#aTabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === (n === 0 ? 'login' : 'register'))));
+  ['acctPass', 'loginPass'].forEach(id => { $(id).type = 'password'; }); document.querySelectorAll('#acct .eye').forEach(b => b.setAttribute('aria-pressed', 'false')); $('acctErr').textContent = ''; $('acctErr').classList.remove('ok');
+  $('acctTitle').textContent = n === 4 ? 'Tu cuenta' : n === 3 ? 'Tu apodo' : n === 0 ? 'Iniciá sesión' : 'Creá tu cuenta';
   aValidate(); setTimeout(aValidate, 0);
-  const f = { 1: 'acctEmail', 2: 'acctPass', 3: 'acctNick' }[n]; if (f && matchMedia('(pointer:fine)').matches) setTimeout(() => $(f).focus(), 60);
+  const f = { 0: $('loginEmail').value ? 'loginPass' : 'loginEmail', 1: 'acctEmail', 2: 'acctPass', 3: 'acctNick' }[n]; if (f && matchMedia('(pointer:fine)').matches) setTimeout(() => $(f).focus(), 60);
 }
 function openAcct(back) { acctBack = back || $('card').dataset.mode; $('aWhy').hidden = !(acctBack === 'mode' && gameMode === 'torneo'); setMode('account'); SFX.ui('card'); renderAcct(); }
 function afterAcct() { // si vino del Torneo: con la sesión iniciada sigue solo a elegir la nave
@@ -1848,8 +1861,16 @@ async function loadHist() { // historial del Torneo: resumen y últimas partidas
 }
 function renderAcct() {
   if (acct) { loadHist(); $('acctIn').innerHTML = `Conectado como <b>${escH(acct.nick || 'sin apodo')}</b>${acct.email ? `<br><span style="color:var(--muted)">${escH(acct.email)}</span>` : ''}<br>Tu álbum se guarda solo.`; goStep(4); return; }
-  goStep(1); if (!$('acctEmail').value) $('acctEmail').value = ''; loadGoogle();
+  if (aTab === 'login' && !$('loginEmail').value) $('loginEmail').value = LS.get('sancor_lastEmail', '');
+  goStep(aTab === 'login' ? 0 : 1); loadGoogle();
 }
+function setTab(t, email) { // cambia de pestaña y lleva el mail que ya escribió
+  aTab = t; const e = email ?? (t === 'login' ? $('acctEmail') : $('loginEmail')).value.trim();
+  if (e) $(t === 'login' ? 'loginEmail' : 'acctEmail').value = e;
+  aMode = ''; pending = null; goStep(t === 'login' ? 0 : 1); SFX.ui('hover');
+}
+document.addEventListener('click', e => { const t = e.target.closest('#acct [data-tab]'); if (t) { e.preventDefault(); setTab(t.dataset.tab); } });
+const rememberEmail = e => { if (e) LS.set('sancor_lastEmail', e); };
 let gsi = 0;
 function loadGoogle() { // botón oficial de Google (Google Identity Services)
   if (!GOOGLE_LOGIN) { $('orLine').hidden = true; return; }   // apagado: solo mail y contraseña
@@ -1863,7 +1884,7 @@ async function onGoogle(resp) {
   aErr('Entrando con Google…');
   const r = await accApi({ action: 'google', credential: resp && resp.credential, progress: album });
   if (r.error) { aErr(r.error); return; }
-  setAcct(r); SFX.ui('save'); renderAccBox();
+  setAcct(r); rememberEmail(r.email); SFX.ui('save'); renderAccBox();
   if (r.isNew) { aMode = 'nick'; $('acctNick').value = r.nick || ''; goStep(3); } else { renderAcct(); afterAcct(); aOk('¡Hola de nuevo!'); }
 }
 const aErr = t => { const e = $('acctErr'); e.textContent = t; e.classList.remove('ok'); };
@@ -1871,32 +1892,43 @@ const aOk = t => { const e = $('acctErr'); e.textContent = t; e.classList.add('o
 const EMAIL_OK = e => /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/.test(e);
 function aValidate() {
   $('aNext1').disabled = !EMAIL_OK($('acctEmail').value.trim());
+  $('aLoginGo').disabled = !EMAIL_OK($('loginEmail').value.trim()) || $('loginPass').value.length < 6;
   $('aLogin').disabled = $('acctPass').value.length < 6;
   $('aNickSave').disabled = cleanName($('acctNick').value).length < 2;
 }
-['acctEmail', 'acctPass', 'acctNick'].forEach(id => $(id).addEventListener('input', aValidate));
+['acctEmail', 'acctPass', 'acctNick', 'loginEmail', 'loginPass'].forEach(id => $(id).addEventListener('input', aValidate));
 $('aNext1').addEventListener('click', () => { const e = $('acctEmail').value.trim(); if (!EMAIL_OK(e)) { aErr('Revisá el mail: parece que no es válido.'); return; } $('aEmailShow').innerHTML = `Mail: <b>${escH(e)}</b>`; goStep(2); SFX.ui('place'); });
 $('acctEmail').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aNext1').click(); } });
 $('aBack1').addEventListener('click', e => { e.preventDefault(); goStep(1); });
 $('aBack0').addEventListener('click', () => $('acctBack').click());
-$('aEye').addEventListener('click', () => { const i = $('acctPass'), show = i.type === 'password'; i.type = show ? 'text' : 'password'; $('aEye').setAttribute('aria-pressed', show); $('aEye').setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña'); i.focus(); });
-$('acctPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aLogin').click(); } });
-$('aLogin').addEventListener('click', async () => { // si el mail ya tiene cuenta entra; si no, sigue al paso del nick y la crea
-  const email = $('acctEmail').value.trim(), pass = $('acctPass').value;
-  if (pass.length < 6) { aErr('La contraseña tiene que tener al menos 6 caracteres.'); return; }
+document.querySelectorAll('#acct .eye').forEach(b => b.addEventListener('click', () => { const i = $(b.dataset.for), show = i.type === 'password'; i.type = show ? 'text' : 'password'; b.setAttribute('aria-pressed', show); b.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña'); i.focus(); }));
+$('aBackL').addEventListener('click', () => $('acctBack').click());
+$('loginEmail').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('loginPass').focus(); } });
+$('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aLoginGo').click(); } });
+$('aLoginGo').addEventListener('click', async () => { // Iniciar sesión: mail + contraseña de una cuenta existente
+  const email = $('loginEmail').value.trim(), pass = $('loginPass').value;
+  if (!EMAIL_OK(email)) { aErr('Revisá el mail: parece que no es válido.'); return; }
+  if (pass.length < 6) { aErr('La contraseña tiene al menos 6 caracteres.'); return; }
   aErr('Un segundo…');
   const r = await accApi({ action: 'login', email, pass, progress: album });
-  if (r.notFound) { pending = { email, pass }; aMode = 'register'; $('acctNick').value = playerName || cleanName(email.split('@')[0]); goStep(3); SFX.ui('place'); return; }
+  if (r.notFound) { const e = $('acctErr'); e.classList.remove('ok'); e.innerHTML = 'No hay ninguna cuenta con ese mail. <a href="#" data-tab="register">Crear cuenta con este mail</a>'; return; }
   if (r.error) { aErr(r.error); return; }
-  $('acctPass').value = ''; setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox(); aOk('¡Hola de nuevo!'); afterAcct();
+  $('loginPass').value = ''; rememberEmail(email); setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox(); aOk('¡Hola de nuevo!'); afterAcct();
+});
+$('acctPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aLogin').click(); } });
+$('aLogin').addEventListener('click', () => { // Crear cuenta, paso 2: guarda la contraseña y sigue al apodo (la cuenta se crea al guardarlo)
+  const email = $('acctEmail').value.trim(), pass = $('acctPass').value;
+  if (pass.length < 6) { aErr('La contraseña tiene que tener al menos 6 caracteres.'); return; }
+  pending = { email, pass }; aMode = 'register'; if (!$('acctNick').value) $('acctNick').value = playerName || cleanName(email.split('@')[0]); goStep(3); SFX.ui('place');
 });
 async function finishNick(nick) {
   const err = $('acctErr');
   if (aMode === 'register') {
     aErr('Creando tu cuenta…');
     const r = await accApi({ action: 'register', email: pending.email, pass: pending.pass, nick, progress: album });
-    if (r.error) { aErr(r.error); if (r.status === 409 && !r.nickTaken) goStep(2); return; }   // apodo tomado: se queda acá para elegir otro
-    pending = null; $('acctPass').value = ''; setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox();
+    if (r.status === 409 && !r.nickTaken) { const e = pending.email; setTab('login', e); aErr('Ese mail ya tiene cuenta: iniciá sesión con tu contraseña.'); return; }   // el mail ya existe: lo pasa a "Iniciar sesión"
+    if (r.error) { aErr(r.error); return; }   // apodo tomado: se queda acá para elegir otro
+    rememberEmail(pending.email); pending = null; $('acctPass').value = ''; setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox();
     aOk('¡Listo! Tu cuenta está creada.'); afterAcct();
     return;
   }
@@ -1916,7 +1948,7 @@ $('acctNick').addEventListener('input', () => {
 });
 $('acctNick').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aNickSave').click(); } });
 $('aEditNick').addEventListener('click', () => { aMode = 'nick'; $('acctNick').value = acct.nick || ''; goStep(3); });
-$('acctOut').addEventListener('click', () => { const t = acct && acct.token; dropAcct(); if (t) accApi({ action: 'logout', token: t }); try { google.accounts.id.disableAutoSelect(); } catch (e) {} renderAcct(); });
+$('acctOut').addEventListener('click', () => { const t = acct && acct.token; if (acct && acct.email) { rememberEmail(acct.email); $('loginEmail').value = acct.email; } aTab = 'login'; dropAcct(); if (t) accApi({ action: 'logout', token: t }); try { google.accounts.id.disableAutoSelect(); } catch (e) {} renderAcct(); });
 function renderAccBox() {
   const n = $('nameAcc'), b = $('albAcc');
   if (acct) { b.innerHTML = `<span>☁️ Tu álbum está guardado en tu cuenta (<b>${escH(acct.nick)}</b>).</span><a data-acc>Ver cuenta</a>`; n.innerHTML = `🏆 Torneo · jugás como <b>${escH(acct.nick || 'sin nick')}</b> · <a data-acc>ver cuenta</a>`; }

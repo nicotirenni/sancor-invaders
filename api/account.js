@@ -86,7 +86,7 @@ module.exports = async (req, res) => {
         const salt = crypto.randomBytes(16).toString('hex');
         const u = { email, salt, hash: hash(pass, salt), nick: want, progress: cleanProgress(b.progress), created: Date.now() };
         const [ok] = await redis([['SET', key, JSON.stringify(u), 'NX']]);
-        if (!ok) return res.status(409).json({ error: 'Ese mail ya tiene cuenta. Tocá "Entrar".' });
+        if (!ok) return res.status(409).json({ error: 'Ese mail ya tiene cuenta: iniciá sesión con tu contraseña.' });
         if (!(await claimNick(want, key))) { await redis([['DEL', key]]); return res.status(409).json({ error: 'Ese apodo ya lo usa otra persona. Probá con otro.', nickTaken: true }); }   // lo tomó otro en el mismo instante
         return res.status(200).json(await out(key, u, { isNew: true }));
       }
