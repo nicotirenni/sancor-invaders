@@ -683,6 +683,9 @@ uniform float uMouseActiveFactor;
 uniform float uAutoCenterRepulsion;
 uniform bool uTransparent;
 uniform float uLightMode;
+uniform vec3 uTint;
+uniform float uTintMix;
+uniform float uHaze;
 
 varying vec2 vUv;
 
@@ -741,8 +744,7 @@ vec3 StarLayer(vec2 uv) {
       vec2 si = id + vec2(float(x), float(y));
       float seed = Hash21(si);
       float size = fract(seed * 345.32);
-      float glossLocal = tri(uStarSpeed / (PERIOD * seed + 1.0));
-      float flareSize = smoothstep(0.9, 1.0, size) * glossLocal;
+      float flareSize = 0.0; // sin destellos en cruz (flares)
 
       float red = smoothstep(STAR_COLOR_CUTOFF, 1.0, Hash21(si + 1.0)) + STAR_COLOR_CUTOFF;
       float blu = smoothstep(STAR_COLOR_CUTOFF, 1.0, Hash21(si + 3.0)) + STAR_COLOR_CUTOFF;
@@ -754,6 +756,7 @@ vec3 StarLayer(vec2 uv) {
       float sat = length(base - vec3(dot(base, vec3(0.299, 0.587, 0.114)))) * uSaturation;
       float val = max(max(base.r, base.g), base.b);
       base = hsv2rgb(vec3(hue, sat, val));
+      base = mix(base, uTint * (0.8 + 0.5 * val), uTintMix);
 
       vec2 pad = vec2(tris(seed * 34.0 + uTime * uSpeed / 10.0), tris(seed * 38.0 + uTime * uSpeed / 30.0)) - 0.5;
 
@@ -807,6 +810,8 @@ void main() {
     col += StarLayer(uv * scale + i * 453.32) * fade;
   }
 
+  col += uTint * uHaze * smoothstep(0.2, 1.0, vUv.y); // bruma del color del tramo, más fuerte arriba
+
   if (uLightMode > 0.5) {
     float energy = max(max(col.r, col.g), col.b);
     float coverage = clamp(smoothstep(0.0, 0.42, energy) * 0.92, 0.0, 0.92);
@@ -840,7 +845,7 @@ if (gl) {
     const U = n => gl.getUniformLocation(prog, n);
     galaxy = { u: {} };
     ['uTime','uResolution','uFocal','uRotation','uStarSpeed','uDensity','uHueShift','uSpeed','uMouse','uGlowIntensity','uSaturation','uMouseRepulsion',
-     'uTwinkleIntensity','uRotationSpeed','uRepulsionStrength','uMouseActiveFactor','uAutoCenterRepulsion','uTransparent','uLightMode'].forEach(n => galaxy.u[n] = U(n));
+     'uTwinkleIntensity','uRotationSpeed','uRepulsionStrength','uMouseActiveFactor','uAutoCenterRepulsion','uTransparent','uLightMode','uTint','uTintMix','uHaze'].forEach(n => galaxy.u[n] = U(n));
     gl.uniform2f(galaxy.u.uFocal, .5, .5); gl.uniform2f(galaxy.u.uRotation, 1, 0);
     gl.uniform1f(galaxy.u.uDensity, .4); gl.uniform1f(galaxy.u.uSpeed, .1); gl.uniform1f(galaxy.u.uGlowIntensity, .1);
     gl.uniform1f(galaxy.u.uSaturation, 0); gl.uniform1i(galaxy.u.uMouseRepulsion, 0); gl.uniform1f(galaxy.u.uTwinkleIntensity, 1);
@@ -850,6 +855,15 @@ if (gl) {
 }
 addEventListener('pointermove', e => { if (state !== 'menu') return; /* el mouse solo mueve el Galaxy en el menú, no en los niveles */ /* Galaxy sin interacción con el mouse */ }, { passive: true });
 document.addEventListener('mouseleave', () => { galaxyState.targetActive = 0; });
+// Cielo por dificultad: 5 tramos de 4 niveles (blanco → celeste → violeta → naranja → rojo). Cambia suave entre tramos.
+const SKY = [
+  { tint: [1, 1, 1],      mix: 0, glow: .1,  speed: .1,  star: 1,   twinkle: 1,    density: .3,  haze: 0 },
+  { tint: [.4, .78, 1],   mix: 1, glow: .125, speed: .12, star: 1.4, twinkle: 1,    density: .325, haze: .05 },
+  { tint: [.7, .45, 1],   mix: 1, glow: .15, speed: .14, star: 1.8, twinkle: 1.1,  density: .35, haze: .06 },
+  { tint: [1, .55, .15],  mix: 1, glow: .175, speed: .17, star: 2.3, twinkle: 1.25, density: .375, haze: .07 },
+  { tint: [1, .18, .15],  mix: 1, glow: .2, speed: .2,  star: 3,   twinkle: 1.45, density: .4, haze: .09 }];
+const skyNow = { ...SKY[0], tint: [...SKY[0].tint] }; let skyStarT = 0, skyLastT = 0;
+const skyTier = () => state === 'menu' ? 0 : Math.min(4, Math.floor((Math.max(1, wave) - 1) / 4));
 let perf = 0; // calidad: 0 normal, 1 sin bloom y fondo a menos fps, 2 además resolución menor
 function resizeBg() {
   const cw0 = bgc.clientWidth || 1, ch0 = bgc.clientHeight || 1, d = Math.min(devicePixelRatio || 1, 1, Math.sqrt((perf ? 3.5e5 : 6.5e5) / (cw0 * ch0))); // el shader es lo más caro: se dibuja a menor resolución
@@ -860,7 +874,14 @@ addEventListener('resize', resizeBg); resizeBg();
 function drawBg(t) {
   if (!galaxy) return;
   const gs = galaxyState; gs.mouse[0] += (gs.target[0] - gs.mouse[0]) * .05; gs.mouse[1] += (gs.target[1] - gs.mouse[1]) * .05; gs.active += (gs.targetActive - gs.active) * .05;
-  gl.uniform1f(galaxy.u.uTime, t); gl.uniform1f(galaxy.u.uStarSpeed, t * .01);
+  const sk = SKY[skyTier()], dt = Math.min(.25, Math.max(0, t - skyLastT)), k = 1 - Math.exp(-dt * 1.5); skyLastT = t; // transición de ~2 s entre tramos
+  for (const n of ['mix', 'glow', 'speed', 'star', 'twinkle', 'density', 'haze']) skyNow[n] += (sk[n] - skyNow[n]) * k;
+  for (let i = 0; i < 3; i++) skyNow.tint[i] += (sk.tint[i] - skyNow.tint[i]) * k;
+  skyStarT += dt * .01 * skyNow.star;
+  gl.uniform3f(galaxy.u.uTint, skyNow.tint[0], skyNow.tint[1], skyNow.tint[2]); gl.uniform1f(galaxy.u.uTintMix, skyNow.mix); gl.uniform1f(galaxy.u.uHaze, skyNow.haze);
+  gl.uniform1f(galaxy.u.uGlowIntensity, skyNow.glow); gl.uniform1f(galaxy.u.uSpeed, skyNow.speed);
+  gl.uniform1f(galaxy.u.uTwinkleIntensity, skyNow.twinkle); gl.uniform1f(galaxy.u.uDensity, skyNow.density);
+  gl.uniform1f(galaxy.u.uTime, t); gl.uniform1f(galaxy.u.uStarSpeed, skyStarT);
   gl.uniform1f(galaxy.u.uHueShift, galaxyState.hue);
   gl.uniform2f(galaxy.u.uMouse, galaxyState.mouse[0], galaxyState.mouse[1]);
   gl.uniform1f(galaxy.u.uMouseActiveFactor, galaxyState.active);
