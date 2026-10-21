@@ -2435,7 +2435,7 @@ function lvNumber(img, url) {
   const i = LV_IMG_URLS.indexOf(url); if (i < 0) return null;
   const W = img.naturalWidth, H = img.naturalHeight, c = document.createElement('canvas'), x = c.getContext('2d'); c.width = W; c.height = H;
   x.drawImage(img, 0, 0, W, H);
-  const g = x.createLinearGradient(0, H * 2 / 3, 0, H); [[0, 0], [.2, .18], [.45, .5], [.7, .85], [1, 1]].forEach(([at, a]) => g.addColorStop(at, `rgba(31,31,31,${a})`));   // curva suave hacia #1f1f1f
+  const g = x.createLinearGradient(0, H * 2 / 3, 0, H); [[0, 0], [.2, .18], [.45, .5], [.7, .9], [1, 1]].forEach(([at, a]) => g.addColorStop(at, `rgba(31,31,31,${a})`));   // curva suave hacia #1f1f1f
   x.fillStyle = g; x.fillRect(0, H * 2 / 3, W, H / 3);
   const pad = 8 * H / Math.max(1, ($('lvGal').clientHeight || 300) * .6);   // 8 px de pantalla, pasados a píxeles de la imagen (la tarjeta mide ~60% del alto de la galería)
   x.fillStyle = 'rgba(255,255,255,.5)'; x.font = `800 ${Math.round(H / 3 * .5)}px "Roboto Condensed", "Arial Narrow", sans-serif`; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
