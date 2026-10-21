@@ -499,7 +499,8 @@
   .seo-txt{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 </style>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
-<script defer src="/_vercel/insights/script.js"></script>
+<script>/* estadísticas: no cuentan los navegadores automatizados (las pruebas de desarrollo) */ window.AUTOMATED = navigator.webdriver === true || /HeadlessChrome|Lighthouse|bot|crawl|spider/i.test(navigator.userAgent);
+if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = true; s.src = '/_vercel/insights/script.js'; document.head.appendChild(s); }</script>
 </head>
 <body>
 <main class="seo-txt">
@@ -569,7 +570,7 @@
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>Invitame un cafecito</a></div>
-      <span class="ver" id="ver">v2.9.1</span>
+      <span class="ver" id="ver">v2.9.2</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -3040,7 +3041,7 @@ const splitTitle = (() => {
   $('iaStay').addEventListener('click', close); o.addEventListener('click', () => { if (android) close(); });
   const show = () => { if (state === 'menu' && $('news').hidden && $('card').dataset.mode === 'menu') setTimeout(() => { $('inapp').hidden = false; }, 600); else setTimeout(show, 500); }; show(); })();   // aparece al llegar al menú, después de la intro
 // Visitante único: un id al azar por navegador, avisado una vez por día (sin nombre, mail ni IP guardados)
-(() => { try { let id = LS.get('sancor_vid', ''); if (!/^[a-z0-9]{8,32}$/.test(id)) { id = (Math.random().toString(36).slice(2) + Date.now().toString(36)).slice(0, 20); LS.set('sancor_vid', id); }
+(() => { try { if (window.AUTOMATED) return; let id = LS.get('sancor_vid', ''); if (!/^[a-z0-9]{8,32}$/.test(id)) { id = (Math.random().toString(36).slice(2) + Date.now().toString(36)).slice(0, 20); LS.set('sancor_vid', id); }
   const d = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }); if (LS.get('sancor_vday', '') === d) return;
   fetch('/api/visit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }), keepalive: true }).then(r => { if (r.ok) LS.set('sancor_vday', d); }).catch(() => {}); } catch (e) {} })();
 splitTitle(); document.documentElement.classList.add('scene-menu'); layoutAll(); buildWave(); $('banner').classList.remove('on');

@@ -9,6 +9,7 @@ module.exports = async (req, res) => {
   if (!ready()) return res.status(501).json({ error: 'sin contador' });
   try {
     if (req.method === 'POST') {
+      if (/HeadlessChrome|Lighthouse|bot|crawl|spider/i.test(String(req.headers['user-agent'] || ''))) return res.status(204).end();   // pruebas automáticas y robots: no cuentan
       const id = String(bodyOf(req).id || '');
       if (!/^[a-z0-9]{8,32}$/.test(id)) return res.status(400).end();
       const k = 'sancor:uv:d:' + day();
