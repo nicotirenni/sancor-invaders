@@ -2430,12 +2430,12 @@ function showLevel(w) {
   const b = $('lvPlay'); (b.querySelector('.sb-in') || b).textContent = `Jugar nivel ${w}`;
 }
 const playLevel = w => { startWave = w; if (LS.get('sancor_tuto', '') !== '1') openTuto(start); else start(); };
-// número del nivel sobre la captura: capa con degradé (transparente → #292929) en el tercio inferior; el número va abajo, centrado, en 2 dígitos y con 8 px de margen
+// número del nivel sobre la captura: capa con degradé (transparente → #121212 sólido desde la mitad) en el tercio inferior; el número va abajo, centrado, en 2 dígitos y con 8 px de margen
 function lvNumber(img, url) {
   const i = LV_IMG_URLS.indexOf(url); if (i < 0) return null;
   const W = img.naturalWidth, H = img.naturalHeight, c = document.createElement('canvas'), x = c.getContext('2d'); c.width = W; c.height = H;
   x.drawImage(img, 0, 0, W, H);
-  const g = x.createLinearGradient(0, H * 2 / 3, 0, H); g.addColorStop(0, 'rgba(41,41,41,0)'); g.addColorStop(1, '#292929');
+  const g = x.createLinearGradient(0, H * 2 / 3, 0, H); g.addColorStop(0, 'rgba(18,18,18,0)'); g.addColorStop(.55, '#121212'); g.addColorStop(1, '#121212');
   x.fillStyle = g; x.fillRect(0, H * 2 / 3, W, H / 3);
   const pad = 8 * H / Math.max(1, ($('lvGal').clientHeight || 300) * .6);   // 8 px de pantalla, pasados a píxeles de la imagen (la tarjeta mide ~60% del alto de la galería)
   x.fillStyle = '#fff'; x.font = `800 ${Math.round(H / 3 * .5)}px "Roboto Condensed", "Arial Narrow", sans-serif`; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
