@@ -2354,7 +2354,11 @@ void main() {
     const onPointerCancel = event => { if (state.drag && state.drag.id === event.pointerId) { state.drag = null; container.removeAttribute('data-dragging'); snapNow(); } };
     const onPointerLeave = () => setPointer(null);
     const onWheel = event => { const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? view.height : 1, delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
-      if (!delta) return; event.preventDefault(); state.target += delta * unit * (s.scrollSpeed / 2); state.lastInput = performance.now(); clearTimeout(snapTimer); snapTimer = setTimeout(snapNow, 140); wake(); };
+      if (!delta) return; event.preventDefault(); const now = performance.now(); state.lastInput = now; clearTimeout(snapTimer);
+      // rueda: avanza de a un nivel por "muesca" y deja que la tarjeta se deslice suave (en vez de saltar y corregir)
+      if (now - wheel.last > 250) wheel.acc = 0; wheel.last = now; wheel.acc = clamp(wheel.acc + delta * unit, -120, 120);
+      if (Math.abs(wheel.acc) >= 40 && now - wheel.step > 220) { setSlot(state.active + Math.sign(wheel.acc)); wheel.acc = 0; wheel.step = now; } };
+    const wheel = { acc: 0, last: 0, step: 0 };
     const onKeyDown = event => { const step = STEPS[event.key]; state.lastInput = performance.now();
       if (step) { event.preventDefault(); if (container.contains(document.activeElement) && document.activeElement !== container) state.keyboard = true; setSlot(nearest() + step);
         const index = wrap(state.active, s.items.length); if (container.contains(document.activeElement)) buttons[index]?.focus({ preventScroll: true }); return; }
@@ -2423,7 +2427,7 @@ function openLevels() {
   if (!lvGallery && !$('lvGrid').dataset.on) {
     try {
       lvGallery = CircularGallery($('lvGal'), { items: LV_DIFF.map((d, i) => ({ image: `img/levels/lv${i + 1}.webp`, text: `Nivel ${i + 1}`, alt: `Nivel ${i + 1}` })), label: 'Niveles',
-        bend: 3, borderRadius: .06, scrollEase: .08, itemAspect: .78, gap: .22, fadeEdges: .1, font: 'bold 26px "Roboto Condensed"', textColor: '#c9d3f0', activeText: '#ffffff',
+        bend: 3, borderRadius: .06, scrollEase: .06, itemAspect: .78, gap: .22, fadeEdges: .1, font: 'bold 26px "Roboto Condensed"', textColor: '#c9d3f0', activeText: '#ffffff',
         ringColor: '#ffc928', activeRing: true, dimInactive: .35, onActiveChange: i => { showLevel(i + 1); SFX.ui('hover'); }, onItemClick: (item, i) => playLevel(i + 1) });
     } catch (e) { lvGallery = null; report('err-gallery', e); }
     if (!lvGallery) {   // sin WebGL2: grilla de tarjetas
