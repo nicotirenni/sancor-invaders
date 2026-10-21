@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 const { redis, ready, cleanName, nickKey, acctKey, ipOf, bodyOf, userOfToken } = require('./_redis');
 const { sendMail, mailReady } = require('./_mail');
+const { codeMailHtml } = require('./_mailtpl');
 const YEAR = 365 * 24 * 3600, TILES = 9;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '673518924318-4ht3mfa852s6vh3q84jfukul79oae93k.apps.googleusercontent.com';
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
@@ -46,7 +47,7 @@ const codeMail = (code, purpose) => {
   const what = purpose === 'reset' ? 'cambiar tu contraseña' : 'crear tu cuenta';
   return { subject: `Tu código de Drones Invasores: ${code}`,
     text: `Tu código para ${what} en Drones Invasores es ${code}. Vence en 10 minutos. Si no lo pediste, ignorá este mail.`,
-    html: `<div style="font-family:Arial,sans-serif;background:#05060f;color:#f4f7ff;padding:32px 24px;text-align:center"><p style="margin:0 0 6px;font-size:13px;letter-spacing:.2em;color:#8fa0d0">DRONES INVASORES</p><p style="margin:0 0 20px;font-size:16px">Tu código para ${what}:</p><p style="margin:0 0 20px;font-size:40px;font-weight:800;letter-spacing:.25em;color:#ffc928">${code}</p><p style="margin:0;font-size:13px;color:#8fa0d0">Vence en 10 minutos. Si no lo pediste, ignorá este mail.</p></div>` };
+    html: codeMailHtml(code, purpose) };
 };
 
 async function claimNick(nick, key) { // reserva el nick para la cuenta; true si quedó suyo
