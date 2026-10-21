@@ -2430,15 +2430,15 @@ function showLevel(w) {
   const b = $('lvPlay'); (b.querySelector('.sb-in') || b).textContent = `Jugar nivel ${w}`;
 }
 const playLevel = w => { startWave = w; if (LS.get('sancor_tuto', '') !== '1') openTuto(start); else start(); };
-// número del nivel sobre la captura: capa con degradé (transparente → #121212 sólido desde la mitad) en el tercio inferior; el número va abajo, centrado, en 2 dígitos y con 8 px de margen
+// número del nivel sobre la captura: capa con degradé en curva suave (transparente → #1f1f1f) en el tercio inferior; el número va abajo, centrado, en 2 dígitos y con 8 px de margen
 function lvNumber(img, url) {
   const i = LV_IMG_URLS.indexOf(url); if (i < 0) return null;
   const W = img.naturalWidth, H = img.naturalHeight, c = document.createElement('canvas'), x = c.getContext('2d'); c.width = W; c.height = H;
   x.drawImage(img, 0, 0, W, H);
-  const g = x.createLinearGradient(0, H * 2 / 3, 0, H); g.addColorStop(0, 'rgba(18,18,18,0)'); g.addColorStop(.55, '#121212'); g.addColorStop(1, '#121212');
+  const g = x.createLinearGradient(0, H * 2 / 3, 0, H); [[0, 0], [.2, .18], [.45, .5], [.7, .85], [1, 1]].forEach(([at, a]) => g.addColorStop(at, `rgba(31,31,31,${a})`));   // curva suave hacia #1f1f1f
   x.fillStyle = g; x.fillRect(0, H * 2 / 3, W, H / 3);
   const pad = 8 * H / Math.max(1, ($('lvGal').clientHeight || 300) * .6);   // 8 px de pantalla, pasados a píxeles de la imagen (la tarjeta mide ~60% del alto de la galería)
-  x.fillStyle = '#fff'; x.font = `800 ${Math.round(H / 3 * .5)}px "Roboto Condensed", "Arial Narrow", sans-serif`; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+  x.fillStyle = 'rgba(255,255,255,.5)'; x.font = `800 ${Math.round(H / 3 * .5)}px "Roboto Condensed", "Arial Narrow", sans-serif`; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
   x.fillText(String(i + 1).padStart(2, '0'), W / 2, H - pad, W - pad * 2);   // abajo del contenedor, centrado, con 8 px de margen
   return c;
 }
