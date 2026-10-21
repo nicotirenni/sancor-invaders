@@ -290,7 +290,11 @@
   .title .ch{display:inline-block;background-image:linear-gradient(180deg,#fff 0 45%,#74c0f5);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
     filter:drop-shadow(.07em 0 0 #0b2a55) drop-shadow(-.07em 0 0 #0b2a55) drop-shadow(0 .07em 0 #0b2a55) drop-shadow(0 -.07em 0 #0b2a55);   /* contorno pixel de 1/2 píxel de la fuente */
     opacity:0;transform:translateY(40px);transition:opacity .6s cubic-bezier(.215,.61,.355,1),transform .6s cubic-bezier(.215,.61,.355,1)}
-  .title.in .ch{opacity:1;transform:none}
+  .title.in .ch{opacity:1;transform:none} .title.noanim .ch,.title.noanim .sun{transition:none!important}
+  /* entrada gradual del menú después de la presentación: frase, botones, links e íconos, después del logo */
+  @keyframes menuIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}} @keyframes menuFade{from{opacity:0}to{opacity:1}}
+  html.menu-reveal .card[data-mode=menu]>#kicker{animation:menuIn .6s 1.9s both} html.menu-reveal .card[data-mode=menu]>#menuBtns{animation:menuIn .6s 2.2s both}
+  html.menu-reveal .card[data-mode=menu]>#credLink,html.menu-reveal .card[data-mode=menu]>#ver,html.menu-reveal #mute,html.menu-reveal #profBtn{animation:menuFade .6s 2.6s both}
   @keyframes gradmove{from{background-position:0% 50%}to{background-position:100% 50%}}
   .tag{font-size:clamp(13px,2.2cqw,24px);color:#c9d2f0;letter-spacing:.02em}
   .podTitle{opacity:.5;font-family:var(--display);font-weight:800;font-size:clamp(34px,6.4cqw,80px);line-height:1;text-transform:uppercase;letter-spacing:.03em;color:var(--white)}
@@ -570,7 +574,7 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>Invitame un cafecito</a></div>
-      <span class="ver" id="ver">v2.10.0</span>
+      <span class="ver" id="ver">v2.10.1</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -3030,8 +3034,12 @@ const splitTitle = (() => {
   const place = () => { const ws = el.querySelectorAll('.w'); if (ws.length < 2) return; const r = el.getBoundingClientRect(), S = ws[0].lastElementChild.getBoundingClientRect(), I = ws[1].firstElementChild.getBoundingClientRect();
     el.style.setProperty('--sx', ((S.left + S.width / 2 + I.left + I.width / 2) / 2 - r.left) + 'px'); };   // en compu: entre la mitad de la S y la I
   new ResizeObserver(place).observe(el); if (document.fonts && document.fonts.ready) document.fonts.ready.then(place).catch(() => {}); place();
-  return () => { el.classList.remove('in'); void el.offsetWidth; requestAnimationFrame(() => el.classList.add('in')); };
+  // repite la animación: primero oculta las letras sin transición (si no, las demoras hacen que nunca lleguen a ocultarse) y después las hace entrar
+  return () => { el.classList.add('noanim'); el.classList.remove('in'); void el.offsetWidth; el.classList.remove('noanim'); requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('in'))); };
 })();
+function revealMenu() { // al terminar la presentación: el menú entra de a poco después del logo
+  const h = document.documentElement; h.classList.remove('menu-reveal'); void h.offsetWidth; h.classList.add('menu-reveal');
+  clearTimeout(revealMenu.t); revealMenu.t = setTimeout(() => h.classList.remove('menu-reveal'), 3600); }
 // Navegadores dentro de apps (Instagram, Facebook, X, LinkedIn, TikTok…): limitan el sonido y la pantalla; se sugiere abrirlo afuera, una vez por sesión
 (() => { const ua = navigator.userAgent, app = /Instagram/i.test(ua) ? 'Instagram' : /FBAN|FBAV|FB_IAB/i.test(ua) ? 'Facebook' : /Twitter/i.test(ua) ? 'X' : /LinkedInApp/i.test(ua) ? 'LinkedIn' : /TikTok|musical_ly/i.test(ua) ? 'TikTok' : /; wv\)/.test(ua) ? 'esta app' : '';
   if (!app) return; try { if (sessionStorage.getItem('sancor_inapp')) return; } catch (e) {}
@@ -3045,7 +3053,8 @@ const splitTitle = (() => {
 (() => { try { if (window.AUTOMATED) return; let id = LS.get('sancor_vid', ''); if (!/^[a-z0-9]{8,32}$/.test(id)) { id = (Math.random().toString(36).slice(2) + Date.now().toString(36)).slice(0, 20); LS.set('sancor_vid', id); }
   const d = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }); if (LS.get('sancor_vday', '') === d) return;
   fetch('/api/visit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }), keepalive: true }).then(r => { if (r.ok) LS.set('sancor_vday', d); }).catch(() => {}); } catch (e) {} })();
-splitTitle(); document.documentElement.classList.add('scene-menu'); layoutAll(); buildWave(); $('banner').classList.remove('on');
+if ($('intro').hidden) splitTitle();   // con la presentación en pantalla, el logo espera a que termine
+document.documentElement.classList.add('scene-menu'); layoutAll(); buildWave(); $('banner').classList.remove('on');
 // ================= Intro animada: la despedida de Messi y el show de drones (pixel art 16 bits + parallax, 10 s) =================
 const Intro = (() => {
   // Intro de 15 s con ilustraciones pixel art (mismo estilo que el álbum), animadas con zoom lento, luces y los drones del juego
@@ -3155,7 +3164,7 @@ const Intro = (() => {
   }
   function finish() {
     if (done) return; done = true; cancelAnimationFrame(raf); box.classList.add('out'); setTimeout(() => { box.hidden = true; }, 480);
-    state = 'menu'; SFX.ensure(); SFX.musicStart(112, 'menu'); splitTitle(); setTimeout(openNews, 900);
+    state = 'menu'; SFX.ensure(); SFX.musicStart(112, 'menu'); const tl = $('title'); tl.classList.add('noanim'); tl.classList.remove('in'); setTimeout(splitTitle, 250);   // el logo queda oculto hasta que arranca su animación revealMenu(); setTimeout(openNews, 3300);   // el logo arranca cuando la presentación ya se está yendo
   }
   box.addEventListener('click', e => { if (e.target.id === 'introSkip') return; begin(); });
   addEventListener('keydown', e => { if (done) return; if (e.key === 'Escape') finish(); else begin(); });
