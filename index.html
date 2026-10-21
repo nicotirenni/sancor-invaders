@@ -253,6 +253,7 @@
   #acct .row>*{width:100%;min-width:0;max-width:none;margin:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} #acct>#acctBack{width:100%;box-sizing:border-box}   /* mismo ancho que el input */
   @media (max-width:699px){ #acct .aStep[data-s="6"] .row{grid-template-columns:1fr;gap:10px} #acct .row>*,#acctBack{width:100%;min-width:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} }   /* mobile: apilados, volver abajo */
   #acct .sb:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.5);pointer-events:none}
+  .avatar{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:#171c30;color:#cfd6f0;box-shadow:0 0 0 1px #313857 inset,0 1px 2px rgba(0,0,0,.35)}   /* foto de perfil por defecto: círculo con ícono de usuario relleno */
   .okMark{width:56px;height:56px} .okMark circle{fill:none;stroke:#7fffd4;stroke-width:3;stroke-dasharray:145;stroke-dashoffset:145;animation:draw .5s ease-out forwards}
   .okMark path{fill:none;stroke:#7fffd4;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:draw .35s .4s ease-out forwards} @keyframes draw{to{stroke-dashoffset:0}}
   .newCards{flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;font-size:clamp(13px,1.8cqw,16px);color:#ffd77a}
@@ -677,7 +678,7 @@
           <div class="row"><button class="sb" id="aNickSave" type="button">Guardar apodo</button><button class="gh" id="aNickBack" type="button">Volver</button></div>
         </div>
         <div class="aStep" data-s="6">
-          <svg class="okMark" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="23"/><path d="M15 27l7 7 15-16"/></svg>
+          <span class="avatar" aria-hidden="true"><svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor"><circle cx="12" cy="7.5" r="4.5"/><path d="M3.5 21v-1.5A5.5 5.5 0 0 1 9 14h6a5.5 5.5 0 0 1 5.5 5.5V21z"/></svg></span>
           <p class="aHint" id="acctIn"></p>
           <div class="hist" id="acctHist" aria-live="polite"></div>
           <div class="row"><button class="gh" id="aEditNick" type="button">Cambiar apodo</button><button class="gh" id="acctOut" type="button">Cerrar sesión</button></div>
