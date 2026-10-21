@@ -2235,8 +2235,9 @@ void main() {
       colorCache.set(key, rgb); return rgb; };
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     const textures = new Map(), view = { width: 1, height: 1, ratio: 1 };
-    const state = { scroll: 0, target: 0, velocity: 0, intro: s.intro && !reduce ? 0 : 1, waveTime: 0, ring: 0, keyboard: false, hovered: null, hover: new Map(), drag: null, lastInput: 0, active: 0, spacing: 1, sv: 0, tilt: { x: 0, v: 0 }, pop: { x: 1, v: 0 }, rest: true };
-    // resorte amortiguado (zeta < 1 rebota): mueve el carrusel, inclina las tarjetas y hace el "pop" de la elegida
+    const state = { scroll: 0, target: 0, velocity: 0, intro: s.intro && !reduce ? 0 : 1, waveTime: 0, ring: 0, keyboard: false, hovered: null, hover: new Map(), drag: null, lastInput: 0, active: 0, spacing: 1, tw: null, pop: { x: 1, v: 0 }, rest: true };
+    const easeOutBack = t => 1 + 2.9 * Math.pow(t - 1, 3) + 1.9 * Math.pow(t - 1, 2);
+    // resorte amortiguado (zeta < 1 rebota): hace el "pop" de la tarjeta elegida al quedar en el centro
     const spring = (o, goal, k, zeta, dt) => { o.v += (-(o.x - goal) * k - o.v * 2 * Math.sqrt(k) * zeta) * dt; o.x += o.v * dt; };
     let cards = [], pool = [], raf = 0, last = 0, visible = true, snapTimer = 0, typing = false, dead = false;
 
@@ -2268,7 +2269,7 @@ void main() {
       for (let slot = first; slot <= lastSlot; slot++) {
         const index = wrap(slot, count), item = list[index], entry = textureFor(item.image), x = slot * spacing - scroll, arc = arcOf(x);
         const order = Math.abs(slot * spacing - state.scroll) / spacing, shown = ease(clamp(state.intro * 2.2 - order * .22, 0, 1)), hover = state.hover.get(slot) || 0, lift = (1 + hover * .04) * (slot === state.active ? state.pop.x : 1);
-        next.push({ slot, index, item, entry, x, y: arc.y - (1 - shown) * h * .18, angle: arc.angle + state.tilt.x * .35, w: w * lift, h: h * lift, radius: s.borderRadius * Math.min(w, h), alpha: shown, dim: 0,
+        next.push({ slot, index, item, entry, x, y: arc.y - (1 - shown) * h * .18, angle: arc.angle, w: w * lift, h: h * lift, radius: s.borderRadius * Math.min(w, h), alpha: shown, dim: 0,
           gray: s.grayscale ? 1 - Math.max(hover, slot === state.active ? state.ring : 0) : 0, focus: 0, labelAlpha: 1, labelSize: baseLabel });
       }
       next.sort((a, b) => Math.abs(b.x) - Math.abs(a.x)); cards = next; return { w, h, spacing };
@@ -2310,15 +2311,15 @@ void main() {
       const idle = now - state.lastInput > 1800, auto = s.autoScroll && !reduce && !state.drag && state.hovered === null && !state.keyboard && idle;
       if (auto) state.target += s.autoScroll * state.spacing * .25 * dt;
       const before = state.scroll;
-      if (state.drag) { state.scroll += (state.target - state.scroll) * (1 - Math.pow(1 - s.scrollEase, dt * 60)); state.sv = 0; }
-      else { const n = Math.ceil(dt / .008), body = { x: state.scroll, v: state.sv }; // resorte con rebote (es corto y lo dispara el usuario: se usa siempre, como en la muestra)
-        for (let k = 0; k < n; k++) spring(body, state.target, 170, .5, dt / n); state.scroll = body.x; state.sv = body.v; }
-      if (Math.abs(state.target - state.scroll) < .05 && Math.abs(state.sv) < 1) { state.scroll = state.target; state.sv = 0; }
+      if (state.drag) { state.scroll += (state.target - state.scroll) * (1 - Math.pow(1 - s.scrollEase, dt * 60)); state.tw = null; }
+      else if (state.tw || state.scroll !== state.target) { // ease-out back de 450 ms: se pasa un poco del centro y vuelve (se usa siempre, como en la muestra)
+        if (!state.tw || state.tw.to !== state.target) state.tw = { from: state.scroll, to: state.target, t0: now };
+        const t = Math.min(1, (now - state.tw.t0) / 450); state.scroll = state.tw.from + (state.tw.to - state.tw.from) * easeOutBack(t);
+        if (t >= 1) { state.scroll = state.target; state.tw = null; } }
+      if (!state.tw && Math.abs(state.target - state.scroll) < .05) state.scroll = state.target;
       const velocity = (state.scroll - before) / dt; state.velocity += (velocity - state.velocity) * (1 - Math.exp(-dt / .08)); if (Math.abs(state.velocity) < .5) state.velocity = 0;
       state.waveTime += dt * 2.4;
-      { const n = Math.ceil(dt / .008), lean = clamp(((state.scroll - before) / dt / Math.max(state.spacing, 1)) * .09, -1, 1);
-        for (let k = 0; k < n; k++) { spring(state.tilt, lean, 260, .45, dt / n); spring(state.pop, 1, 300, .35, dt / n); }
-        if (Math.abs(state.tilt.x) < .001 && Math.abs(state.tilt.v) < .01) state.tilt.x = state.tilt.v = 0;
+      { const n = Math.ceil(dt / .008); for (let k = 0; k < n; k++) spring(state.pop, 1, 300, .35, dt / n);
         if (Math.abs(state.pop.x - 1) < .001 && Math.abs(state.pop.v) < .01) { state.pop.x = 1; state.pop.v = 0; }
         const rest = !state.drag && state.scroll === state.target; if (rest && !state.rest) state.pop.v = 2.6; state.rest = rest; }
       state.ring += ((state.keyboard ? 1 : 0) - state.ring) * (1 - Math.exp(-dt / .1)); if (Math.abs((state.keyboard ? 1 : 0) - state.ring) < .002) state.ring = state.keyboard ? 1 : 0;
@@ -2329,7 +2330,7 @@ void main() {
       textures.forEach(entry => { if (!entry.loaded || entry.ready >= 1) return; entry.ready = reduce ? 1 : Math.min(1, entry.ready + dt / .45); settling = true; });
       const slot = auto ? Math.round(state.scroll / Math.max(state.spacing, 1)) : nearest(); if (slot !== state.active && !state.drag) setActive(slot);
       const metrics = layout(); draw(metrics); placeLabels(metrics);
-      const moving = (s.autoScroll && !reduce) || state.scroll !== state.target || state.velocity !== 0 || state.sv !== 0 || state.tilt.x !== 0 || state.pop.x !== 1 || state.intro < 1 || (state.ring !== 0 && state.ring !== 1) || settling;
+      const moving = (s.autoScroll && !reduce) || state.scroll !== state.target || state.velocity !== 0 || state.tw !== null || state.pop.x !== 1 || state.intro < 1 || (state.ring !== 0 && state.ring !== 1) || settling;
       if (moving) raf = requestAnimationFrame(frame); else last = 0;
     };
     function wake() { if (!raf && !dead && visible && !document.hidden) raf = requestAnimationFrame(frame); }
