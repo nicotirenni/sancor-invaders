@@ -232,9 +232,16 @@
   #acct .aStep[data-s="6"] .row{grid-template-columns:1fr 1fr;gap:14px}
   .aSwitch{margin:4px 0 0;font-size:14px;color:var(--muted);text-align:center} .aSwitch a{color:#fff;text-underline-offset:3px;font-weight:600} .aSwitch a:hover{color:var(--gold)}
   .aForgot{align-self:flex-end;margin-top:-6px;padding:2px 4px;font-size:13px}
-  .aDanger{color:#ff8fb1} .aDanger:hover{color:#ff5a78}
-  .delBox{display:flex;flex-direction:column;gap:12px;width:100%;padding:14px;box-sizing:border-box;border-radius:10px;background:rgba(255,90,120,.07);box-shadow:inset 0 0 0 1px rgba(255,90,120,.35)} .delBox[hidden]{display:none} .delBox .aHint{text-align:left;font-size:14px} .delBox .aHint b{color:#fff}
-  #acct .aStep[data-s="6"] .delBox .row{grid-template-columns:1fr;gap:6px;margin-top:0} #acct .delBox .row>.gh{background:none;box-shadow:none;color:var(--muted)} #acct .delBox .row>.gh::before{display:none}
+  /* Eliminar cuenta: botón terciario rojo debajo de Volver (solo en "Tu cuenta") y modal de confirmación */
+  #acct .aDel{display:none;width:100%;background:none;box-shadow:none;border:0;color:#ff7a95;padding:.7em 1em} #acct .aDel::before{display:none} #acct .aDel:hover,#acct .aDel:focus-visible{color:#ff5a78;background:rgba(255,90,120,.08)} #acct.done .aDel{display:block}
+  #delModal{position:fixed;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:rgba(3,4,12,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)} #delModal[hidden]{display:none}
+  #delModal .dm{width:min(400px,100%);box-sizing:border-box;padding:24px;border-radius:16px;background:linear-gradient(180deg,#0e1433,#080c22);box-shadow:0 0 0 1px rgba(255,90,120,.35),0 20px 60px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:12px;animation:dmIn .25s cubic-bezier(.23,1,.32,1)}
+  @keyframes dmIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+  #delModal h2{margin:0;font:800 22px/1.15 var(--display);color:#fff} #delModal #delD{margin:0 0 4px;font-size:14px;line-height:1.5;color:#c9d2f0}
+  #delModal .field{width:100%;height:36px;padding:4px 12px;font:400 14px/1.4 var(--body);text-align:left;border-radius:6px} #delModal .field:focus{border-color:#ff5a78;box-shadow:0 0 0 3px rgba(255,90,120,.3)}
+  #delModal .dmErr{margin:-4px 0 0;font-size:13px;color:#ff8da1} #delModal .dmErr:empty{display:none}   /* sin mensaje: 24 px del campo a los botones */
+  #delModal .dmBtns{display:grid;grid-template-columns:1fr;gap:6px;margin-top:12px} #delModal .dmBtns>*{width:100%;min-width:0;box-sizing:border-box;margin:0} #delModal #aDelNo{background:none;box-shadow:none;border:0;color:var(--muted);padding:.7em 1em} #delModal #aDelNo::before{display:none} #delModal #aDelNo:hover,#delModal #aDelNo:focus-visible{color:#fff;background:rgba(255,255,255,.04)} #delModal .dmBtns .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center}
+  @media (max-width:599px){#delModal .field{font-size:16px}}
   .sb.danger{background:#b3123f} .sb.danger .sb-in{background:#b3123f}
   /* campos de la cuenta con tamaño estándar (como el Input de shadcn): 36 px de alto, texto de 14 px, borde fino y anillo de foco */
   #acct .field{height:36px;padding:4px 12px;font:400 14px/1.4 var(--body);letter-spacing:0;text-align:left;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:border-color .15s,box-shadow .15s}
@@ -512,6 +519,13 @@
   <div class="prow"><button class="sb" id="resumeBtn" type="button">Continuar</button><button class="gh" id="quitBtn" type="button">Salir al menú</button></div></div></div>
 <div id="intro"><canvas id="introCv"></canvas><button id="introSkip" type="button">Saltar ›</button></div>
 <canvas id="sparks"></canvas>
+<div id="delModal" hidden role="dialog" aria-modal="true" aria-labelledby="delT" aria-describedby="delD"><div class="dm">
+  <h2 id="delT">Eliminar tu cuenta</h2>
+  <p id="delD">Se borran para siempre tu mail, tu apodo, tu álbum guardado, tu historial del Torneo y tus puntajes del ranking. Esta acción no se puede deshacer.</p>
+  <div class="passWrap" id="delPassWrap"><input id="delPass" class="field" type="password" maxlength="64" placeholder="Escribí tu contraseña" autocomplete="current-password" aria-label="Tu contraseña"></div>
+  <p class="dmErr" id="delErr" role="alert"></p>
+  <div class="dmBtns"><button class="sb danger" id="aDelGo" type="button">Eliminar definitivamente</button><button class="gh" id="aDelNo" type="button">Cancelar</button></div>
+</div></div>
 <div id="inapp" hidden role="dialog" aria-labelledby="iaT"><div class="ia">
   <b id="iaT">Abrilo en tu navegador</b>
   <p id="iaP"></p>
@@ -667,15 +681,10 @@
           <p class="aHint" id="acctIn"></p>
           <div class="hist" id="acctHist" aria-live="polite"></div>
           <div class="row"><button class="gh" id="aEditNick" type="button">Cambiar apodo</button><button class="gh" id="acctOut" type="button">Cerrar sesión</button></div>
-          <button class="aLink aDanger" id="aDel" type="button">Eliminar cuenta</button>
-          <div class="delBox" id="delBox" hidden>
-            <p class="aHint"><b>¿Eliminar tu cuenta?</b> Se borran tu mail, tu apodo, tu álbum guardado, tu historial del Torneo y tus puntajes del ranking. No se puede deshacer.</p>
-            <div class="passWrap" id="delPassWrap"><input id="delPass" class="field" type="password" maxlength="64" placeholder="Tu contraseña" autocomplete="current-password"></div>
-            <div class="row"><button class="sb danger" id="aDelGo" type="button">Eliminar mi cuenta</button><button class="gh" id="aDelNo" type="button">Cancelar</button></div>
-          </div>
         </div>
         <div class="acctErr" id="acctErr" role="alert"></div>
         <button class="gh" id="acctBack" type="button">Volver</button>
+        <button class="gh aDel" id="aDel" type="button">Eliminar cuenta</button>
         <a class="aFoot" href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>
       </div>
       <div class="tuto" id="tuto" role="group" aria-roledescription="carrusel" aria-label="Cómo jugar">
@@ -1965,7 +1974,7 @@ async function loadHist() { // historial del Torneo: resumen y últimas partidas
   box.innerHTML = tiles + list;
 }
 function renderAcct() {
-  if (acct) { loadHist(); $('acctIn').innerHTML = `Conectado como <b>${escH(acct.nick || 'sin apodo')}</b>${acct.email ? `<br><span style="color:var(--muted)">${escH(acct.email)}</span>` : ''}<br>Tu álbum se guarda solo.`; $('delBox').hidden = true; $('aDel').hidden = false; goStep(6); return; }
+  if (acct) { loadHist(); $('acctIn').innerHTML = `Conectado como <b>${escH(acct.nick || 'sin apodo')}</b>${acct.email ? `<br><span style="color:var(--muted)">${escH(acct.email)}</span>` : ''}<br>Tu álbum se guarda solo.`; goStep(6); return; }
   if (aTab === 'login' && !$('loginEmail').value) $('loginEmail').value = LS.get('sancor_lastEmail', '');
   goStep(aTab === 'login' ? 0 : 1); loadGoogle();
 }
@@ -2119,17 +2128,24 @@ $('acctNick').addEventListener('keydown', e => { if (e.key === 'Enter') { e.prev
 $('aEditNick').addEventListener('click', () => { aMode = 'nick'; $('acctNick').value = acct.nick || ''; goStep(4); });
 $('acctOut').addEventListener('click', () => { const t = acct && acct.token; if (acct && acct.email) { rememberEmail(acct.email); $('loginEmail').value = acct.email; } aTab = 'login'; dropAcct(); if (t) accApi({ action: 'logout', token: t }); try { google.accounts.id.disableAutoSelect(); } catch (e) {} renderAcct(); });
 $('profBtn').addEventListener('click', () => openAcct());   // ícono de perfil: entra a la cuenta (o a iniciar sesión / crear cuenta)
-$('aDel').addEventListener('click', () => { $('delBox').hidden = false; $('aDel').hidden = true; $('delPassWrap').hidden = acct && acct.pass === false; $('delPass').value = ''; aErr(''); if (!$('delPassWrap').hidden && matchMedia('(pointer:fine)').matches) $('delPass').focus(); });
-$('aDelNo').addEventListener('click', () => { $('delBox').hidden = true; $('aDel').hidden = false; aErr(''); });
+const delMsg = t => { $('delErr').textContent = t; };
+function closeDel() { $('delModal').hidden = true; $('delPass').value = ''; delMsg(''); $('aDel').focus(); }
+$('aDel').addEventListener('click', () => { // abre el modal; las cuentas creadas con Google no tienen contraseña y no la piden
+  $('delPassWrap').hidden = !!(acct && acct.pass === false); $('delPass').value = ''; delMsg(''); $('delModal').hidden = false; SFX.ui('card');
+  setTimeout(() => ($('delPassWrap').hidden ? $('aDelNo') : $('delPass')).focus(), 50); });
+$('aDelNo').addEventListener('click', closeDel);
+$('delModal').addEventListener('click', e => { if (e.target === $('delModal')) closeDel(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('delModal').hidden) closeDel(); });
 $('delPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aDelGo').click(); } });
 $('aDelGo').addEventListener('click', async () => { // eliminar la cuenta (con la contraseña si la tiene)
   if (!acct) return; const needPass = !$('delPassWrap').hidden, pass = $('delPass').value;
-  if (needPass && !pass) { aErr('Escribí tu contraseña para confirmar.'); $('delPass').focus(); return; }
-  $('aDelGo').disabled = true; aErr('Eliminando…');
+  if (needPass && !pass) { delMsg('Escribí tu contraseña para confirmar.'); $('delPass').focus(); return; }
+  $('aDelGo').disabled = true; delMsg('Eliminando…');
   const r = await accApi({ action: 'delete', token: acct.token, pass }); $('aDelGo').disabled = false;
-  if (r.error) { aErr(r.error); return; }
+  if (r.error) { delMsg(r.error); $('delPass').select(); return; }
+  $('delModal').hidden = true; $('delPass').value = ''; delMsg('');
   try { google.accounts.id.disableAutoSelect(); } catch (e) {}
-  LS.set('sancor_lastEmail', ''); $('loginEmail').value = $('acctEmail').value = ''; aTab = 'register'; dropAcct(); $('delBox').hidden = true; $('aDel').hidden = false;
+  LS.set('sancor_lastEmail', ''); $('loginEmail').value = $('acctEmail').value = ''; aTab = 'register'; dropAcct();
   renderAcct(); aOk('Tu cuenta fue eliminada.');
 });
 function renderAccBox() {
