@@ -2235,7 +2235,9 @@ void main() {
       colorCache.set(key, rgb); return rgb; };
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     const textures = new Map(), view = { width: 1, height: 1, ratio: 1 };
-    const state = { scroll: 0, target: 0, velocity: 0, intro: s.intro && !reduce ? 0 : 1, waveTime: 0, ring: 0, keyboard: false, hovered: null, hover: new Map(), drag: null, lastInput: 0, active: 0, spacing: 1 };
+    const state = { scroll: 0, target: 0, velocity: 0, intro: s.intro && !reduce ? 0 : 1, waveTime: 0, ring: 0, keyboard: false, hovered: null, hover: new Map(), drag: null, lastInput: 0, active: 0, spacing: 1, sv: 0, tilt: { x: 0, v: 0 }, pop: { x: 1, v: 0 }, rest: true };
+    // resorte amortiguado (zeta < 1 rebota): mueve el carrusel, inclina las tarjetas y hace el "pop" de la elegida
+    const spring = (o, goal, k, zeta, dt) => { o.v += (-(o.x - goal) * k - o.v * 2 * Math.sqrt(k) * zeta) * dt; o.x += o.v * dt; };
     let cards = [], pool = [], raf = 0, last = 0, visible = true, snapTimer = 0, typing = false, dead = false;
 
     const textureFor = url => {
@@ -2265,8 +2267,8 @@ void main() {
       const first = Math.floor((scroll - view.width / 2 - spacing * 2) / spacing), lastSlot = Math.ceil((scroll + view.width / 2 + spacing * 2) / spacing), next = [];
       for (let slot = first; slot <= lastSlot; slot++) {
         const index = wrap(slot, count), item = list[index], entry = textureFor(item.image), x = slot * spacing - scroll, arc = arcOf(x);
-        const order = Math.abs(slot * spacing - state.scroll) / spacing, shown = ease(clamp(state.intro * 2.2 - order * .22, 0, 1)), hover = state.hover.get(slot) || 0, lift = 1 + hover * .04;
-        next.push({ slot, index, item, entry, x, y: arc.y - (1 - shown) * h * .18, angle: arc.angle, w: w * lift, h: h * lift, radius: s.borderRadius * Math.min(w, h), alpha: shown, dim: 0,
+        const order = Math.abs(slot * spacing - state.scroll) / spacing, shown = ease(clamp(state.intro * 2.2 - order * .22, 0, 1)), hover = state.hover.get(slot) || 0, lift = (1 + hover * .04) * (slot === state.active ? state.pop.x : 1);
+        next.push({ slot, index, item, entry, x, y: arc.y - (1 - shown) * h * .18, angle: arc.angle + state.tilt.x * .35, w: w * lift, h: h * lift, radius: s.borderRadius * Math.min(w, h), alpha: shown, dim: 0,
           gray: s.grayscale ? 1 - Math.max(hover, slot === state.active ? state.ring : 0) : 0, focus: 0, labelAlpha: 1, labelSize: baseLabel });
       }
       next.sort((a, b) => Math.abs(b.x) - Math.abs(a.x)); cards = next; return { w, h, spacing };
@@ -2307,10 +2309,18 @@ void main() {
       const dt = last ? clamp((now - last) / 1000, .0005, .05) : 1 / 60; last = now;
       const idle = now - state.lastInput > 1800, auto = s.autoScroll && !reduce && !state.drag && state.hovered === null && !state.keyboard && idle;
       if (auto) state.target += s.autoScroll * state.spacing * .25 * dt;
-      const follow = reduce ? 1 : 1 - Math.pow(1 - s.scrollEase, dt * 60), before = state.scroll;
-      state.scroll += (state.target - state.scroll) * follow; if (Math.abs(state.target - state.scroll) < .05) state.scroll = state.target;
+      const before = state.scroll;
+      if (state.drag) { state.scroll += (state.target - state.scroll) * (1 - Math.pow(1 - s.scrollEase, dt * 60)); state.sv = 0; }
+      else { const n = Math.ceil(dt / .008), body = { x: state.scroll, v: state.sv }; // resorte con rebote (sin rebote si el sistema pide reducir movimiento)
+        for (let k = 0; k < n; k++) spring(body, state.target, reduce ? 260 : 170, reduce ? 1 : .5, dt / n); state.scroll = body.x; state.sv = body.v; }
+      if (Math.abs(state.target - state.scroll) < .05 && Math.abs(state.sv) < 1) { state.scroll = state.target; state.sv = 0; }
       const velocity = (state.scroll - before) / dt; state.velocity += (velocity - state.velocity) * (1 - Math.exp(-dt / .08)); if (Math.abs(state.velocity) < .5) state.velocity = 0;
       state.waveTime += dt * 2.4;
+      { const n = Math.ceil(dt / .008), lean = reduce ? 0 : clamp(((state.scroll - before) / dt / Math.max(state.spacing, 1)) * .09, -1, 1);
+        for (let k = 0; k < n; k++) { spring(state.tilt, lean, 260, .45, dt / n); spring(state.pop, 1, 300, .35, dt / n); }
+        if (Math.abs(state.tilt.x) < .001 && Math.abs(state.tilt.v) < .01) state.tilt.x = state.tilt.v = 0;
+        if (Math.abs(state.pop.x - 1) < .001 && Math.abs(state.pop.v) < .01) { state.pop.x = 1; state.pop.v = 0; }
+        const rest = !state.drag && state.scroll === state.target; if (rest && !state.rest && !reduce) state.pop.v = 2.6; state.rest = rest; }
       state.ring += ((state.keyboard ? 1 : 0) - state.ring) * (1 - Math.exp(-dt / .1)); if (Math.abs((state.keyboard ? 1 : 0) - state.ring) < .002) state.ring = state.keyboard ? 1 : 0;
       if (state.intro < 1) state.intro = Math.min(1, state.intro + dt / INTRO_SECONDS);
       let settling = false;
@@ -2319,7 +2329,7 @@ void main() {
       textures.forEach(entry => { if (!entry.loaded || entry.ready >= 1) return; entry.ready = reduce ? 1 : Math.min(1, entry.ready + dt / .45); settling = true; });
       const slot = auto ? Math.round(state.scroll / Math.max(state.spacing, 1)) : nearest(); if (slot !== state.active && !state.drag) setActive(slot);
       const metrics = layout(); draw(metrics); placeLabels(metrics);
-      const moving = (s.autoScroll && !reduce) || state.scroll !== state.target || state.velocity !== 0 || state.intro < 1 || (state.ring !== 0 && state.ring !== 1) || settling;
+      const moving = (s.autoScroll && !reduce) || state.scroll !== state.target || state.velocity !== 0 || state.sv !== 0 || state.tilt.x !== 0 || state.pop.x !== 1 || state.intro < 1 || (state.ring !== 0 && state.ring !== 1) || settling;
       if (moving) raf = requestAnimationFrame(frame); else last = 0;
     };
     function wake() { if (!raf && !dead && visible && !document.hidden) raf = requestAnimationFrame(frame); }
@@ -2355,10 +2365,10 @@ void main() {
     const onPointerLeave = () => setPointer(null);
     const onWheel = event => { const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? view.height : 1, delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
       if (!delta) return; event.preventDefault(); const now = performance.now(); state.lastInput = now; clearTimeout(snapTimer);
-      // rueda: avanza de a un nivel por "muesca" y deja que la tarjeta se deslice suave (en vez de saltar y corregir)
-      if (now - wheel.last > 250) wheel.acc = 0; wheel.last = now; wheel.acc = clamp(wheel.acc + delta * unit, -120, 120);
-      if (Math.abs(wheel.acc) >= 40 && now - wheel.step > 220) { setSlot(state.active + Math.sign(wheel.acc)); wheel.acc = 0; wheel.step = now; } };
-    const wheel = { acc: 0, last: 0, step: 0 };
+      // 2 muescas por nivel (1 muesca ≈ 100 px); lo que sobra se guarda para no perder muescas al girar rápido
+      if (now - wheel.last > 450) wheel.acc = 0; wheel.last = now; wheel.acc += delta * (event.deltaMode === 1 ? 33 : unit);
+      if (Math.abs(wheel.acc) >= WHEEL_NOTCHES * 100 - 60) { const dir = Math.sign(wheel.acc); setSlot(state.active + dir); wheel.acc -= dir * WHEEL_NOTCHES * 100; if (Math.sign(wheel.acc) !== dir) wheel.acc = 0; } };
+    const wheel = { acc: 0, last: 0 }, WHEEL_NOTCHES = 2;
     const onKeyDown = event => { const step = STEPS[event.key]; state.lastInput = performance.now();
       if (step) { event.preventDefault(); if (container.contains(document.activeElement) && document.activeElement !== container) state.keyboard = true; setSlot(nearest() + step);
         const index = wrap(state.active, s.items.length); if (container.contains(document.activeElement)) buttons[index]?.focus({ preventScroll: true }); return; }
