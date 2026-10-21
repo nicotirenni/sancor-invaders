@@ -1839,7 +1839,7 @@ $('albGrid').addEventListener('click', e => { const t = e.target.closest('.tile'
 $('albBtn').addEventListener('click', openAlbum);
 $('albBack').addEventListener('click', () => setMode('menu'));
 // ---------- Cuenta (opcional): Google o mail + contraseña, con nick opcional. Guarda el álbum y reserva el nick ----------
-const GOOGLE_LOGIN = false;   // interruptor: true cuando el dominio esté autorizado en Google Cloud (Orígenes autorizados de JavaScript)
+const GOOGLE_LOGIN = /(^|\.)dronesinvasores\.com$/.test(location.hostname);   // Google solo acepta los orígenes autorizados en Google Cloud (dronesinvasores.com y www); en otros lados el botón no se muestra
 const GOOGLE_CLIENT_ID = '673518924318-4ht3mfa852s6vh3q84jfukul79oae93k.apps.googleusercontent.com';
 let acct = (() => { try { const a = JSON.parse(LS.get('sancor_acct', 'null')); return a && a.token ? { ...a, nick: a.nick || a.name } : null; } catch { return null; } })();   // { token, nick, email }
 async function accApi(body) {
@@ -1962,7 +1962,7 @@ const rememberEmail = e => { if (e) LS.set('sancor_lastEmail', e); };
 let gsi = 0;
 function loadGoogle() { // botón oficial de Google (Google Identity Services)
   if (!GOOGLE_LOGIN) { $('orLine').hidden = $('orLineL').hidden = true; return; }   // apagado: solo mail y contraseña
-  const draw = () => { try { ['gBtn', 'gBtnL'].forEach(id => { $(id).innerHTML = ''; google.accounts.id.renderButton($(id), { theme: 'filled_black', size: 'large', shape: 'rectangular', text: id === 'gBtn' ? 'signup_with' : 'signin_with', locale: 'es', width: Math.min(400, $('acct').clientWidth - 40 || 320) }); }); } catch (e) {} };
+  const draw = () => { try { ['gBtn', 'gBtnL'].forEach(id => { $(id).innerHTML = ''; google.accounts.id.renderButton($(id), { theme: 'filled_black', size: 'large', shape: 'rectangular', text: id === 'gBtn' ? 'signup_with' : 'signin_with', locale: 'es', width: Math.min(400, $('acct').clientWidth || 320) }); }); } catch (e) {} };   // mismo ancho que los campos (Google acepta hasta 400 px)
   if (gsi === 2) { draw(); return; } if (gsi === 1) return; gsi = 1;
   const sc = document.createElement('script'); sc.src = 'https://accounts.google.com/gsi/client?hl=es'; sc.async = true;
   sc.onload = () => { try { google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogle, ux_mode: 'popup', auto_select: false, cancel_on_tap_outside: true }); gsi = 2; draw(); } catch (e) { gsi = 0; } };
