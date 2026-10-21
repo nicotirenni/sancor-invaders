@@ -215,9 +215,28 @@
   .aTabs button{border:0;border-radius:9px;background:none;color:var(--muted);font:600 clamp(14px,1.8cqw,16px)/1 var(--body);padding:11px 8px;cursor:pointer;transition:background .2s,color .2s} .aTabs button:hover{color:#fff}
   .aTabs button[aria-selected=true]{background:var(--pink);color:#fff;box-shadow:0 0 14px rgba(214,32,104,.3)} .aTabs button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   .acct.login .steps{display:none} .acctErr a{color:#fff;text-underline-offset:3px;font-weight:600}
+  /* CodeSlots (React Bits), portado a CSS + JS sin React: casilleros para el código del mail */
+  .code-slots{--cs-accent:#f5f5f5;--cs-ink:#f5f5f5;--cs-slot:#27272a;--cs-digit:#18181b;--cs-danger:#ff3b30;--cs-size:44px;--cs-height:52px;--cs-gap:8px;--cs-radius:12px;--cs-font:22px;position:relative;display:inline-block}
+  .code-slots__row{position:relative;display:inline-flex;gap:var(--cs-gap);cursor:text;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:opacity .2s ease}
+  .code-slots__row[data-disabled]{opacity:.5;cursor:not-allowed}
+  .code-slots__input{position:absolute;inset:0;z-index:4;margin:0;padding:0;border:0;outline:0;background:transparent;color:transparent;caret-color:transparent;font-size:16px;opacity:0;cursor:inherit;-webkit-appearance:none;appearance:none;width:100%;height:100%}
+  .code-slots__wash{position:absolute;inset:0;z-index:1;display:grid;place-items:center;border-radius:var(--cs-radius);background:var(--cs-accent);color:var(--cs-digit);pointer-events:none;clip-path:inset(0 50% round var(--cs-radius));visibility:hidden}
+  .code-slots__check{display:grid;place-items:center;opacity:0}
+  .code-slots__slot{position:relative;width:var(--cs-size);height:var(--cs-height);border-radius:var(--cs-radius);overflow:hidden;background:var(--cs-slot);transition:background-color .2s ease;user-select:none;-webkit-user-select:none}
+  .code-slots__fill{position:absolute;inset:0;border-radius:inherit;background:var(--cs-accent);transform:scale(0);transform-origin:center;transition:background-color .2s ease}
+  @media (hover:hover) and (pointer:fine){.code-slots__row[data-status=idle]:not([data-disabled]):hover .code-slots__slot:not([data-active]){background:color-mix(in srgb,var(--cs-ink) 4%,var(--cs-slot))}}
+  .code-slots__slot[data-active]{background:color-mix(in srgb,var(--cs-ink) 8%,var(--cs-slot))}
+  .code-slots__row[data-status=error] .code-slots__slot{background:color-mix(in srgb,var(--cs-danger) 20%,var(--cs-slot))}
+  .code-slots__row[data-status=error] .code-slots__fill{background:var(--cs-danger)}
+  .code-slots__digit{position:absolute;inset:0;z-index:2;display:grid;place-items:center;color:var(--cs-digit);font-family:var(--body);font-size:var(--cs-font);font-weight:600;line-height:1;font-variant-numeric:tabular-nums;opacity:0}
+  .code-slots__caret{position:absolute;z-index:3;top:25%;left:calc(var(--cs-size) / 2 - .75px);width:1.5px;height:50%;opacity:0;pointer-events:none;transition:transform .16s cubic-bezier(.23,1,.32,1)}
+  .code-slots__caret[data-show]{opacity:1}
+  .code-slots__caret-line{display:block;width:100%;height:100%;background:var(--cs-ink);animation:code-slots-blink 1s linear infinite}
+  @keyframes code-slots-blink{0%,49.9%{opacity:1}50%,100%{opacity:0}}
+  .code-slots__sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .codeBox{display:flex;justify-content:center;width:100%}
   .aLink{border:0;background:none;color:var(--muted);font:500 14px/1.2 var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px} .aLink:hover{color:#fff} .aLink:disabled{opacity:.5;cursor:default;text-decoration:none}
-  .field.code{font-variant-numeric:tabular-nums} .field.code:not(:placeholder-shown){letter-spacing:.3em} .acct.nocode .field.code,.acct.nocode #aResend1{display:none}   /* sin envío de mails configurado: no se pide código */
-  .aSmall{font-size:13px;color:var(--muted)} .acct:not(.done) #acctBack{display:none}
+    .aSmall{font-size:13px;color:var(--muted)} .acct:not(.done) #acctBack{display:none}
   #acct .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;margin-top:4px} #acct .row>.gh{order:-1}   /* desktop: dos columnas iguales, volver a la izquierda */
   #acct .row>*{width:100%;min-width:0;max-width:none;margin:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} #acct>#acctBack{width:100%;box-sizing:border-box}   /* mismo ancho que el input */
   @media (max-width:699px){ #acct .row{grid-template-columns:1fr;gap:10px} #acct .row>.gh{order:1} #acct .row>*,#acctBack{width:100%;min-width:0;box-sizing:border-box} #acct .row .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center} }   /* mobile: apilados, volver abajo */
@@ -591,7 +610,7 @@
         <div class="podTitle" id="acctTitle">Tu cuenta</div>
         <p class="aWhy" id="aWhy" hidden>🏆 El <b>Torneo</b> necesita cuenta: así tu puntaje y tus figuritas quedan a tu nombre.</p>
         <div class="aTabs" id="aTabs" role="tablist" aria-label="Cuenta"><button type="button" role="tab" id="tabLogin" data-tab="login" aria-selected="false">Iniciar sesión</button><button type="button" role="tab" id="tabReg" data-tab="register" aria-selected="true">Crear cuenta</button></div>
-        <div class="steps" id="acctSteps" aria-hidden="true"><i data-s="1">1</i><b></b><i data-s="2">2</i><b></b><i data-s="3">3</i></div>
+        <div class="steps" id="acctSteps" aria-hidden="true"><i data-s="1">1</i><b></b><i data-s="2">2</i><b></b><i data-s="3">3</i><b></b><i data-s="4">4</i></div>
         <div class="aStep" data-s="0">
           <input id="loginEmail" class="field" type="email" maxlength="254" placeholder="tu@mail.com" autocomplete="email" inputmode="email" autocapitalize="off">
           <div class="passWrap"><input id="loginPass" class="field" type="password" maxlength="64" placeholder="Contraseña" autocomplete="current-password"><button class="eye" id="lEye" data-for="loginPass" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
@@ -600,7 +619,7 @@
         </div>
         <div class="aStep" data-s="5">
           <p class="aHint" id="aResetShow"></p>
-          <input id="resetCode" class="field code" type="text" inputmode="numeric" maxlength="6" placeholder="Código de 6 dígitos" autocomplete="one-time-code" pattern="[0-9]*">
+          <div class="codeBox" id="resetCodeBox"></div>
           <div class="passWrap"><input id="resetPass" class="field" type="password" maxlength="64" placeholder="Contraseña nueva" autocomplete="new-password"><button class="eye" data-for="resetPass" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
           <div class="row"><button class="sb" id="aResetGo" type="button">Guardar y entrar</button><button class="gh" id="aBackR" type="button">Volver</button></div>
           <button class="aLink" id="aResend2" type="button">Reenviar código</button>
@@ -618,19 +637,24 @@
         </div>
         <div class="aStep" data-s="2">
           <p class="aHint" id="aEmailShow"></p>
-          <input id="regCode" class="field code" type="text" inputmode="numeric" maxlength="6" placeholder="Código de 6 dígitos" autocomplete="one-time-code" pattern="[0-9]*">
-          <div class="passWrap"><input id="acctPass" class="field" type="password" maxlength="64" placeholder="Contraseña" autocomplete="new-password"><button class="eye" id="aEye" data-for="acctPass" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
-          <p class="aHint aSmall">Elegí una contraseña para tu cuenta: mínimo 6 caracteres.</p>
-          <div class="row"><button class="sb" id="aLogin" type="button">Continuar</button><button class="gh" id="aBack1" type="button">Volver</button></div>
+          <div class="codeBox" id="regCodeBox"></div>
+          <div class="row"><button class="sb" id="aCodeGo" type="button">Validar código</button><button class="gh" id="aBack1" type="button">Volver</button></div>
           <button class="aLink" id="aResend1" type="button">Reenviar código</button>
         </div>
         <div class="aStep" data-s="3">
+          <p class="aHint">Elegí una contraseña para tu cuenta: mínimo 6 caracteres.</p>
+          <div class="passWrap"><input id="acctPass" class="field" type="password" maxlength="64" placeholder="Contraseña" autocomplete="new-password"><button class="eye" id="aEye" data-for="acctPass" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
+          <div class="passWrap"><input id="acctPass2" class="field" type="password" maxlength="64" placeholder="Repetí la contraseña" autocomplete="new-password"><button class="eye" data-for="acctPass2" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path class="slash" d="m2 2 20 20"/></svg></button></div>
+          <p class="nickSt" id="passSt" aria-live="polite"></p>
+          <div class="row"><button class="sb" id="aLogin" type="button">Continuar</button><button class="gh" id="aBack2" type="button">Volver</button></div>
+        </div>
+        <div class="aStep" data-s="4">
           <p class="aHint">Elegí tu apodo: es como te van a ver en el ranking y nadie más puede usarlo. Tu mail nunca se muestra.</p>
           <input id="acctNick" class="field" type="text" maxlength="16" placeholder="Tu apodo" autocomplete="nickname" autocapitalize="words">
           <p class="nickSt" id="nickSt" aria-live="polite"></p>
           <div class="row"><button class="sb" id="aNickSave" type="button">Guardar apodo</button><button class="gh" id="aNickBack" type="button">Volver</button></div>
         </div>
-        <div class="aStep" data-s="4">
+        <div class="aStep" data-s="6">
           <svg class="okMark" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="23"/><path d="M15 27l7 7 15-16"/></svg>
           <p class="aHint" id="acctIn"></p>
           <div class="hist" id="acctHist" aria-live="polite"></div>
@@ -1840,6 +1864,64 @@ function setAcct(r) {
   if (r.nick) { playerName = r.nick; LS.set('sancor_name', r.nick); } mergeAlbum(r.progress);
 }
 const escH = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// ---------- CodeSlots (React Bits) en JS puro: casilleros para el código del mail ----------
+// Misma API que el componente: length, status (idle | error | success), onChange, onComplete, colores, tamaños y resortes (bounce, settle, rise, cascade).
+function CodeSlots(container, o = {}) {
+  const n = o.length || 6, settle = o.settle ?? .3, bounce = o.bounce ?? .2, rise = o.rise ?? 8, cascade = o.cascade ?? 20;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const size = o.slotSize || 44, gap = o.gap ?? 8, radius = Math.min(o.radius ?? 12, size / 2), height = Math.round(size * 1.18), pitch = size + gap;
+  const root = document.createElement('div'); root.className = 'code-slots';
+  Object.entries({ accent: o.accentColor || '#f5f5f5', ink: o.inkColor || '#f5f5f5', slot: o.slotColor || '#27272a', digit: o.digitColor || '#18181b', danger: o.dangerColor || '#ff3b30',
+    size: size + 'px', height: height + 'px', gap: gap + 'px', radius: radius + 'px', font: Math.round(size * .5) + 'px' }).forEach(([k, v]) => root.style.setProperty('--cs-' + k, v));
+  root.innerHTML = `<div class="code-slots__row" data-status="idle"><input class="code-slots__input" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="${n}" aria-label="${o.ariaLabel || 'Código de un solo uso'}">${'<span class="code-slots__slot" aria-hidden="true"><span class="code-slots__fill"></span><span class="code-slots__digit"></span></span>'.repeat(n)}<span class="code-slots__wash" aria-hidden="true"><span class="code-slots__check"><svg viewBox="0 0 24 24" width="${Math.round(size * .6)}" height="${Math.round(size * .6)}" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 14.5s1.5 0 3.5 3.5c0 0 5.559-9.167 10.5-11"/></svg></span></span><span class="code-slots__caret" aria-hidden="true"><span class="code-slots__caret-line"></span></span></div><span class="code-slots__sr" aria-live="polite"></span>`;
+  container.replaceChildren(root);
+  const row = root.firstChild, input = row.querySelector('input'), slotEls = [...row.querySelectorAll('.code-slots__slot')], caret = row.querySelector('.code-slots__caret'), wash = row.querySelector('.code-slots__wash'), check = row.querySelector('.code-slots__check'), sr = root.lastChild;
+  let slots = Array(n).fill(''), active = 0, focused = false, status = 'idle', draining = false, drainT = 0;
+  // resorte con rebote como keyframes (equivalente al spring de motion: duración ~settle, sobrepaso según bounce)
+  const springKeys = (from, to, steps = 24) => { const z = Math.max(.05, 1 - bounce), w = 4.6 / (z * settle), wd = w * Math.sqrt(Math.max(1e-4, 1 - z * z));
+    return Array.from({ length: steps + 1 }, (_, i) => { const t = i / steps * settle, e = Math.exp(-z * w * t), x = z < 1 ? 1 - e * (Math.cos(wd * t) + z * w / wd * Math.sin(wd * t)) : 1 - e * (1 + w * t); return from + (to - from) * (i === steps ? 1 : x); }); };
+  const anim = (el, frames, ms, delay = 0, easing = 'linear') => el.animate(frames, { duration: reduce ? 1 : ms, delay: reduce ? 0 : delay, easing, fill: 'forwards' });
+  function land(i, delay, ch) { const s = slotEls[i], f = s.firstChild, d = s.lastChild; d.textContent = o.mask ? '•' : ch;
+    anim(f, springKeys(0, 1).map(v => ({ transform: `scale(${Math.max(v, 0)})` })), settle * 1000, delay);
+    anim(d, springKeys(0, 1).map(v => ({ transform: `translateY(${(1 - v) * rise}px)`, opacity: Math.min(1, Math.max(0, v)) })), settle * 1000, delay); s.setAttribute('data-filled', ''); }
+  function drain(i, delay = 0) { const s = slotEls[i]; anim(s.firstChild, [{ transform: 'scale(1)' }, { transform: 'scale(0)' }], settle * 1000, delay, 'cubic-bezier(.23,1,.32,1)');
+    anim(s.lastChild, [{ opacity: 1 }, { opacity: 0, transform: `translateY(${rise}px)` }], settle * 1000, delay, 'cubic-bezier(.23,1,.32,1)'); s.removeAttribute('data-filled'); }
+  const firstEmpty = () => { const i = slots.indexOf(''); return i === -1 ? n - 1 : i; };
+  function paint() { slotEls.forEach((s, i) => s.toggleAttribute('data-active', focused && i === active)); caret.style.transform = `translateX(${active * pitch}px)`;
+    caret.toggleAttribute('data-show', (o.caret ?? true) && focused && !o.disabled && status !== 'success' && (status === 'error' || !slots[active]));
+    sr.textContent = status === 'success' ? 'Código aceptado' : `${slots.filter(Boolean).length} de ${n} números`; }
+  function commit(next) { const wasFull = slots.every(Boolean); slots = next; const code = slots.join(''); o.onChange?.(code); if (!wasFull && slots.every(Boolean)) o.onComplete?.(code); }
+  function insert(raw, from = active) { const d = String(raw).replace(/\D/g, ''); if (!d) return; const next = [...slots]; let i = from;
+    for (const ch of d) { if (i >= n) break; next[i] = ch; land(i, (i - from) * (reduce ? 0 : cascade), ch); i++; }
+    active = Math.min(i, n - 1); commit(next); paint(); }
+  function clearSlot(i, back) { if (!slots[i]) { if (back) { active = i; paint(); } return; } const next = [...slots]; next[i] = ''; drain(i); if (back) active = i; commit(next); paint(); }
+  const busy = () => o.disabled || draining || status === 'success';
+  input.addEventListener('keydown', e => { if (busy() || e.metaKey || e.ctrlKey || e.altKey) return; const k = e.key;
+    if (/^[0-9]$/.test(k)) { e.preventDefault(); insert(k); }
+    else if (k === 'Backspace') { e.preventDefault(); if (slots[active]) clearSlot(active); else if (active > 0) clearSlot(active - 1, true); }
+    else if (k === 'Delete') { e.preventDefault(); clearSlot(active); }
+    else if (k === 'ArrowLeft') { e.preventDefault(); active = Math.max(active - 1, 0); paint(); }
+    else if (k === 'ArrowRight') { e.preventDefault(); active = Math.min(active + 1, n - 1); paint(); }
+    else if (k === 'Home') { e.preventDefault(); active = 0; paint(); } else if (k === 'End') { e.preventDefault(); active = n - 1; paint(); }
+    else if (k === 'Enter') o.onEnter?.(); });
+  input.addEventListener('paste', e => { if (busy()) return; e.preventDefault(); insert((e.clipboardData || window.clipboardData).getData('text'), 0); });
+  input.addEventListener('input', () => { const d = input.value.replace(/\D/g, ''); input.value = ''; if (busy() || !d) return; insert(d, d.length === 1 ? active : 0); });   // celular y autocompletado del mail
+  input.addEventListener('focus', () => { focused = true; paint(); }); input.addEventListener('blur', () => { focused = false; paint(); });
+  row.addEventListener('mousedown', e => { if (o.disabled) return; e.preventDefault(); if (!draining && status !== 'success') { const r = row.getBoundingClientRect(); active = Math.max(0, Math.min(Math.floor((e.clientX - r.left) / pitch), firstEmpty())); paint(); } input.focus(); });
+  function setStatus(st) { if (st === status) return; const was = status; status = st; row.dataset.status = st; input.readOnly = st === 'success'; input.setAttribute('aria-invalid', st === 'error');
+    if (st === 'success') { wash.style.visibility = 'visible'; anim(wash, [{ clipPath: `inset(0 50% round ${radius}px)` }, { clipPath: `inset(0 0% round ${radius}px)` }], 300, 0, 'cubic-bezier(.23,1,.32,1)');
+      slotEls.forEach((s, k) => anim(s.lastChild, [{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: `translateY(${Math.round(height * .3)}px)`, offset: .6 }, { opacity: 0, transform: `translateY(${Math.round(height * .5)}px)` }], 300, 60 + k * 30, 'ease-out'));   // los números se hunden y se apagan antes de llegar abajo
+      anim(check, springKeys(0, 1).map(v => ({ transform: `translateY(${(1 - v) * 8}px) scale(${.85 + .15 * Math.max(v, 0)})`, opacity: Math.min(1, Math.max(0, v)) })), 350, 280); }
+    else if (was === 'success') { anim(check, [{ opacity: 1 }, { opacity: 0 }], 150); anim(wash, [{ clipPath: `inset(0 0% round ${radius}px)` }, { clipPath: `inset(0 50% round ${radius}px)` }], 200, 60, 'cubic-bezier(.23,1,.32,1)').finished.then(() => { if (status !== 'success') wash.style.visibility = 'hidden'; });
+      slotEls.forEach(s => { if (slots[slotEls.indexOf(s)]) anim(s.lastChild, [{ opacity: 0 }, { opacity: 1, transform: 'translateY(0)' }], 300, 100); }); }
+    if (st === 'error') { const filled = slots.map((c, i) => c ? i : -1).filter(i => i >= 0).reverse(); if (filled.length) { draining = true; filled.forEach((i, k) => drain(i, k * (reduce ? 0 : cascade))); active = 0;
+      clearTimeout(drainT); drainT = setTimeout(() => { draining = false; commit(Array(n).fill('')); paint(); }, reduce ? 300 : (filled.length - 1) * cascade + settle * 1000); } }
+    paint(); }
+  paint(); if (o.autoFocus) input.focus();
+  return { get value() { return slots.join(''); }, setStatus, get status() { return status; }, focus: () => input.focus(),
+    clear() { clearTimeout(drainT); draining = false; slots.forEach((c, i) => { if (c) drain(i); }); slots = Array(n).fill(''); active = 0; if (status !== 'idle') setStatus('idle'); paint(); },
+    setDisabled(v) { o.disabled = v; input.disabled = v; row.toggleAttribute('data-disabled', v); paint(); } };
+}
 // --- cuenta: pestañas "Iniciar sesión" (paso 0: mail + contraseña) y "Crear cuenta" (stepper estilo React Bits: 1 mail o Google · 2 contraseña · 3 apodo) · 4 listo ---
 let acctBack = 'menu', aStep = 1, aMode = '', pending = null, aTab = LS.get('sancor_lastEmail', '') ? 'login' : 'register';   // quien ya entró alguna vez en este equipo arranca en "Iniciar sesión"
 function goStep(n) {
@@ -1847,12 +1929,13 @@ function goStep(n) {
   document.querySelectorAll('#acct .aStep').forEach(el => { const on = +el.dataset.s === n; el.classList.toggle('on', on); el.classList.toggle('back', on && back); });
   document.querySelectorAll('#acctSteps i').forEach(el => { const k = +el.dataset.s; el.classList.toggle('on', k === n); el.classList.toggle('ok', k < n); el.textContent = k < n ? '✓' : k; });
   document.querySelectorAll('#acctSteps b').forEach((el, i) => el.classList.toggle('ok', i + 1 < n));
-  $('acct').classList.toggle('done', n === 4); $('acct').classList.toggle('s2', n === 2); $('acct').classList.toggle('login', n === 0 || n === 5); $('acct').classList.toggle('tabs', n <= 1);
+  $('acct').classList.toggle('done', n === 6); $('acct').classList.toggle('login', n === 0 || n === 5); $('acct').classList.toggle('tabs', n <= 1);
   document.querySelectorAll('#aTabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === (n === 0 ? 'login' : 'register'))));
-  ['acctPass', 'loginPass', 'resetPass'].forEach(id => { $(id).type = 'password'; }); document.querySelectorAll('#acct .eye').forEach(b => b.setAttribute('aria-pressed', 'false')); $('acctErr').textContent = ''; $('acctErr').classList.remove('ok');
-  $('acctTitle').textContent = n === 4 ? 'Tu cuenta' : n === 3 ? 'Tu apodo' : n === 0 ? 'Iniciá sesión' : n === 5 ? 'Nueva contraseña' : 'Creá tu cuenta';
+  ['acctPass', 'acctPass2', 'loginPass', 'resetPass'].forEach(id => { $(id).type = 'password'; }); document.querySelectorAll('#acct .eye').forEach(b => b.setAttribute('aria-pressed', 'false')); $('acctErr').textContent = ''; $('acctErr').classList.remove('ok');
+  $('acctTitle').textContent = n === 6 ? 'Tu cuenta' : n === 4 ? 'Tu apodo' : n === 0 ? 'Iniciá sesión' : n === 5 ? 'Nueva contraseña' : 'Creá tu cuenta';
   aValidate(); setTimeout(aValidate, 0);
-  const f = { 0: $('loginEmail').value ? 'loginPass' : 'loginEmail', 1: 'acctEmail', 2: needCode ? 'regCode' : 'acctPass', 3: 'acctNick', 5: 'resetCode' }[n]; if (f && matchMedia('(pointer:fine)').matches) setTimeout(() => $(f).focus(), 60);
+  const f = { 0: $('loginEmail').value ? 'loginPass' : 'loginEmail', 1: 'acctEmail', 3: 'acctPass', 4: 'acctNick' }[n]; if (f && matchMedia('(pointer:fine)').matches) setTimeout(() => $(f).focus(), 60);
+  if (n === 2 || n === 5) setTimeout(() => (n === 2 ? regSlots : resetSlots).focus(), 80);   // los casilleros del código toman el foco también en el celu, así aparece el teclado numérico
 }
 function openAcct(back) { acctBack = back || $('card').dataset.mode; $('aWhy').hidden = !(acctBack === 'mode' && gameMode === 'torneo'); setMode('account'); SFX.ui('card'); renderAcct(); }
 function afterAcct() { // si vino del Torneo: con la sesión iniciada sigue solo a elegir la nave
@@ -1871,7 +1954,7 @@ async function loadHist() { // historial del Torneo: resumen y últimas partidas
   box.innerHTML = tiles + list;
 }
 function renderAcct() {
-  if (acct) { loadHist(); $('acctIn').innerHTML = `Conectado como <b>${escH(acct.nick || 'sin apodo')}</b>${acct.email ? `<br><span style="color:var(--muted)">${escH(acct.email)}</span>` : ''}<br>Tu álbum se guarda solo.`; goStep(4); return; }
+  if (acct) { loadHist(); $('acctIn').innerHTML = `Conectado como <b>${escH(acct.nick || 'sin apodo')}</b>${acct.email ? `<br><span style="color:var(--muted)">${escH(acct.email)}</span>` : ''}<br>Tu álbum se guarda solo.`; goStep(6); return; }
   if (aTab === 'login' && !$('loginEmail').value) $('loginEmail').value = LS.get('sancor_lastEmail', '');
   goStep(aTab === 'login' ? 0 : 1); loadGoogle();
 }
@@ -1896,7 +1979,7 @@ async function onGoogle(resp) {
   const r = await accApi({ action: 'google', credential: resp && resp.credential, progress: album });
   if (r.error) { aErr(r.error); return; }
   setAcct(r); rememberEmail(r.email); SFX.ui('save'); renderAccBox();
-  if (r.isNew) { aMode = 'nick'; $('acctNick').value = r.nick || ''; goStep(3); } else { renderAcct(); afterAcct(); aOk('¡Hola de nuevo!'); }
+  if (r.isNew) { aMode = 'nick'; $('acctNick').value = r.nick || ''; goStep(4); } else { renderAcct(); afterAcct(); aOk('¡Hola de nuevo!'); }
 }
 const aErr = t => { const e = $('acctErr'); e.textContent = t; e.classList.remove('ok'); };
 const aOk = t => { const e = $('acctErr'); e.textContent = t; e.classList.add('ok'); };
@@ -1916,36 +1999,60 @@ const EMAIL_OK = e => /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/.test(e);
 function aValidate() {
   $('aNext1').disabled = !EMAIL_OK($('acctEmail').value.trim());
   $('aLoginGo').disabled = !EMAIL_OK($('loginEmail').value.trim()) || $('loginPass').value.length < 6;
-  $('aLogin').disabled = $('acctPass').value.length < 6 || (needCode && !CODE_OK($('regCode').value));
-  $('aResetGo').disabled = $('resetPass').value.length < 6 || !CODE_OK($('resetCode').value);
+  $('aLogin').disabled = $('acctPass').value.length < 6 || $('acctPass').value !== $('acctPass2').value;
+  $('aCodeGo').disabled = !CODE_OK(regSlots.value) || regSlots.status === 'success';
+  $('aResetGo').disabled = $('resetPass').value.length < 6 || !CODE_OK(resetSlots.value);
   $('aNickSave').disabled = cleanName($('acctNick').value).length < 2;
 }
-['acctEmail', 'acctPass', 'acctNick', 'loginEmail', 'loginPass', 'regCode', 'resetCode', 'resetPass'].forEach(id => $(id).addEventListener('input', aValidate));
-['regCode', 'resetCode'].forEach(id => $(id).addEventListener('input', () => { const i = $(id), v = i.value.replace(/\D/g, '').slice(0, 6); if (v !== i.value) i.value = v; aValidate(); }));
+['acctEmail', 'acctPass', 'acctPass2', 'acctNick', 'loginEmail', 'loginPass', 'resetPass'].forEach(id => $(id).addEventListener('input', aValidate));
+// casilleros del código (CodeSlots), con los colores del juego; se achican en pantallas angostas
+const slotOpts = () => ({ length: 6, accentColor: '#ffc928', inkColor: '#f4f7ff', slotColor: '#121730', digitColor: '#1a1300', dangerColor: '#ff5a78',
+  slotSize: Math.max(34, Math.min(48, Math.floor((Math.min(innerWidth - 72, 420) - 40) / 6))), gap: 8, radius: 12, bounce: .2, settle: .3, rise: 8, cascade: 20, ariaLabel: 'Código del mail' });
+const regSlots = CodeSlots($('regCodeBox'), { ...slotOpts(), onChange: () => { if (regSlots.status === 'error') regSlots.setStatus('idle'); aValidate(); }, onComplete: c => verifyReg(c), onEnter: () => $('aCodeGo').click() });
+const resetSlots = CodeSlots($('resetCodeBox'), { ...slotOpts(), onChange: () => { if (resetSlots.status === 'error') resetSlots.setStatus('idle'); aValidate(); }, onComplete: () => { if (matchMedia('(pointer:fine)').matches) $('resetPass').focus(); }, onEnter: () => $('resetPass').focus() });
+let verifying = false;
+async function verifyReg(code) { // Crear cuenta, paso 2: valida el código apenas se completan los 6 números
+  if (verifying || !CODE_OK(code)) return; verifying = true; aErr('Comprobando el código…');
+  const email = $('acctEmail').value.trim(), r = await accApi({ action: 'checkCode', email, code, purpose: 'register' }); verifying = false;
+  if (r.error) { regSlots.setStatus('error'); aErr(r.error); SFX.ui('hover'); return; }
+  regSlots.setStatus('success'); aOk('¡Mail confirmado!'); SFX.ui('save'); pending = { email, code }; aValidate();
+  setTimeout(() => { if (aStep === 2) goStep(3); }, 900);
+}
+$('aCodeGo').addEventListener('click', () => { if (!CODE_OK(regSlots.value)) { aErr('Completá los 6 números del código.'); regSlots.focus(); return; } verifyReg(regSlots.value); });
+function passCheck() { // Crear cuenta, paso 3: la segunda contraseña tiene que ser igual a la primera
+  const a = $('acctPass').value, b = $('acctPass2').value, st = $('passSt'); st.className = 'nickSt'; st.textContent = '';
+  if (!b) return; if (a === b) { st.className = 'nickSt ' + (a.length >= 6 ? 'ok' : 'bad'); st.textContent = a.length >= 6 ? '✓ Las contraseñas coinciden' : '✗ Tiene que tener al menos 6 caracteres'; }
+  else if (!a.startsWith(b)) { st.className = 'nickSt bad'; st.textContent = '✗ Las contraseñas no coinciden'; }
+}
+['acctPass', 'acctPass2'].forEach(id => $(id).addEventListener('input', passCheck));
+$('acctPass2').addEventListener('blur', () => { const a = $('acctPass').value, b = $('acctPass2').value; if (b && a !== b) { $('passSt').className = 'nickSt bad'; $('passSt').textContent = '✗ Las contraseñas no coinciden'; } });
+$('acctPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('acctPass2').focus(); } });
+$('acctPass2').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aLogin').click(); } });
+$('aBack2').addEventListener('click', () => goStep(needCode ? 2 : 1));
 $('aNext1').addEventListener('click', async () => { // Crear cuenta, paso 1: manda el código al mail y pasa al paso 2
   const e = $('acctEmail').value.trim(); if (!EMAIL_OK(e)) { aErr('Revisá el mail: parece que no es válido.'); return; }
   $('aNext1').disabled = true; const go = await askCode(e, 'register', $('aResend1')); $('aNext1').disabled = false; if (!go) return;
   const msg = $('acctErr').textContent, ok = $('acctErr').classList.contains('ok');
-  $('regCode').value = ''; $('aEmailShow').innerHTML = needCode ? `Escribí el código que mandamos a <b>${escH(e)}</b> y elegí tu contraseña.` : `Mail: <b>${escH(e)}</b>`;
-  goStep(2); SFX.ui('place'); if (msg) (ok ? aOk : aErr)(msg);
+  regSlots.clear(); pending = null; $('acctPass').value = $('acctPass2').value = ''; passCheck(); $('aEmailShow').innerHTML = `Escribí el código de 6 números que mandamos a <b>${escH(e)}</b>.`;
+  goStep(needCode ? 2 : 3); SFX.ui('place'); if (msg) (ok ? aOk : aErr)(msg);
 });
 $('aResend1').addEventListener('click', () => askCode($('acctEmail').value.trim(), 'register', $('aResend1')));
 $('aForgot').addEventListener('click', async () => { // Olvidé mi contraseña: manda un código al mail escrito
   const e = $('loginEmail').value.trim(); if (!EMAIL_OK(e)) { aErr('Escribí tu mail arriba y tocá de nuevo "¿Olvidaste tu contraseña?".'); $('loginEmail').focus(); return; }
   const go = await askCode(e, 'reset', $('aResend2')); if (!go) return;
   if (!needCode) { aErr('Por ahora no se puede recuperar la contraseña por mail.'); return; }
-  const msg = $('acctErr').textContent; $('resetCode').value = ''; $('resetPass').value = '';
+  const msg = $('acctErr').textContent; resetSlots.clear(); $('resetPass').value = '';
   $('aResetShow').innerHTML = `Escribí el código que mandamos a <b>${escH(e)}</b> y tu contraseña nueva.`; goStep(5); aOk(msg);
 });
 $('aResend2').addEventListener('click', () => askCode($('loginEmail').value.trim(), 'reset', $('aResend2')));
 $('aBackR').addEventListener('click', () => goStep(0));
 $('resetPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aResetGo').click(); } });
 $('aResetGo').addEventListener('click', async () => {
-  const email = $('loginEmail').value.trim(), code = $('resetCode').value, pass = $('resetPass').value;
+  const email = $('loginEmail').value.trim(), code = resetSlots.value, pass = $('resetPass').value;
   if (!CODE_OK(code)) { aErr('El código tiene 6 números.'); return; } if (pass.length < 6) { aErr('La contraseña tiene que tener al menos 6 caracteres.'); return; }
   aErr('Guardando…'); const r = await accApi({ action: 'reset', email, code, pass, progress: album });
-  if (r.error) { aErr(r.error); return; }
-  $('resetPass').value = ''; $('resetCode').value = ''; rememberEmail(email); setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox(); aOk('¡Listo! Cambiaste tu contraseña.'); afterAcct();
+  if (r.error) { if (r.reason) resetSlots.setStatus('error'); aErr(r.error); return; }
+  $('resetPass').value = ''; resetSlots.clear(); rememberEmail(email); setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox(); aOk('¡Listo! Cambiaste tu contraseña.'); afterAcct();
 });
 $('acctEmail').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aNext1').click(); } });
 $('aBack1').addEventListener('click', e => { e.preventDefault(); goStep(1); });
@@ -1964,23 +2071,22 @@ $('aLoginGo').addEventListener('click', async () => { // Iniciar sesión: mail +
   if (r.error) { aErr(r.error); return; }
   $('loginPass').value = ''; rememberEmail(email); setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox(); aOk('¡Hola de nuevo!'); afterAcct();
 });
-$('acctPass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aLogin').click(); } });
-$('aLogin').addEventListener('click', async () => { // Crear cuenta, paso 2: comprueba el código, guarda la contraseña y sigue al apodo (la cuenta se crea al guardarlo)
-  const email = $('acctEmail').value.trim(), pass = $('acctPass').value, code = $('regCode').value;
-  if (needCode && !CODE_OK(code)) { aErr('El código tiene 6 números.'); return; }
+$('aLogin').addEventListener('click', () => { // Crear cuenta, paso 3: contraseña dos veces; sigue al apodo (la cuenta se crea al guardarlo)
+  const email = $('acctEmail').value.trim(), pass = $('acctPass').value;
   if (pass.length < 6) { aErr('La contraseña tiene que tener al menos 6 caracteres.'); return; }
-  if (needCode) { aErr('Comprobando el código…'); const r = await accApi({ action: 'checkCode', email, code, purpose: 'register' }); if (r.error) { aErr(r.error); return; } }
-  pending = { email, pass, code }; aMode = 'register'; if (!$('acctNick').value) $('acctNick').value = playerName || cleanName(email.split('@')[0]); goStep(3); SFX.ui('place');
+  if (pass !== $('acctPass2').value) { aErr('Las contraseñas no coinciden.'); return; }
+  if (needCode && !(pending && pending.code)) { goStep(2); return; }
+  pending = { email, pass, code: pending && pending.code }; aMode = 'register'; if (!$('acctNick').value) $('acctNick').value = playerName || cleanName(email.split('@')[0]); goStep(4); SFX.ui('place');
 });
 async function finishNick(nick) {
   const err = $('acctErr');
   if (aMode === 'register') {
     aErr('Creando tu cuenta…');
     const r = await accApi({ action: 'register', email: pending.email, pass: pending.pass, code: pending.code, nick, progress: album });
-    if (r.status === 400 && /código/.test(r.error || '')) { goStep(2); aErr(r.error); return; }   // el código venció mientras elegía el apodo
+    if (r.status === 400 && /código/.test(r.error || '')) { regSlots.clear(); goStep(2); aErr(r.error + ' Tocá "Reenviar código".'); return; }   // el código venció mientras elegía el apodo
     if (r.status === 409 && !r.nickTaken) { const e = pending.email; setTab('login', e); aErr('Ese mail ya tiene cuenta: iniciá sesión con tu contraseña.'); return; }   // el mail ya existe: lo pasa a "Iniciar sesión"
     if (r.error) { aErr(r.error); return; }   // apodo tomado: se queda acá para elegir otro
-    rememberEmail(pending.email); pending = null; $('acctPass').value = ''; setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox();
+    rememberEmail(pending.email); pending = null; $('acctPass').value = $('acctPass2').value = ''; setAcct(r); SFX.ui('save'); renderAcct(); renderAccBox();
     aOk('¡Listo! Tu cuenta está creada.'); afterAcct();
     return;
   }
@@ -1988,7 +2094,7 @@ async function finishNick(nick) {
   SFX.ui('save'); renderAcct(); renderAccBox(); aOk('¡Listo!'); afterAcct();
 }
 $('aNickSave').addEventListener('click', () => { const n = cleanName($('acctNick').value); if (n.length < 2) { aErr('El apodo tiene que tener al menos 2 letras.'); return; } if (nickFree === false) { aErr('Ese apodo ya lo usa otra persona. Probá con otro.'); return; } finishNick(n); });
-$('aNickBack').addEventListener('click', () => { if (aMode === 'register') goStep(2); else if (acct && acct.nick) renderAcct(); else $('acctBack').click(); });
+$('aNickBack').addEventListener('click', () => { if (aMode === 'register') goStep(3); else if (acct && acct.nick) renderAcct(); else $('acctBack').click(); });
 // mientras escribe: avisa si el apodo está libre (sin distinguir mayúsculas)
 let nickT = 0, nickFree = null;
 $('acctNick').addEventListener('input', () => {
@@ -1999,7 +2105,7 @@ $('acctNick').addEventListener('input', () => {
     st.className = 'nickSt ' + (r.free ? 'ok' : 'bad'); st.textContent = r.free ? '✓ Disponible' : '✗ Ya lo usa otra persona'; }, 350);
 });
 $('acctNick').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('aNickSave').click(); } });
-$('aEditNick').addEventListener('click', () => { aMode = 'nick'; $('acctNick').value = acct.nick || ''; goStep(3); });
+$('aEditNick').addEventListener('click', () => { aMode = 'nick'; $('acctNick').value = acct.nick || ''; goStep(4); });
 $('acctOut').addEventListener('click', () => { const t = acct && acct.token; if (acct && acct.email) { rememberEmail(acct.email); $('loginEmail').value = acct.email; } aTab = 'login'; dropAcct(); if (t) accApi({ action: 'logout', token: t }); try { google.accounts.id.disableAutoSelect(); } catch (e) {} renderAcct(); });
 function renderAccBox() {
   const n = $('nameAcc'), b = $('albAcc');
@@ -2171,7 +2277,7 @@ $('newBtn').addEventListener('click', () => { setMode('mode'); SFX.ui('card'); }
 $('modeBack').addEventListener('click', () => setMode('menu'));
 const setGameMode = m => { gameMode = m; $('card').classList.toggle('casual', m === 'casual'); const b = $('playBtn'); (b.querySelector('.sb-in') || b).textContent = m === 'casual' ? 'Elegir nivel' : 'Empezar'; };
 $('modeCasual').addEventListener('click', () => { setGameMode('casual'); openName(); });                      // Casual: nave → selector de niveles
-$('modeTorneo').addEventListener('click', () => { setGameMode('torneo'); startWave = 1; if (acct && acct.nick) openName(); else { openAcct('mode'); if (acct) { aMode = 'nick'; $('acctNick').value = ''; goStep(3); } } });   // el Torneo exige cuenta con apodo   // Torneo: con cuenta, siempre desde la ronda 1
+$('modeTorneo').addEventListener('click', () => { setGameMode('torneo'); startWave = 1; if (acct && acct.nick) openName(); else { openAcct('mode'); if (acct) { aMode = 'nick'; $('acctNick').value = ''; goStep(4); } } });   // el Torneo exige cuenta con apodo   // Torneo: con cuenta, siempre desde la ronda 1
 // Dificultad de cada nivel (0 a 1) a partir de lo que trae: drones que disparan, cadencia, puntería, velocidad, vida, ráfagas y los nuestros que pasan
 const LV_DIFF = (() => {
   const raw = Array.from({ length: MAX_WAVE }, (_, i) => { const w = i + 1, L = lv(w);
