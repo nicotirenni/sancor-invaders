@@ -499,7 +499,8 @@
   .seo-txt{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 </style>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
-<script defer src="/_vercel/insights/script.js"></script>
+<script>/* estadísticas: no cuentan los navegadores automatizados (las pruebas de desarrollo) */ window.AUTOMATED = navigator.webdriver === true || /HeadlessChrome|Lighthouse|bot|crawl|spider/i.test(navigator.userAgent);
+if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = true; s.src = '/_vercel/insights/script.js'; document.head.appendChild(s); }</script>
 </head>
 <body>
 <main class="seo-txt">
@@ -3040,7 +3041,7 @@ const splitTitle = (() => {
   $('iaStay').addEventListener('click', close); o.addEventListener('click', () => { if (android) close(); });
   const show = () => { if (state === 'menu' && $('news').hidden && $('card').dataset.mode === 'menu') setTimeout(() => { $('inapp').hidden = false; }, 600); else setTimeout(show, 500); }; show(); })();   // aparece al llegar al menú, después de la intro
 // Visitante único: un id al azar por navegador, avisado una vez por día (sin nombre, mail ni IP guardados)
-(() => { try { let id = LS.get('sancor_vid', ''); if (!/^[a-z0-9]{8,32}$/.test(id)) { id = (Math.random().toString(36).slice(2) + Date.now().toString(36)).slice(0, 20); LS.set('sancor_vid', id); }
+(() => { try { if (window.AUTOMATED) return; let id = LS.get('sancor_vid', ''); if (!/^[a-z0-9]{8,32}$/.test(id)) { id = (Math.random().toString(36).slice(2) + Date.now().toString(36)).slice(0, 20); LS.set('sancor_vid', id); }
   const d = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }); if (LS.get('sancor_vday', '') === d) return;
   fetch('/api/visit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }), keepalive: true }).then(r => { if (r.ok) LS.set('sancor_vday', d); }).catch(() => {}); } catch (e) {} })();
 splitTitle(); document.documentElement.classList.add('scene-menu'); layoutAll(); buildWave(); $('banner').classList.remove('on');
