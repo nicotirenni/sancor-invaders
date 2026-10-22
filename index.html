@@ -1355,35 +1355,41 @@ function drawPremiumShip(c, type, t) { // naves que se desbloquean con un cafeci
     c.fillStyle = '#ffb02e'; for (const x of [-5.6, 5.6]) { c.beginPath(); c.ellipse(x, -20.4, .6, .4, 0, 0, 7); c.fill(); }      // luces de gálibo
     c.globalCompositeOperation = 'lighter'; sdot(c, -4.9, -27.4, '#fff3b0', 1.8); sdot(c, 4.9, -27.4, '#fff3b0', 1.8); sdot(c, -6.8, 15.4, '#ff5a5a', 1); sdot(c, 6.8, 15.4, '#ff5a5a', 1); sdot(c, -7.6, 16, CELESTE, 2); sdot(c, 7.6, 16, CELESTE, 2);
     for (const [x, y] of WHEELS) sdot(c, x + Math.sign(x) * 1.3, y, CELESTE, .9 + Math.sin(t * 6 + x) * .15); c.restore();
-  } else if (type === 'hornero') { // Hornero arriba de su nido de barro (el "horno") apoyado en una rama
+  } else if (type === 'hornero') { // Hornero asomando de su nido de barro, visto desde arriba, con el pico hacia los drones
     flame(c, t, 17, 5);
-    const nest = () => { c.beginPath(); c.moveTo(-13.4, 13.6); c.bezierCurveTo(-14.6, -1, -10.4, -11.6, 0, -12); c.bezierCurveTo(10.4, -11.6, 14.6, -1, 13.4, 13.6); c.quadraticCurveTo(0, 15.4, -13.4, 13.6); c.closePath(); };
-    nest(); { const g = c.createRadialGradient(-4, -5, 1, 0, 2, 18); g.addColorStop(0, '#e2b07a'); g.addColorStop(.55, '#b07a44'); g.addColorStop(1, '#6a4020'); c.fillStyle = g; c.fill(); }
+    // terrones de barro de la base
+    for (const [x, y, r] of [[-9.6, 15, 1.9], [-7.4, 15.6, 2.1], [-5, 15.9, 2.2], [-2.4, 16.1, 2.2], [0, 16.2, 2.2], [2.4, 16.1, 2.2], [5, 15.9, 2.2], [7.4, 15.6, 2.1], [9.6, 15, 1.9]]) {
+      const g = c.createRadialGradient(x - .6, y - .8, .2, x, y, r); g.addColorStop(0, '#c99060'); g.addColorStop(1, '#6a4020'); c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+    }
+    // nido: bola de barro con capas
+    const nest = () => { c.beginPath(); c.arc(0, 2, 12.6, 0, 7); };
+    nest(); { const g = c.createRadialGradient(-4, -3, 1, 0, 2, 13); g.addColorStop(0, '#e0ad78'); g.addColorStop(.6, '#b07a44'); g.addColorStop(1, '#6e4420'); c.fillStyle = g; c.fill(); }
     c.save(); nest(); c.clip();
-    c.lineCap = 'round';                                                                                                         // capas de barro y pajitas
-    c.strokeStyle = 'rgba(95,58,26,.55)'; c.lineWidth = .7; c.beginPath(); c.moveTo(-12, 4); c.quadraticCurveTo(-4, 1.6, 3, 4.2); c.moveTo(-7, 10); c.quadraticCurveTo(2, 7.8, 12, 10.2); c.moveTo(-9, -3.4); c.quadraticCurveTo(-2, -6, 7, -3.6); c.moveTo(5, 1.4); c.quadraticCurveTo(9, .2, 12.6, 2); c.stroke();
-    c.strokeStyle = 'rgba(255,228,180,.4)'; c.lineWidth = .45; c.beginPath(); c.moveTo(-11.6, 5.2); c.quadraticCurveTo(-5, 3, 1, 5.4); c.moveTo(-8, -2.2); c.quadraticCurveTo(-2, -4.6, 5, -2.6); c.stroke();
-    c.strokeStyle = 'rgba(230,200,120,.7)'; c.lineWidth = .3; c.beginPath(); c.moveTo(-10, 7); c.lineTo(-7.4, 6.2); c.moveTo(8, -6); c.lineTo(10.2, -4.4); c.moveTo(-3, 11.6); c.lineTo(-.6, 12.2); c.moveTo(9.6, 6.4); c.lineTo(11.4, 7.8); c.stroke();
-    c.fillStyle = cylShade(c, -13.4, 13.4, .7); c.fillRect(-15, -13, 30, 29);
+    c.lineCap = 'round';
+    for (const [y, rx, ry] of [[-2.4, 12.4, 3.4], [2.6, 12.6, 2.8], [5.6, 12.4, 3.2], [10, 11.6, 2.8]]) {               // capas de barro
+      c.strokeStyle = 'rgba(255,228,180,.4)'; c.lineWidth = .5; c.beginPath(); c.ellipse(0, y - .5, rx, ry, 0, .1, Math.PI - .1); c.stroke();
+      c.strokeStyle = 'rgba(80,48,20,.7)'; c.lineWidth = .6; c.beginPath(); c.ellipse(0, y, rx, ry, 0, .1, Math.PI - .1); c.stroke();
+    }
+    c.strokeStyle = 'rgba(230,200,120,.75)'; c.lineWidth = .3; c.beginPath(); c.moveTo(-9, 4); c.lineTo(-6.6, 3.2); c.moveTo(7, -1); c.lineTo(9.2, .4); c.moveTo(-3, 12); c.lineTo(-.6, 12.4); c.moveTo(8.4, 8.4); c.lineTo(10.2, 9.6); c.moveTo(-10, -3); c.lineTo(-8.6, -4.6); c.stroke();   // pajitas
+    { const g = c.createRadialGradient(-3, -3, 4, 0, 2, 13); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(.8, 'rgba(0,0,0,.1)'); g.addColorStop(1, 'rgba(40,20,5,.5)'); c.fillStyle = g; c.fillRect(-13, -11, 26, 26); }   // volumen de esfera
     c.restore();
-    c.fillStyle = '#c99060'; c.beginPath(); c.ellipse(3.6, 4.6, 4.4, 5.2, 0, 0, 7); c.fill();                                          // entrada: borde de barro + hueco
-    { const g = c.createRadialGradient(3.2, 3.6, .3, 3.6, 4.6, 4.2); g.addColorStop(0, '#000'); g.addColorStop(1, '#3a210c'); c.fillStyle = g; c.beginPath(); c.ellipse(3.6, 4.8, 3.4, 4.2, 0, 0, 7); c.fill(); }
-    c.strokeStyle = 'rgba(255,225,180,.6)'; c.lineWidth = .4; c.beginPath(); c.ellipse(3.6, 4.6, 4.4, 5.2, 0, Math.PI * 1.05, Math.PI * 1.75); c.stroke();
-    { const g = c.createLinearGradient(0, 13.4, 0, 16.6); g.addColorStop(0, '#7a4f2a'); g.addColorStop(1, '#3a2210'); c.fillStyle = g; c.beginPath(); c.moveTo(-15, 14.2); c.quadraticCurveTo(0, 13, 15, 14.4); c.lineTo(15, 16.4); c.quadraticCurveTo(0, 15.6, -15, 16.6); c.closePath(); c.fill(); }   // rama
-    c.fillStyle = '#4f8a3a'; c.beginPath(); c.moveTo(13, 14.4); c.quadraticCurveTo(16.4, 12, 17.2, 13.6); c.quadraticCurveTo(15.6, 15.6, 13, 14.4); c.fill();   // hojita
-    // hornero
-    c.fillStyle = '#7a4520'; c.beginPath(); c.moveTo(-4.4, -18.4); c.bezierCurveTo(-7, -17.6, -9.4, -15.6, -10.4, -13.6); c.lineTo(-8.4, -13.2); c.bezierCurveTo(-7.4, -14.6, -5.6, -15.4, -3.8, -15.6); c.closePath(); c.fill();   // cola
-    c.beginPath(); c.moveTo(-5.4, -17.4); c.bezierCurveTo(-5.4, -21.4, 3.4, -21.8, 4.2, -17.6); c.bezierCurveTo(4.6, -14.4, 1.4, -12.6, -1.2, -12.8); c.bezierCurveTo(-3.8, -13, -5.4, -14.8, -5.4, -17.4); c.closePath();   // cuerpo
-    { const g = c.createLinearGradient(-5, -21, 3, -13); g.addColorStop(0, '#b56a32'); g.addColorStop(1, '#7e4620'); c.fillStyle = g; c.fill(); }
-    c.fillStyle = '#ecd2a4'; c.beginPath(); c.moveTo(1.4, -19); c.bezierCurveTo(4.4, -18.6, 4.4, -14.6, 1.2, -13.2); c.bezierCurveTo(-.6, -14.4, -.6, -17.6, 1.4, -19); c.fill();   // pecho
-    c.strokeStyle = 'rgba(70,35,10,.6)'; c.lineWidth = .35; c.beginPath(); c.moveTo(-3.8, -17.6); c.quadraticCurveTo(-1.6, -16, .2, -17.2); c.moveTo(-3.2, -15.8); c.quadraticCurveTo(-1.4, -14.6, .2, -15.4); c.stroke();   // alas
-    { const g = c.createRadialGradient(1.2, -23.4, .4, 1.8, -22.4, 3.4); g.addColorStop(0, '#c98448'); g.addColorStop(1, '#8e5226'); c.fillStyle = g; c.beginPath(); c.arc(1.8, -22.4, 3.2, 0, 7); c.fill(); }   // cabeza
-    c.fillStyle = '#f0dcb4'; c.beginPath(); c.ellipse(3.4, -21.2, 1.4, 1.1, 0, 0, 7); c.fill();                                       // garganta clara
-    c.fillStyle = '#d9a94a'; c.beginPath(); c.moveTo(4.6, -23.4); c.quadraticCurveTo(7.4, -23, 9, -22.2); c.quadraticCurveTo(7.2, -21.8, 4.6, -21.6); c.closePath(); c.fill();   // pico
-    c.strokeStyle = 'rgba(255,240,220,.85)'; c.lineWidth = .35; c.beginPath(); c.moveTo(.6, -24.4); c.quadraticCurveTo(2.6, -25, 4.4, -23.8); c.stroke();   // ceja
-    c.fillStyle = '#111'; c.beginPath(); c.arc(3, -23.1, .75, 0, 7); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.arc(3.25, -23.35, .25, 0, 7); c.fill();
-    c.strokeStyle = '#6b4020'; c.lineWidth = .6; c.beginPath(); c.moveTo(-1.4, -13); c.lineTo(-1.8, -11.6); c.lineTo(-2.6, -11.4); c.moveTo(1, -13); c.lineTo(1, -11.6); c.lineTo(1.8, -11.4); c.stroke();   // patas
-    c.globalCompositeOperation = 'lighter'; sdot(c, 1.4, -24.8, '#ffffff', 1.2); sdot(c, 3.6, 4.6, GOLD, 1.4); sdot(c, -13.4, 16.6, CELESTE, 2); sdot(c, 13.4, 16.6, CELESTE, 2);
+    // entrada
+    { const g = c.createRadialGradient(0, -6.2, .4, 0, -6.4, 5.4); g.addColorStop(0, '#000'); g.addColorStop(1, '#3a210c'); c.fillStyle = g; c.beginPath(); c.ellipse(0, -6.6, 5.4, 2.5, 0, 0, 7); c.fill(); }
+    // hornero: espalda con las alas plegadas
+    const back = () => { c.beginPath(); c.moveTo(-3.6, -4.6); c.bezierCurveTo(-3.8, -8.6, -2.6, -11.6, 0, -11.8); c.bezierCurveTo(2.6, -11.6, 3.8, -8.6, 3.6, -4.6); c.closePath(); };
+    back(); { const g = c.createLinearGradient(-3.6, 0, 3.6, 0); g.addColorStop(0, '#6e3a16'); g.addColorStop(.45, '#c07a3e'); g.addColorStop(1, '#6a3614'); c.fillStyle = g; c.fill(); }
+    c.save(); back(); c.clip();
+    c.fillStyle = '#8a4c22'; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(s * 3.8, -4.6); c.bezierCurveTo(s * 3.8, -8, s * 2.6, -10.4, s * .9, -10.6); c.bezierCurveTo(s * 1.6, -8, s * 1.4, -6, s * .9, -4.6); c.closePath(); c.fill(); }   // alas
+    c.strokeStyle = 'rgba(50,25,8,.6)'; c.lineWidth = .25; c.beginPath(); for (const s of [-1, 1]) for (const y of [-9, -7.6, -6.2]) { c.moveTo(s * 1.2, y); c.quadraticCurveTo(s * 2.4, y + .4, s * 3.4, y + 1.2); } c.stroke();   // plumas
+    c.restore();
+    c.strokeStyle = 'rgba(255,225,180,.7)'; c.lineWidth = .45; c.beginPath(); c.ellipse(0, -6.6, 5.4, 2.5, 0, .15, Math.PI - .15); c.stroke();   // borde de barro sobre el cuerpo
+    // cabeza con cejas claras, ojos a los costados y pico hacia adelante
+    c.fillStyle = '#c8b48a'; c.beginPath(); c.moveTo(-1, -16.6); c.lineTo(0, -21.6); c.lineTo(1, -16.6); c.closePath(); c.fill();
+    c.strokeStyle = 'rgba(80,60,30,.6)'; c.lineWidth = .25; c.beginPath(); c.moveTo(0, -17); c.lineTo(0, -21); c.stroke();
+    { const g = c.createRadialGradient(-.8, -15, .3, 0, -14.4, 3.4); g.addColorStop(0, '#d08a4c'); g.addColorStop(1, '#7e4420'); c.fillStyle = g; c.beginPath(); c.arc(0, -14.4, 3.1, 0, 7); c.fill(); }
+    c.strokeStyle = 'rgba(245,225,190,.9)'; c.lineWidth = .4; c.beginPath(); c.arc(0, -14.2, 2.3, Math.PI * 1.08, Math.PI * 1.4); c.moveTo(Math.cos(Math.PI * 1.6) * 2.3, -14.2 + Math.sin(Math.PI * 1.6) * 2.3); c.arc(0, -14.2, 2.3, Math.PI * 1.6, Math.PI * 1.92); c.stroke();   // cejas
+    for (const s of [-1, 1]) { c.fillStyle = '#111'; c.beginPath(); c.arc(s * 2.5, -15.2, .6, 0, 7); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.arc(s * 2.5 - .15, -15.4, .2, 0, 7); c.fill(); }
+    c.globalCompositeOperation = 'lighter'; sdot(c, -.8, -15.6, '#ffffff', .5); sdot(c, -6.4, 18, CELESTE, 1.8); sdot(c, 6.4, 18, CELESTE, 1.8);
   } else { // Fernet con coca: botella oscura al medio y dos latas rojas a los costados (sin marcas)
     flame(c, t, 17, 5);
     drawCan(c, -9.6, 1); drawCan(c, 9.6, -1);
