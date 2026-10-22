@@ -1204,40 +1204,50 @@ function drawShip(c, type, t) {
     c.fillStyle = 'rgba(255,210,122,.8)'; c.fillRect(-1, -17.6, 2, 1.1);
     c.strokeStyle = 'rgba(255,255,255,.95)'; c.lineWidth = .6; shaft(); c.stroke();
     c.globalCompositeOperation = 'lighter'; sdot(c, 0, -17.7, '#ffd27a', 1.4); sdot(c, 0, -28, '#ffffff', 1.6); sdot(c, 0, 5.8, GOLD, 1.5); sdot(c, -8, 16.5, CELESTE, 2); sdot(c, 8, 16.5, CELESTE, 2);
-  } else if (type === 'copa') { // Copa del Mundo: globo grande arriba, figuras en espiral que lo sostienen y base con dos bandas verdes
+  } else if (type === 'copa') { // Copa del Mundo: dos figuras con los brazos en alto sostienen el globo; base cónica de malaquita con banda dorada
     flame(c, t, 17, 5);
     const gold = (x0, x1) => { const g = c.createLinearGradient(x0, 0, x1, 0); g.addColorStop(0, '#7a5205'); g.addColorStop(.3, '#ffeaa6'); g.addColorStop(.5, '#f4c23c'); g.addColorStop(.8, '#b07d0c'); g.addColorStop(1, '#6e4a04'); return g; };
-    const body = () => mirror(c, [[7.8, -11], [6.4, -6], [4, -1], [3.3, 3.5], [4.4, 7.5], [6.6, 9.6], [7.4, 10.4]]);
-    body(); c.fillStyle = gold(-8, 8); c.fill();
+    // globo terráqueo de oro mate con continentes en relieve
+    const gy = -17.6, gr = 8.4;
+    { const g = c.createRadialGradient(-2.6, gy - 4.4, .8, 0, gy, gr + 1); g.addColorStop(0, '#fff3c4'); g.addColorStop(.4, '#f2c043'); g.addColorStop(1, '#7a5205'); c.fillStyle = g; c.beginPath(); c.arc(0, gy, gr, 0, 7); c.fill(); }
+    c.save(); c.beginPath(); c.arc(0, gy, gr, 0, 7); c.clip();
+    const land = (dx, dy, col) => { c.fillStyle = col; const y = gy + 2.1 + dy;
+      c.beginPath(); c.moveTo(-5.6 + dx, y - 6); c.bezierCurveTo(-3.4 + dx, y - 7.6, -1 + dx, y - 5.6, -1.8 + dx, y - 3.4); c.bezierCurveTo(-2.4 + dx, y - 1.4, -1.4 + dx, y + .6, -3.2 + dx, y + 1.2); c.bezierCurveTo(-5.4 + dx, y, -6.6 + dx, y - 3.6, -5.6 + dx, y - 6); c.fill();
+      c.beginPath(); c.moveTo(.6 + dx, y - 7.2); c.bezierCurveTo(3.6 + dx, y - 8.4, 7 + dx, y - 6.4, 6.6 + dx, y - 3.4); c.bezierCurveTo(6.2 + dx, y - 1.6, 4 + dx, y - 2.4, 3.4 + dx, y - .4); c.bezierCurveTo(2.6 + dx, y + 1, 1 + dx, y - 1, 1.8 + dx, y - 3.2); c.bezierCurveTo(2.2 + dx, y - 4.6, -.4 + dx, y - 5.6, .6 + dx, y - 7.2); c.fill();
+      c.beginPath(); c.ellipse(4.4 + dx, y + 1.6, 1.4, .8, .4, 0, 7); c.fill(); };
+    land(-.3, -.3, 'rgba(255,245,200,.55)'); land(0, 0, 'rgba(150,100,10,.55)');
+    c.restore();
+    c.strokeStyle = 'rgba(255,240,190,.55)'; c.lineWidth = .4; c.beginPath(); c.arc(0, gy, gr, Math.PI * .95, Math.PI * 1.6); c.stroke();
+    // figuras: cintura angosta que se abre en hombros y brazos en alto que abrazan el globo (una sola silueta)
+    const body = () => { c.beginPath(); c.moveTo(-5.8, 9.8); c.bezierCurveTo(-4.8, 8, -3.1, 6, -2.9, 3); c.bezierCurveTo(-2.6, -1, -5.6, -4, -7.4, -8.4); c.bezierCurveTo(-9.4, -11, -9.8, -15, -9.2, -18);
+      c.bezierCurveTo(-8.8, -20.4, -8.2, -22, -7.4, -23.2); c.quadraticCurveTo(-6.6, -23.6, -6.2, -22.6); c.bezierCurveTo(-7, -19, -7.2, -15, -5.6, -12.4); c.bezierCurveTo(-4.4, -10.8, -2.4, -10.2, 0, -10.2);
+      c.bezierCurveTo(2.4, -10.2, 4.4, -10.8, 5.6, -12.4); c.bezierCurveTo(7.2, -15, 7, -19, 6.2, -22.6); c.quadraticCurveTo(6.6, -23.6, 7.4, -23.2); c.bezierCurveTo(8.2, -22, 8.8, -20.4, 9.2, -18);
+      c.bezierCurveTo(9.8, -15, 9.4, -11, 7.4, -8.4); c.bezierCurveTo(5.6, -4, 2.6, -1, 2.9, 3); c.bezierCurveTo(3.1, 6, 4.8, 8, 5.8, 9.8); c.closePath(); };
+    body(); c.fillStyle = gold(-9.8, 9.8); c.fill();
     c.save(); body(); c.clip();
-    const groove = (dx, dy, col, w) => { c.strokeStyle = col; c.lineWidth = w; c.beginPath();                                                                   // surcos en espiral en relieve
-      c.moveTo(-6.6 + dx, -9 + dy); c.bezierCurveTo(-2 + dx, -5 + dy, 3.5 + dx, -2 + dy, 2.6 + dx, 6 + dy); c.moveTo(6.6 + dx, -9 + dy); c.bezierCurveTo(2 + dx, -5 + dy, -3.5 + dx, -2 + dy, -2.6 + dx, 6 + dy);
-      c.moveTo(-4.4 + dx, 1 + dy); c.quadraticCurveTo(dx, 3 + dy, 4.2 + dx, 8 + dy); c.moveTo(-5.6 + dx, -4 + dy); c.quadraticCurveTo(-3 + dx, -3 + dy, -2 + dx, -6.4 + dy); c.stroke(); };
-    groove(-.35, -.3, 'rgba(255,240,190,.7)', .45); groove(0, 0, 'rgba(110,70,4,.9)', .7);
-    c.fillStyle = cylShade(c, -7.8, 7.8, .5); c.fillRect(-8, -12, 16, 23);
+    const groove = (dx, dy, col, w) => { c.strokeStyle = col; c.lineWidth = w; c.beginPath();   // pliegues en espiral de las túnicas y brazos
+      c.moveTo(-7.2 + dx, -9 + dy); c.bezierCurveTo(-2 + dx, -4 + dy, 3.4 + dx, 1 + dy, 1.6 + dx, 9.8 + dy); c.moveTo(7.2 + dx, -9 + dy); c.bezierCurveTo(2 + dx, -4 + dy, -3.4 + dx, 1 + dy, -1.6 + dx, 9.8 + dy);
+      c.moveTo(-3.4 + dx, 2 + dy); c.quadraticCurveTo(.4 + dx, 4 + dy, 4.4 + dx, 9.6 + dy); c.moveTo(-5.4 + dx, -5.6 + dy); c.quadraticCurveTo(-3 + dx, -4.4 + dy, -1.6 + dx, -8 + dy); c.moveTo(5.4 + dx, -5.6 + dy); c.quadraticCurveTo(3 + dx, -4.4 + dy, 1.6 + dx, -8 + dy);
+      c.moveTo(-8.4 + dx, -11 + dy); c.quadraticCurveTo(-8.6 + dx, -17 + dy, -7.2 + dx, -22 + dy); c.moveTo(8.4 + dx, -11 + dy); c.quadraticCurveTo(8.6 + dx, -17 + dy, 7.2 + dx, -22 + dy); c.stroke(); };
+    groove(-.35, -.3, 'rgba(255,240,190,.6)', .4); groove(0, 0, 'rgba(110,70,4,.75)', .55);
+    c.fillStyle = cylShade(c, -9.8, 9.8, .45); c.fillRect(-10, -24, 20, 34);
     c.restore();
-    c.strokeStyle = 'rgba(255,236,170,.7)'; c.lineWidth = .5; body(); c.stroke();
-    // globo terráqueo con paralelos y continentes en relieve
-    { const g = c.createRadialGradient(-3.5, -19, 1, 0, -15.5, 10); g.addColorStop(0, '#fff7cf'); g.addColorStop(.45, '#f6c445'); g.addColorStop(1, '#7e5406'); c.fillStyle = g; c.beginPath(); c.arc(0, -15.5, 9, 0, 7); c.fill(); }
-    c.save(); c.beginPath(); c.arc(0, -15.5, 9, 0, 7); c.clip();
-    c.strokeStyle = 'rgba(140,95,10,.35)'; c.lineWidth = .3; c.beginPath(); for (const y of [-21, -15.5, -10]) { c.moveTo(-9, y); c.quadraticCurveTo(0, y + 1.6, 9, y); } c.ellipse(0, -15.5, 4.4, 9, 0, 0, 7); c.stroke();
-    const land = (dx, dy, col) => { c.fillStyle = col; c.beginPath(); c.moveTo(-4.6 + dx, -20 + dy); c.bezierCurveTo(-2.4 + dx, -21.6 + dy, -.2 + dx, -19.6 + dy, -1.2 + dx, -17.4 + dy); c.bezierCurveTo(-2 + dx, -15.4 + dy, -1 + dx, -13.4 + dy, -2.8 + dx, -12.8 + dy); c.bezierCurveTo(-4.8 + dx, -14 + dy, -5.8 + dx, -17.6 + dy, -4.6 + dx, -20 + dy); c.fill();
-      c.beginPath(); c.moveTo(2.4 + dx, -18.4 + dy); c.bezierCurveTo(5 + dx, -19 + dy, 6.6 + dx, -16 + dy, 5.4 + dx, -13.6 + dy); c.bezierCurveTo(4.6 + dx, -11.6 + dy, 2.6 + dx, -12 + dy, 2.8 + dx, -14.4 + dy); c.bezierCurveTo(3 + dx, -16 + dy, 1.4 + dx, -17.4 + dy, 2.4 + dx, -18.4 + dy); c.fill();
-      c.beginPath(); c.ellipse(-.4 + dx, -9.6 + dy, 2.4, 1.1, 0, 0, 7); c.fill(); };
-    land(-.3, -.3, 'rgba(255,245,200,.55)'); land(0, 0, 'rgba(150,100,10,.6)');
+    c.strokeStyle = 'rgba(255,236,170,.55)'; c.lineWidth = .4; body(); c.stroke();
+    // cabeza de la figura central, apoyada bajo el globo
+    { const g = c.createRadialGradient(-.6, -11.4, .2, 0, -10.8, 2.2); g.addColorStop(0, '#fff0b8'); g.addColorStop(.55, '#e2ac2e'); g.addColorStop(1, '#7a5205'); c.fillStyle = g; c.beginPath(); c.ellipse(0, -10.6, 1.5, 1.9, 0, 0, 7); c.fill(); }
+    // base cónica de malaquita con banda dorada al medio
+    const cone = (y0, y1) => { const w = y => 5.8 + (y - 9.8) * .26; c.beginPath(); c.moveTo(-w(y0), y0); c.lineTo(w(y0), y0); c.lineTo(w(y1), y1); c.lineTo(-w(y1), y1); c.closePath(); };
+    const mal = c.createLinearGradient(0, 10.4, 0, 16.6); mal.addColorStop(0, '#0d5e52'); mal.addColorStop(.5, '#1f9a85'); mal.addColorStop(1, '#0b5248');
+    cone(9.8, 10.5); c.fillStyle = gold(-6, 6); c.fill();
+    cone(10.5, 12.6); c.fillStyle = mal; c.fill(); cone(14.3, 16.4); c.fill();
+    c.save(); cone(10.5, 16.4); c.clip();
+    c.strokeStyle = 'rgba(4,40,34,.7)'; c.lineWidth = .3; c.beginPath(); for (const [x, y] of [[-4, 11.6], [2, 11.2], [5, 12], [-5.6, 15.4], [-1, 15], [4, 15.6]]) { c.moveTo(x - 2, y); c.quadraticCurveTo(x, y - 1, x + 2, y + .2); c.moveTo(x - 1.4, y + .6); c.quadraticCurveTo(x, y - .2, x + 1.4, y + .8); } c.stroke();   // vetas
     c.restore();
-    c.strokeStyle = 'rgba(255,240,190,.6)'; c.lineWidth = .4; c.beginPath(); c.arc(0, -15.5, 9, Math.PI * .95, Math.PI * 1.6); c.stroke();
-    // manos que abrazan el globo a los costados, con dedos
-    for (const m of [-1, 1]) {
-      c.fillStyle = gold(m * 4, m * 10); c.beginPath(); c.moveTo(m * 5.6, -7.5); c.quadraticCurveTo(m * 10, -10, m * 8.6, -17.5); c.quadraticCurveTo(m * 7, -13, m * 4.6, -10.5); c.closePath(); c.fill();
-      c.strokeStyle = 'rgba(110,70,4,.7)'; c.lineWidth = .3; c.beginPath(); c.moveTo(m * 8.2, -15.4); c.quadraticCurveTo(m * 7.4, -14.4, m * 7.6, -13); c.moveTo(m * 8.6, -13); c.quadraticCurveTo(m * 7.6, -12, m * 7, -10.8); c.stroke();
-    }
-    // base: aros dorados y dos bandas verdes (malaquita) con volumen
-    const base = (y, h, col) => { c.fillStyle = col; c.fillRect(-7.4, y, 14.8, h); };
-    base(10.4, 1.2, gold(-7.4, 7.4)); base(11.6, 1.9, '#1d7a45'); base(13.5, 1, gold(-7.4, 7.4)); base(14.5, 1.9, '#1d7a45'); base(16.4, .6, gold(-7.4, 7.4));
-    c.strokeStyle = 'rgba(10,60,30,.6)'; c.lineWidth = .2; c.beginPath(); for (const y of [12.2, 12.9, 15.1, 15.8]) { c.moveTo(-7.4, y); c.quadraticCurveTo(0, y + .3, 7.4, y); } c.stroke();   // vetas de la malaquita
-    c.fillStyle = cylShade(c, -7.4, 7.4, .7); c.fillRect(-7.4, 10.4, 14.8, 6.6);
-    c.globalCompositeOperation = 'lighter'; sdot(c, -3.6, -19.5, '#ffffff', 1.5); sdot(c, 0, -24.5, '#ffffff', 1.3); sdot(c, -7.4, 16.5, CELESTE, 2); sdot(c, 7.4, 16.5, CELESTE, 2);
+    cone(12.6, 14.3); c.fillStyle = gold(-7, 7); c.fill();
+    c.strokeStyle = 'rgba(110,70,4,.7)'; c.lineWidth = .2; c.beginPath(); c.moveTo(-6.4, 13); c.lineTo(6.4, 13); c.moveTo(-6.6, 13.9); c.lineTo(6.6, 13.9); c.stroke();   // grabado de la banda
+    cone(16.4, 17); c.fillStyle = gold(-8, 8); c.fill();
+    c.save(); cone(9.8, 17); c.clip(); c.fillStyle = cylShade(c, -7.6, 7.6, .7); c.fillRect(-8, 9.8, 16, 7.2); c.restore();
+    c.globalCompositeOperation = 'lighter'; sdot(c, -2.8, gy - 4.2, '#ffffff', 1.5); sdot(c, 0, -26, '#ffffff', 1.2); sdot(c, -7.6, 16.6, CELESTE, 2); sdot(c, 7.6, 16.6, CELESTE, 2);
   } else { // Monumento a la Bandera (Rosario) en celeste y blanco, con la torre, la bandera y la llama eterna
     flame(c, t, 17, 5);
     const mon = () => mirror(c, [[3, -26], [3, -23.5], [5, -23.5], [5.5, -21], [5.5, -3], [7, -3], [7, -1.5], [8.5, -1.5], [8.5, 3], [10.5, 3], [10.5, 8], [12.5, 8], [12.5, 11], [14.5, 11], [14.5, 16], [13, 17]]);
