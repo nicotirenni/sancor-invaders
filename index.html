@@ -423,6 +423,11 @@
   #mute{position:fixed;left:12px;bottom:12px;z-index:7;width:40px;height:40px;border-radius:50%;border:1px solid rgba(214,32,104,.55);background:var(--pink-dark);color:#ffb3cf;display:grid;place-items:center;cursor:pointer;padding:0}
   #pauseBtn{position:fixed;left:60px;bottom:12px;z-index:7;width:40px;height:40px;border-radius:50%;border:1px solid rgba(214,32,104,.55);background:var(--pink-dark);color:#ffb3cf;display:grid;place-items:center;cursor:pointer;padding:0}
   #pauseBtn:hover,#pauseBtn:focus-visible{border-color:var(--pink);outline:none} #pauseBtn[hidden],#pauseOv[hidden]{display:none}
+  #contOv{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:rgba(3,4,12,.62);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)} #contOv[hidden]{display:none}
+  #contOv .pbox{width:min(calc(100vw - 32px),460px)} #contOv .podTitle{opacity:1;font-size:32px;text-align:center} #contOv .prow #contGo{order:1}
+  @media (max-width:599px){#contOv .podTitle{font-size:24px} #contOv .prow{flex-direction:column} #contOv .prow #contGo{order:-1}}
+  html.cont #pauseBtn{display:none!important}
+  .contP{margin:0;color:#c9d2f0;font-size:15px;text-align:center;max-width:32ch} .contBar{width:100%;height:4px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden} .contBar i{display:block;height:100%;width:100%;background:var(--gold);transform-origin:left}
   #pauseOv{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:rgba(3,4,12,.62);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
   .pbox{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:min(78vw,300px);padding:26px 30px;border-radius:22px;background:rgba(7,11,32,.7);border:1px solid rgba(116,192,245,.18)}
   .pbox .podTitle{display:block}
@@ -508,7 +513,8 @@
   @media (prefers-reduced-motion:reduce){.title,.shiny,.sb-b,.sb-t{animation:none}}
   .seo-txt{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 </style>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8987342807076753" crossorigin="anonymous"></script>   <!-- Google AdSense: verificación del sitio -->
+<script async data-adbreak-test="on" data-ad-frequency-hint="30s" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8987342807076753" crossorigin="anonymous"></script>   <!-- Google AdSense (anuncios para juegos). data-adbreak-test="on": anuncios de prueba hasta que Google apruebe la cuenta -->
+<script>window.adsbygoogle = window.adsbygoogle || []; window.adBreak = window.adConfig = o => adsbygoogle.push(o); adConfig({ preloadAdBreaks: 'on', sound: 'on' });</script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script>/* estadísticas: no cuentan los navegadores automatizados (las pruebas de desarrollo) */ window.AUTOMATED = navigator.webdriver === true || /HeadlessChrome|Lighthouse|bot|crawl|spider/i.test(navigator.userAgent);
 if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = true; s.src = '/_vercel/insights/script.js'; document.head.appendChild(s); }</script>
@@ -524,6 +530,12 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
 <button id="profBtn" type="button" aria-label="Tu cuenta" title="Tu cuenta"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="ini" aria-hidden="true"></span></button>
 <button id="mute" type="button" aria-label="Activar o silenciar el sonido" title="Sonido"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path class="w" d="M16 9a5 5 0 0 1 0 6M19.364 18.364a9 9 0 0 0 0-12.728"/><path class="x" d="M22 9l-6 6M16 9l6 6"/></svg></button>
 <button id="pauseBtn" type="button" aria-label="Pausar" title="Pausa (P)" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg></button>
+<div id="contOv" hidden role="dialog" aria-modal="true" aria-labelledby="contT"><div class="pbox">
+  <div class="podTitle" id="contT">¡Te derribaron!</div>
+  <p class="contP">Mirá un anuncio corto y seguí jugando con 1 vida.</p>
+  <div class="contBar" aria-hidden="true"><i id="contBar"></i></div>
+  <div class="prow"><button class="sb" id="contGo" type="button">Ver anuncio y seguir</button><button class="gh" id="contNo" type="button">Terminar partida</button></div>
+</div></div>
 <div id="pauseOv" hidden><div class="pbox"><div class="podTitle">Pausa</div>
   <div class="vols">
     <div class="vol" data-k="sfx"><div class="vlab"><span>Efectos</span><b>100</b></div><div class="es"><span class="ei" data-s="l"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/></svg></span><div class="et"><div class="etr"><div class="ef"></div></div></div><span class="ei" data-s="r"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></svg></span></div></div>
@@ -587,7 +599,7 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>Invitame un cafecito</a></div>
-      <span class="ver" id="ver">v2.11.2</span>
+      <span class="ver" id="ver">v2.12.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -1385,7 +1397,7 @@ function hurtShip() {
   lives--; ship.inv = 1.6; flash = .45; shake = 12; combo = 0; mult = 1;
   burst(ship.x, ship.y, '#ff5a78', 22, 190); rings.push({ x: ship.x, y: ship.y, r: 6, l: .6, c: '#ff3040' }); SFX.hurt(ship.x);
   say(lives > 0 ? `¡Te dieron! Te quedan ${lives}` : '¡Te derribaron!');
-  if (lives <= 0) endGame('Te derribaron');
+  if (lives <= 0) lose('Te derribaron');
 }
 function hitFoes(x0, y0, x1, y1) { // ¿la bala pegó en un drone isotipo? (colisión sobre todo el tramo)
   const sx = x1 - x0, sy = y1 - y0, sl = sx * sx + sy * sy || 1, R2 = (FOE_R * (mobileView ? 1.1 : 1) + 3) ** 2;
@@ -2348,7 +2360,7 @@ let startWave = 1; // las partidas siempre arrancan en la ronda 1
 function start() {
   $('board').hidden = true; $('boardNote').hidden = true; $('share').hidden = true; $('rank').textContent = '';
   wave = startWave; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
-  itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; $('pauseOv').hidden = true; newCards = []; lives = 3; ship.inv = 0; foes = []; foeQueue = []; ebullets = [];
+  itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; contUsed = false; $('pauseOv').hidden = true; newCards = []; lives = 3; ship.inv = 0; foes = []; foeQueue = []; ebullets = [];
   document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(...levelSong(startWave)); buildWave(); $('pauseBtn').hidden = false;
 }
 let clearAt = 0, clearResults = null;
@@ -2397,7 +2409,30 @@ function nextLevel() { rvStep = 0; rvDone = null; $('reveal').hidden = true; chD
   $('card').hidden = true; state = 'play'; wave++; SFX.pad(.05); SFX.musicStart(...levelSong(wave)); bullets = []; buildWave(); $('pauseBtn').hidden = false;
 }
 $('nextBtn').onclick = nextLevel;
+// Sin vidas: si hay un anuncio disponible, se ofrece verlo para seguir con 1 vida (una vez por partida). Anuncios para juegos de Google (adBreak)
+let contUsed = false, contOpen = false, contWhy = '', contTimer = 0;
+function lose(why) {
+  if (contUsed || window.AUTOMATED) { endGame(why); return; }   // las pruebas automáticas no piden anuncios
+  contOpen = true; contWhy = why; paused = true; document.documentElement.classList.add('cont'); touching = false; for (const k in keys) keys[k] = false; SFX.pause(true); SFX.hold(true);
+  let offered = false; const fail = setTimeout(() => { if (!offered) closeCont(false); }, 2500);   // si Google no responde, termina como siempre
+  try {
+    adBreak({ type: 'reward', name: 'seguir-con-1-vida',
+      beforeAd: () => SFX.hold(true), afterAd: () => SFX.hold(false),
+      beforeReward: showAdFn => { offered = true; clearTimeout(fail); $('contGo').disabled = false; $('contOv').hidden = false; SFX.ui('card');
+        const bar = $('contBar'); bar.style.transition = 'none'; bar.style.transform = 'scaleX(1)'; void bar.offsetWidth; bar.style.transition = 'transform 10s linear'; bar.style.transform = 'scaleX(0)';
+        contTimer = setTimeout(() => closeCont(false), 10000);   // 10 s para decidir
+        $('contGo').onclick = () => { clearTimeout(contTimer); $('contGo').disabled = true; bar.style.transition = 'none'; showAdFn(); }; },
+      adDismissed: () => closeCont(false), adViewed: () => closeCont(true),
+      adBreakDone: () => { if (!offered) { clearTimeout(fail); closeCont(false); } } });
+  } catch (e) { clearTimeout(fail); closeCont(false); }
+}
+function closeCont(ok) {
+  if (!contOpen) return; contOpen = false; document.documentElement.classList.remove('cont'); clearTimeout(contTimer); $('contOv').hidden = true; paused = false; SFX.hold(false); SFX.pause(false);
+  if (ok) { contUsed = true; lives = 1; ship.inv = 2.5; say('¡Seguís con 1 vida!'); SFX.ui('save'); } else endGame(contWhy);
+}
+$('contNo').onclick = () => closeCont(false);
 function setPause(p) {
+  if (contOpen) return;
   if (state !== 'play' || countT > 0 && p === paused) return;
   paused = p; $('pauseOv').hidden = !p; if (p) { touching = false; for (const k in keys) keys[k] = false; }
   if (!p) SFX.hold(false); SFX.pause(p); if (p) SFX.hold(true);
