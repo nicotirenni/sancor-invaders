@@ -1305,62 +1305,49 @@ function drawCan(c, x, s) { // lata roja genérica con franja blanca ondulada (s
 }
 function drawPremiumShip(c, type, t) { // naves que se desbloquean con un cafecito
   c.lineJoin = 'round';
-  if (type === 'colectivo') { // Colectivo porteño de frente (línea 110): cartel de recorrido, parabrisas partido con cortinita, trompa azul con filete y alas, parrilla roja y paragolpes cromado
-    flame(c, t, 17, 5);
-    const chrome = (y0, y1) => { const g = c.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, '#ffffff'); g.addColorStop(.45, '#b4b8c2'); g.addColorStop(.55, '#6e7380'); g.addColorStop(1, '#e8eaf0'); return g; };
-    c.fillStyle = '#111'; rrect(c, -9.8, 12.4, 4.4, 4.4, 1.2); c.fill(); rrect(c, 5.4, 12.4, 4.4, 4.4, 1.2); c.fill();                       // ruedas
-    c.strokeStyle = '#c9ccd4'; c.lineWidth = .5; c.beginPath(); c.moveTo(-10.2, -12.6); c.lineTo(-13.2, -12.2); c.moveTo(10.2, -12.6); c.lineTo(13.2, -12.2); c.stroke();   // brazos de los espejos
-    for (const x of [-14.2, 12.2]) { c.fillStyle = chrome(-15, -8); rrect(c, x, -15.4, 2, 5.8, .9); c.fill(); c.fillStyle = 'rgba(30,50,80,.55)'; rrect(c, x + .35, -14.9, 1.3, 4.8, .6); c.fill(); }
-    const cab = () => { c.beginPath(); c.moveTo(-10.4, 11); c.lineTo(-10.4, -19); c.bezierCurveTo(-10.4, -24, -7.6, -25.6, 0, -25.6); c.bezierCurveTo(7.6, -25.6, 10.4, -24, 10.4, -19); c.lineTo(10.4, 11); c.closePath(); };
-    cab(); { const g = c.createLinearGradient(-10.4, 0, 10.4, 0); g.addColorStop(0, '#9e1020'); g.addColorStop(.3, '#e3283a'); g.addColorStop(1, '#8a0c1a'); c.fillStyle = g; c.fill(); }
-    c.save(); cab(); c.clip();
-    // marco del cartel (techo crema)
-    { const g = c.createLinearGradient(0, -25.6, 0, -17.6); g.addColorStop(0, '#fbf6e6'); g.addColorStop(1, '#cfc6aa'); c.fillStyle = g; c.beginPath(); c.moveTo(-9.6, -17.6); c.lineTo(-9.6, -19.4); c.bezierCurveTo(-9.6, -23.6, -7, -25, 0, -25); c.bezierCurveTo(7, -25, 9.6, -23.6, 9.6, -19.4); c.lineTo(9.6, -17.6); c.closePath(); c.fill(); }
-    c.fillStyle = '#f7f4ea'; rrect(c, -8.6, -23.4, 17.2, 5, 1.6); c.fill(); c.strokeStyle = '#2a2a2a'; c.lineWidth = .35; c.stroke();         // cartel de recorrido
-    c.fillStyle = '#141414'; c.font = '900 5px "Arial Narrow", "Roboto Condensed", Arial, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.save(); c.translate(0, -20.7); c.scale(.85, 1.1); c.fillText('110', 0, 0); c.restore();
-    c.strokeStyle = '#141414'; c.lineWidth = .25; c.beginPath(); c.moveTo(-3.6, -23); c.lineTo(-4.2, -18.2); c.moveTo(3.6, -23); c.lineTo(4.2, -18.2); c.stroke();
-    c.fillStyle = 'rgba(20,20,20,.6)'; for (const s of [-1, 1]) { const x = s > 0 ? 4.7 : -8; c.fillRect(x, -22.1, 3.3, .45); c.fillRect(x + .3, -20.9, 2.7, .4); c.fillRect(x, -19.7, 3.1, .45); }   // "Recoleta / V. del Parque"
-    c.fillStyle = chrome(-17.6, -16.8); c.fillRect(-10.4, -17.6, 20.8, .8);
-    // parabrisas partido con cortinita acolchada arriba
-    for (const x of [-9.2, .6]) {
-      rrect(c, x, -16.6, 8.6, 10.4, 1.4); const g = c.createLinearGradient(0, -16.6, 0, -6.2); g.addColorStop(0, '#8fb3cc'); g.addColorStop(.5, '#3d5f78'); g.addColorStop(1, '#22384c'); c.fillStyle = g; c.fill();
-      c.save(); rrect(c, x, -16.6, 8.6, 10.4, 1.4); c.clip();
-      c.fillStyle = '#c9cfe0'; c.fillRect(x, -16.6, 8.6, 2.4); c.strokeStyle = 'rgba(90,100,140,.6)'; c.lineWidth = .2; c.beginPath(); for (let i = -2; i < 10; i += 1.2) { c.moveTo(x + i, -16.6); c.lineTo(x + i + 2.4, -14.2); c.moveTo(x + i + 2.4, -16.6); c.lineTo(x + i, -14.2); } c.stroke();
-      c.fillStyle = 'rgba(255,255,255,.28)'; c.beginPath(); c.moveTo(x + 1, -14); c.lineTo(x + 3.8, -14); c.lineTo(x + 1, -9.4); c.closePath(); c.fill();
-      c.restore();
-      c.strokeStyle = '#d9dce4'; c.lineWidth = .4; rrect(c, x, -16.6, 8.6, 10.4, 1.4); c.stroke();
-      c.strokeStyle = '#1a1a1a'; c.lineWidth = .4; c.beginPath(); c.moveTo(x + 4.6, -14.2); c.lineTo(x + 1.6, -7.2); c.stroke();      // limpiaparabrisas
-    }
-    // trompa azul con franjas rojas y blancas en forma de ala
-    c.fillStyle = '#f2f2f2'; c.fillRect(-10.4, -5.8, 20.8, 1.2);
-    { const g = c.createLinearGradient(0, -4.6, 0, 3); g.addColorStop(0, '#2b4a9c'); g.addColorStop(1, '#152a63'); c.fillStyle = g; c.fillRect(-10.4, -4.6, 20.8, 7.6); }
-    c.strokeStyle = '#f2f2f2'; c.lineWidth = .6; c.beginPath(); c.moveTo(-10.4, -3.2); c.quadraticCurveTo(-5, -4.8, -.8, -2.6); c.moveTo(10.4, -3.2); c.quadraticCurveTo(5, -4.8, .8, -2.6); c.stroke();
-    c.strokeStyle = '#d8203a'; c.lineWidth = .5; c.beginPath(); c.moveTo(-10.4, -4); c.quadraticCurveTo(-5, -5.6, -.6, -3.4); c.moveTo(10.4, -4); c.quadraticCurveTo(5, -5.6, .6, -3.4); c.stroke();
-    c.fillStyle = '#f4f4f4'; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(s * 1.8, -1.6); c.lineTo(s * 7.4, -1.6); c.lineTo(s * 6.4, .8); c.lineTo(s * 1.8, .8); c.closePath(); c.fill(); }   // alas blancas
-    c.strokeStyle = '#2b4a9c'; c.lineWidth = .25; c.beginPath(); for (const y of [-1, -.3, .4]) for (const s of [-1, 1]) { c.moveTo(s * 2.2, y); c.lineTo(s * (7 - (y + 1.6) * .4), y); } c.stroke();
-    c.fillStyle = chrome(-2, 1.4); c.beginPath(); c.arc(0, -.4, 1.5, 0, 7); c.fill(); c.fillStyle = '#2b4a9c'; c.beginPath(); c.arc(0, -.4, .9, 0, 7); c.fill();   // insignia redonda (genérica)
-    c.fillStyle = chrome(-6, -3); c.beginPath(); c.moveTo(-.35, -6.6); c.lineTo(.35, -6.6); c.lineTo(.6, -2.6); c.lineTo(-.6, -2.6); c.closePath(); c.fill();  // mascota cromada
-    // frente inferior: guardabarros azules, faros con aro blanco y parrilla roja con barras cromadas
-    c.fillStyle = '#152a63'; c.fillRect(-10.4, 3, 20.8, 8);
-    c.strokeStyle = '#f2f2f2'; c.lineWidth = .55; c.beginPath(); c.moveTo(-10.4, 3.6); c.lineTo(10.4, 3.6); c.stroke();
-    { const g = c.createLinearGradient(0, 4.4, 0, 10.4); g.addColorStop(0, '#e3283a'); g.addColorStop(1, '#9e1020'); c.fillStyle = g; rrect(c, -4.8, 4.4, 9.6, 6, .8); c.fill(); }
-    c.fillStyle = chrome(4.4, 5); c.beginPath(); for (let y = 5; y < 10.2; y += .9) c.rect(-4.4, y, 8.8, .35); c.fill();
-    c.strokeStyle = '#f2f2f2'; c.lineWidth = .3; c.beginPath(); c.moveTo(-1.8, 9.6); c.quadraticCurveTo(0, 7.2, 1.8, 9.6); c.stroke();          // guirnalda
-    for (const s of [-1, 1]) {
-      c.strokeStyle = '#f2f2f2'; c.lineWidth = .5; c.beginPath(); c.arc(s * 7.4, 7.2, 2.7, 0, 7); c.stroke();
-      c.fillStyle = chrome(5, 9.4); c.beginPath(); c.arc(s * 7.4, 7.2, 2.1, 0, 7); c.fill();
-      const g = c.createRadialGradient(s * 7.4 - .5, 6.7, .2, s * 7.4, 7.2, 1.7); g.addColorStop(0, '#ffffff'); g.addColorStop(.6, '#fff1a8'); g.addColorStop(1, '#b89a40'); c.fillStyle = g; c.beginPath(); c.arc(s * 7.4, 7.2, 1.6, 0, 7); c.fill();
-    }
-    c.fillStyle = cylShade(c, -10.4, 10.4, .4); c.fillRect(-10.4, -25.6, 20.8, 37);
+  if (type === 'colectivo') { // Colectivo porteño (línea 110) visto desde arriba, con la trompa hacia adelante: techo con el número, claraboyas, ventanillas y trompa azul con filete
+    flame(c, t, 17, 5); c.save(); c.translate(0, 1.4);   // corrido hacia abajo para que entre el paragolpes
+    const chrome = (x0, x1) => { const g = c.createLinearGradient(x0, 0, x1, 0); g.addColorStop(0, '#6e7380'); g.addColorStop(.35, '#ffffff'); g.addColorStop(.6, '#b4b8c2'); g.addColorStop(1, '#5d616c'); return g; };
+    c.fillStyle = '#111'; for (const [x, y] of [[-8.4, -25.4], [7, -25.4], [-9.2, 5.6], [7.8, 5.6]]) { rrect(c, x, y, 1.4, 4.6, .5); c.fill(); }   // ruedas que asoman
+    // espejos en brazos largos
+    c.strokeStyle = '#c9ccd4'; c.lineWidth = .5; c.beginPath(); c.moveTo(-7.6, -19.6); c.lineTo(-10.6, -21.2); c.moveTo(7.6, -19.6); c.lineTo(10.6, -21.2); c.stroke();
+    for (const x of [-12.2, 10.6]) { c.fillStyle = chrome(x, x + 1.6); rrect(c, x, -22.4, 1.6, 2.6, .6); c.fill(); }
+    // trompa
+    const hood = () => { c.beginPath(); c.moveTo(-6.6, -19); c.lineTo(-6.6, -25.4); c.bezierCurveTo(-6.6, -27.4, -5, -28, -3, -28); c.lineTo(3, -28); c.bezierCurveTo(5, -28, 6.6, -27.4, 6.6, -25.4); c.lineTo(6.6, -19); c.closePath(); };
+    hood(); { const g = c.createLinearGradient(-6.6, 0, 6.6, 0); g.addColorStop(0, '#0f1f4c'); g.addColorStop(.35, '#3557b0'); g.addColorStop(1, '#0f1f4c'); c.fillStyle = g; c.fill(); }
+    c.save(); hood(); c.clip();
+    c.strokeStyle = '#f2f2f2'; c.lineWidth = .6; c.beginPath(); c.moveTo(-6.6, -19.6); c.quadraticCurveTo(-2.4, -21.6, -1.2, -27.4); c.moveTo(6.6, -19.6); c.quadraticCurveTo(2.4, -21.6, 1.2, -27.4); c.stroke();   // filete en V
+    c.strokeStyle = '#d8203a'; c.lineWidth = .5; c.beginPath(); c.moveTo(-6.6, -20.6); c.quadraticCurveTo(-3, -22.2, -2, -27.6); c.moveTo(6.6, -20.6); c.quadraticCurveTo(3, -22.2, 2, -27.6); c.stroke();
+    c.fillStyle = '#d8203a'; c.fillRect(-6.6, -19.8, 13.2, .7);
     c.restore();
-    c.strokeStyle = 'rgba(255,220,200,.55)'; c.lineWidth = .45; cab(); c.stroke();
-    c.fillStyle = '#ffb02e'; for (const x of [-6, 6]) { c.beginPath(); c.ellipse(x, -25.6, .7, .5, 0, 0, 7); c.fill(); }                      // luces de gálibo
-    // paragolpes cromado con defensas verticales y patente
-    c.fillStyle = chrome(10.6, 13.4); rrect(c, -11.4, 10.6, 22.8, 2.8, 1.2); c.fill();
-    for (const x of [-7.6, -3.4, 3.4, 7.6]) { c.fillStyle = chrome(9.4, 14.6); rrect(c, x - .55, 9.4, 1.1, 5.2, .5); c.fill(); }
-    c.fillStyle = '#f2f2f2'; c.fillRect(-2.4, 11.2, 4.8, 1.8); c.fillStyle = '#222'; c.fillRect(-1.8, 11.9, 3.6, .45);
-    c.globalCompositeOperation = 'lighter'; sdot(c, -7.4, 7.2, '#fff3b0', 2.2); sdot(c, 7.4, 7.2, '#fff3b0', 2.2); sdot(c, -6, -25.6, '#ffb02e', .9); sdot(c, 6, -25.6, '#ffb02e', .9); sdot(c, -10, 16.5, CELESTE, 2); sdot(c, 10, 16.5, CELESTE, 2);
+    c.fillStyle = chrome(-.5, .5); c.fillRect(-.35, -27.2, .7, 5);                                                              // moldura cromada central
+    for (const s of [-1, 1]) {                                                                                                   // faros en las esquinas
+      const g = c.createRadialGradient(s * 4.9, -27.2, .1, s * 4.9, -27, 1.3); g.addColorStop(0, '#ffffff'); g.addColorStop(.6, '#fff1a8'); g.addColorStop(1, '#b89a40'); c.fillStyle = g; c.beginPath(); c.ellipse(s * 4.9, -27.2, 1.2, .8, 0, 0, 7); c.fill();
+    }
+    c.fillStyle = chrome(-7.4, 7.4); rrect(c, -7.4, -29, 14.8, 1.3, .6); c.fill();                                              // paragolpes
+    for (const x of [-4.6, -1.6, 1.6, 4.6]) { c.fillStyle = chrome(x - .4, x + .4); rrect(c, x - .4, -29.6, .8, 2.2, .4); c.fill(); }
+    // carrocería: techo crema, filete azul y bordes rojos con las ventanillas
+    const body = () => rrect(c, -8.4, -20.6, 16.8, 35.6, 2.6);
+    body(); c.fillStyle = '#c81b2c'; c.fill();
+    c.save(); body(); c.clip();
+    c.fillStyle = '#0f1f4c'; c.fillRect(-7.6, -20.6, 15.2, 35.6);
+    c.fillStyle = '#2a3c55'; for (let y = -16.6; y < 12; y += 4.2) { c.fillRect(-7.6, y, 1.1, 3.4); c.fillRect(6.5, y, 1.1, 3.4); }     // ventanillas
+    c.fillStyle = 'rgba(160,210,255,.35)'; for (let y = -16.6; y < 12; y += 4.2) { c.fillRect(-7.5, y + .3, .35, 2.6); c.fillRect(6.6, y + .3, .35, 2.6); }
+    { const g = c.createLinearGradient(-6.2, 0, 6.2, 0); g.addColorStop(0, '#d9cfb2'); g.addColorStop(.35, '#fffaf0'); g.addColorStop(1, '#cbbf9c'); c.fillStyle = g; rrect(c, -6.2, -18.4, 12.4, 32.4, 1.8); c.fill(); }   // techo
+    c.fillStyle = '#26303f'; c.beginPath(); c.moveTo(-7.6, -20.6); c.lineTo(7.6, -20.6); c.lineTo(6.6, -18.6); c.quadraticCurveTo(0, -19.4, -6.6, -18.6); c.closePath(); c.fill();   // parabrisas
+    c.fillStyle = 'rgba(160,210,255,.4)'; c.beginPath(); c.moveTo(-5, -20.4); c.lineTo(-3, -20.4); c.lineTo(-3.6, -19.2); c.lineTo(-5.2, -19.1); c.closePath(); c.fill();
+    c.fillStyle = '#f7f4ea'; rrect(c, -4.6, -18, 9.2, 2.2, .5); c.fill();                                                        // cartel del recorrido
+    c.fillStyle = 'rgba(20,20,20,.5)'; c.fillRect(-3.8, -17.2, 7.6, .6);
+    c.fillStyle = '#1b2f6b'; c.font = '900 5.6px Arial, Helvetica, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.save(); c.translate(0, -3.4); c.scale(.82, 1); c.fillText('110', 0, 0); c.restore();   // número pintado en el techo
+    for (const y of [-13.2, 4.4]) { c.fillStyle = '#b9b2a0'; rrect(c, -2.4, y, 4.8, 3.4, .5); c.fill(); c.fillStyle = 'rgba(255,255,255,.7)'; c.fillRect(-2.2, y + .2, 4.4, .45); c.strokeStyle = 'rgba(80,70,50,.5)'; c.lineWidth = .2; c.beginPath(); for (let i = 1; i < 4; i++) { c.moveTo(-2.4, y + i * .85); c.lineTo(2.4, y + i * .85); } c.stroke(); }   // claraboyas
+    c.strokeStyle = '#f2f2f2'; c.lineWidth = .3; c.beginPath(); c.moveTo(-6.6, -18); c.lineTo(-6.6, 14); c.moveTo(6.6, -18); c.lineTo(6.6, 14); c.stroke();   // filete blanco
+    c.fillStyle = '#c81b2c'; c.fillRect(-8.4, 13.6, 16.8, 1.4);                                                                  // cola roja
+    c.fillStyle = '#ff3a3a'; c.fillRect(-7.6, 14.3, 1.6, .7); c.fillRect(6, 14.3, 1.6, .7);
+    c.fillStyle = cylShade(c, -8.4, 8.4, .45); c.fillRect(-8.4, -20.6, 16.8, 35.6);
+    c.restore();
+    c.strokeStyle = 'rgba(255,220,200,.5)'; c.lineWidth = .4; body(); c.stroke();
+    c.fillStyle = '#ffb02e'; for (const x of [-5.6, 5.6]) { c.beginPath(); c.ellipse(x, -20.4, .6, .4, 0, 0, 7); c.fill(); }      // luces de gálibo
+    c.globalCompositeOperation = 'lighter'; sdot(c, -4.9, -27.4, '#fff3b0', 1.8); sdot(c, 4.9, -27.4, '#fff3b0', 1.8); sdot(c, -6.8, 15.4, '#ff5a5a', 1); sdot(c, 6.8, 15.4, '#ff5a5a', 1); sdot(c, -7.6, 16, CELESTE, 2); sdot(c, 7.6, 16, CELESTE, 2); c.restore();
   } else if (type === 'hornero') { // Hornero arriba de su nido de barro (el "horno") apoyado en una rama
     flame(c, t, 17, 5);
     const nest = () => { c.beginPath(); c.moveTo(-13.4, 13.6); c.bezierCurveTo(-14.6, -1, -10.4, -11.6, 0, -12); c.bezierCurveTo(10.4, -11.6, 14.6, -1, 13.4, 13.6); c.quadraticCurveTo(0, 15.4, -13.4, 13.6); c.closePath(); };
@@ -1415,7 +1402,7 @@ function drawPremiumShip(c, type, t) { // naves que se desbloquean con un cafeci
   }
   c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
 }
-function drawShipPreviews() { document.querySelectorAll('.shipOpt canvas').forEach(cv => { const c = cv.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(2.4, 0, 0, 2.4, cv.width / 2, cv.height / 2 + 2); drawShip(c, cv.parentElement.dataset.ship, 0); }); }
+function drawShipPreviews() { document.querySelectorAll('.shipOpt canvas').forEach(cv => { const c = cv.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(2.2, 0, 0, 2.2, cv.width / 2, cv.height / 2 + 6); drawShip(c, cv.parentElement.dataset.ship, 0); }); }
 function pickShip(type) { if (!shipOk(type)) type = 'monumento'; shipType = type; LS.set('sancor_ship', type); document.querySelectorAll('.shipOpt').forEach(b => { const on = b.dataset.ship === type; b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on); }); }
 // ---------- Estado ----------
 let state = 'menu', wave = 1, score = 0, respect = 100, flash = 0, shake = 0, combo = 0, comboT = 0, mult = 1, hudMsg = '', hudMsgT = 0, shieldT = 0;
