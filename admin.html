@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Panel · Drones Invasores</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@800&family=Roboto:wght@400;500;700&display=swap">
+<style>
+  /* Panel del dueño: activar las naves de cafecito por jugador */
+  :root{--ink:#05060f;--panel:#0e1433;--line:#232c5a;--fg:#f4f7ff;--muted:#8fa0d0;--gold:#ffc928;--pink:#d62068;--ok:#7fffd4;--bad:#ff8da1;
+    --display:'Roboto Condensed','Arial Narrow',sans-serif;--body:'Roboto','Segoe UI',system-ui,sans-serif;color-scheme:dark}
+  *{box-sizing:border-box} html,body{margin:0;background:var(--ink);color:var(--fg);font-family:var(--body)}
+  main{max-width:640px;margin:0 auto;padding:32px 16px 48px;display:flex;flex-direction:column;gap:20px}
+  h1{margin:0;font:800 30px/1.1 var(--display);text-transform:uppercase} .sub{margin:4px 0 0;color:var(--muted);font-size:14px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px}
+  label{font-size:13px;color:var(--muted)} .row{display:flex;gap:8px}
+  input{flex:1;min-width:0;height:38px;padding:0 12px;border-radius:8px;border:1px solid #313857;background:#0a0f26;color:var(--fg);font:400 15px var(--body)}
+  input:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px rgba(214,32,104,.3)}
+  button{height:38px;padding:0 16px;border-radius:8px;border:0;font:700 14px var(--body);cursor:pointer;background:var(--pink);color:#fff} button.gh{background:#171c30;color:#e6eaf7;box-shadow:inset 0 0 0 1px #313857}
+  button:focus-visible{outline:2px solid var(--gold);outline-offset:2px} button:disabled{opacity:.5;cursor:default}
+  .msg{min-height:1.2em;font-size:14px;margin:0} .msg.ok{color:var(--ok)} .msg.bad{color:var(--bad)}
+  .user{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:10px;background:#0a0f26;border:1px solid #313857}
+  .who b{font-size:18px} .who span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+  .ship{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:8px;background:#141a3c}
+  .sw{position:relative;width:46px;height:26px;border-radius:999px;background:#313857;border:0;padding:0;flex:none} .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
+  .sw[aria-checked=true]{background:var(--gold)} .sw[aria-checked=true]::after{transform:translateX(20px)}
+  .list{display:flex;flex-direction:column;gap:6px} .li{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:8px 10px;border-radius:8px;background:#0a0f26} .li span{color:var(--gold)}
+</style>
+</head>
+<body>
+<main>
+  <header><h1>Panel del juego</h1><p class="sub">Activá las naves de cafecito: buscá al jugador por el apodo que escribió en el mensaje.</p></header>
+  <section>
+    <label for="key">Clave del panel (queda guardada en este navegador)</label>
+    <div class="row"><input id="key" type="password" autocomplete="current-password" placeholder="ADMIN_KEY"><button class="gh" id="keySave" type="button">Guardar</button></div>
+  </section>
+  <section>
+    <label for="q">Apodo o mail del jugador</label>
+    <form class="row" id="findForm"><input id="q" type="search" placeholder="Ej: Nico" autocomplete="off"><button type="submit">Buscar</button></form>
+    <p class="msg" id="msg" role="status"></p>
+    <div id="result"></div>
+  </section>
+  <section>
+    <div class="row" style="justify-content:space-between;align-items:center"><b>Jugadores con naves activadas</b><button class="gh" id="ownersBtn" type="button">Ver lista</button></div>
+    <div class="list" id="owners"></div>
+  </section>
+</main>
+<script>
+  const $ = id => document.getElementById(id), SHIPS = { colectivo: 'Colectivo', hornero: 'Hornero', fernet: 'Fernet con coca' };
+  const LS = { get: k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+  $('key').value = LS.get('sancor_admin_key');
+  $('keySave').onclick = () => { LS.set('sancor_admin_key', $('key').value.trim()); msg('Clave guardada en este navegador.', 'ok'); };
+  const msg = (t, k = '') => { $('msg').textContent = t; $('msg').className = 'msg ' + k; };
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  async function api(body) {
+    const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': $('key').value.trim() }, body: JSON.stringify(body) }).catch(() => null);
+    if (!r) return { error: 'No se pudo conectar.' }; const j = await r.json().catch(() => ({})); return r.ok ? j : { error: j.error || 'Error ' + r.status };
+  }
+  function render(u) {
+    $('result').innerHTML = `<div class="user"><div class="who"><b>${esc(u.nick || 'sin apodo')}</b><span>${esc(u.email)}${u.google ? ' · Google' : ''} · ${u.games} partidas de Torneo</span></div>` +
+      Object.entries(SHIPS).map(([k, n]) => `<div class="ship"><span>${n}</span><button class="sw" role="switch" aria-checked="${u.ships.includes(k)}" aria-label="${n}" data-ship="${k}" data-id="${esc(u.id)}"></button></div>`).join('') + `</div>`;
+  }
+  $('findForm').onsubmit = async e => { e.preventDefault(); const q = $('q').value.trim(); if (!q) return; msg('Buscando…'); $('result').innerHTML = '';
+    const r = await api({ action: 'find', q }); if (r.error) { msg(r.error, 'bad'); return; } msg(''); render(r.user); };
+  $('result').addEventListener('click', async e => { const b = e.target.closest('.sw'); if (!b) return; const on = b.getAttribute('aria-checked') !== 'true'; b.disabled = true;
+    const r = await api({ action: 'set', id: b.dataset.id, ship: b.dataset.ship, on }); b.disabled = false; if (r.error) { msg(r.error, 'bad'); return; }
+    render(r.user); msg(`${SHIPS[b.dataset.ship]} ${on ? 'activada' : 'desactivada'} para ${r.user.nick}. La ve la próxima vez que elija nave.`, 'ok'); });
+  $('ownersBtn').onclick = async () => { const r = await api({ action: 'owners' }); if (r.error) { $('owners').innerHTML = `<p class="msg bad">${esc(r.error)}</p>`; return; }
+    $('owners').innerHTML = r.users.length ? r.users.map(u => `<div class="li"><b>${esc(u.nick)}</b><span>${u.ships.map(s => SHIPS[s]).join(' · ')}</span></div>`).join('') : '<p class="msg">Todavía nadie.</p>'; };
+</script>
+</body>
+</html>

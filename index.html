@@ -234,10 +234,14 @@
   .aForgot{align-self:flex-end;margin-top:-6px;padding:2px 4px;font-size:13px}
   /* Eliminar cuenta: botón terciario rojo debajo de Volver (solo en "Tu cuenta") y modal de confirmación */
   #acct .aDel{display:none;width:100%;background:none;box-shadow:none;border:0;color:#ff7a95;padding:.7em 1em} #acct .aDel::before{display:none} #acct .aDel:hover,#acct .aDel:focus-visible{color:#ff5a78;background:rgba(255,90,120,.08)} #acct.done .aDel{display:block}
+  #shipModal{position:fixed;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:rgba(3,4,12,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)} #shipModal[hidden]{display:none}
+  #shipModal .dm{box-shadow:0 0 0 1px rgba(255,201,40,.4),0 20px 60px rgba(0,0,0,.6)} #shipModal p{margin:0;font-size:14px;line-height:1.5;color:#c9d2f0} #shipModal p b{color:#fff}
+  .smMsg{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 12px;border-radius:8px;background:#171c30;box-shadow:inset 0 0 0 1px #313857;font:600 14px/1.3 var(--body);color:#ffd77a} .smMsg span{flex:1;min-width:0;overflow-wrap:anywhere} .smMsg .gh{padding:.5em .9em;font-size:13px} .smMsg[hidden]{display:none}
+  #shipModal .dmBtns{display:grid;grid-template-columns:1fr;gap:6px;margin-top:12px} #shipModal .dmBtns>*{width:100%;box-sizing:border-box;text-align:center;margin:0} #shipModal #shipNo{background:none;box-shadow:none;border:0;color:var(--muted)} #shipModal #shipNo::before{display:none} #shipModal .sb{display:block}
   #delModal{position:fixed;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:rgba(3,4,12,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)} #delModal[hidden]{display:none}
-  #delModal .dm{width:min(400px,100%);box-sizing:border-box;padding:24px;border-radius:16px;background:linear-gradient(180deg,#0e1433,#080c22);box-shadow:0 0 0 1px rgba(255,90,120,.35),0 20px 60px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:12px;animation:dmIn .25s cubic-bezier(.23,1,.32,1)}
+  #delModal .dm,#shipModal .dm{width:min(400px,100%);box-sizing:border-box;padding:24px;border-radius:16px;background:linear-gradient(180deg,#0e1433,#080c22);box-shadow:0 0 0 1px rgba(255,90,120,.35),0 20px 60px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:12px;animation:dmIn .25s cubic-bezier(.23,1,.32,1)}
   @keyframes dmIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
-  #delModal h2{margin:0;font:800 22px/1.15 var(--display);color:#fff} #delModal #delD{margin:0 0 4px;font-size:14px;line-height:1.5;color:#c9d2f0}
+  #delModal h2,#shipModal h2{margin:0;font:800 22px/1.15 var(--display);color:#fff} #delModal #delD{margin:0 0 4px;font-size:14px;line-height:1.5;color:#c9d2f0}
   #delModal .field{width:100%;height:36px;padding:4px 12px;font:400 14px/1.4 var(--body);text-align:left;border-radius:6px} #delModal .field:focus{border-color:#ff5a78;box-shadow:0 0 0 3px rgba(255,90,120,.3)}
   #delModal .sb:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.5);pointer-events:none} #delModal #delD b{color:#fff} #delModal .dmErr{margin:-4px 0 0;font-size:13px;color:#ff8da1} #delModal .dmErr:empty{display:none}   /* sin mensaje: 24 px del campo a los botones */
   #delModal .dmBtns{display:grid;grid-template-columns:1fr;gap:6px;margin-top:12px} #delModal .dmBtns>*{width:100%;min-width:0;box-sizing:border-box;margin:0} #delModal #aDelNo{background:none;box-shadow:none;border:0;color:var(--muted);padding:.7em 1em} #delModal #aDelNo::before{display:none} #delModal #aDelNo:hover,#delModal #aDelNo:focus-visible{color:#fff;background:rgba(255,255,255,.04)} #delModal .dmBtns .sb-in{width:100%;box-sizing:border-box;display:flex;justify-content:center}
@@ -495,7 +499,9 @@
   }
   /* selector de nave */
   .shipLbl{width:100%;text-align:left;font-size:clamp(12px,1.6cqw,15px);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
-  .shipPick{display:flex;gap:10px;width:100%}
+  .shipPick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%}
+  .shipOpt.prem{position:relative} .shipOpt .pb{display:none;align-items:center;gap:4px;font:700 11px/1 var(--body);font-style:normal;letter-spacing:.04em;color:#1a1300;background:#ffc928;border-radius:999px;padding:4px 8px 3px}
+  .shipOpt.locked .pb{display:inline-flex} .shipOpt.locked canvas{opacity:.45;filter:grayscale(.6)} .shipOpt.locked{color:#8fa0d0}   /* naves de cafecito sin desbloquear */
   .shipOpt{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px 10px;border:0;border-radius:12px;background:#121730;color:#cfd6f0;font:600 clamp(12px,1.5cqw,14px)/1.2 var(--body);cursor:pointer;box-shadow:0 0 0 1px #313857 inset;transition:background .15s,box-shadow .15s,color .15s}
   #stage #shipPick canvas{position:static;display:block;inset:auto;width:64px;height:64px;pointer-events:none} .shipOpt:hover{background:#1a2040;color:#fff}
   .shipOpt.sel{background:#22142c;color:#fff;box-shadow:0 0 0 2px var(--pink) inset,0 0 18px rgba(214,32,104,.25)} .shipOpt:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
@@ -526,6 +532,12 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
   <div class="prow"><button class="sb" id="resumeBtn" type="button">Continuar</button><button class="gh" id="quitBtn" type="button">Salir al menú</button></div></div></div>
 <div id="intro"><canvas id="introCv"></canvas><button id="introSkip" type="button">Saltar ›</button></div>
 <canvas id="sparks"></canvas>
+<div id="shipModal" hidden role="dialog" aria-modal="true" aria-labelledby="shipT"><div class="dm">
+  <h2 id="shipT">Desbloqueá esta nave</h2>
+  <p id="shipD"></p>
+  <div class="smMsg" id="shipMsgBox"><span id="shipMsg"></span><button class="gh" id="shipCopy" type="button">Copiar</button></div>
+  <div class="dmBtns"><a class="sb" id="shipCafe" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener">Invitar un cafecito</a><button class="gh" id="shipNo" type="button">Cerrar</button></div>
+</div></div>
 <div id="delModal" hidden role="dialog" aria-modal="true" aria-labelledby="delT" aria-describedby="delD"><div class="dm">
   <h2 id="delT">Eliminar tu cuenta</h2>
   <p id="delD">Se borran para siempre tu mail, tu apodo, tu álbum guardado, tu historial del Torneo y tus puntajes del ranking. Esta acción no se puede deshacer.<span id="delGHint"> Para confirmar, escribí <b>Drones Invasores</b>.</span></p>
@@ -624,6 +636,9 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
           <button class="shipOpt" type="button" data-ship="monumento" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Monumento a la Bandera</span></button>
           <button class="shipOpt" type="button" data-ship="obelisco" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Obelisco</span></button>
           <button class="shipOpt" type="button" data-ship="copa" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Copa del Mundo</span></button>
+          <button class="shipOpt prem" type="button" data-ship="colectivo" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Colectivo</span><i class="pb"><svg class="lk" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Cafecito</i></button>
+          <button class="shipOpt prem" type="button" data-ship="hornero" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Hornero</span><i class="pb"><svg class="lk" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Cafecito</i></button>
+          <button class="shipOpt prem" type="button" data-ship="fernet" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Fernet con coca</span><i class="pb"><svg class="lk" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Cafecito</i></button>
         </div>
         <div class="nameAcc" id="nameAcc"></div>
         <div class="row">
@@ -1137,6 +1152,9 @@ function dot(x, y, c, r, a = 1) {
 
 
 // ---------- Naves: Monumento a la Bandera, Obelisco y Copa del Mundo (dibujadas centradas en 0,0; la punta en y≈-26) ----------
+// más 3 naves que se desbloquean invitando un cafecito; el dueño del juego las activa por cuenta desde /admin
+const PREMIUM_SHIPS = { colectivo: 'Colectivo', hornero: 'Hornero', fernet: 'Fernet con coca' };
+const shipOk = type => !PREMIUM_SHIPS[type] || !!(typeof acct !== 'undefined' && acct && Array.isArray(acct.ships) && acct.ships.includes(type));
 let shipType = (() => { try { return localStorage.getItem('sancor_ship') || 'monumento'; } catch { return 'monumento'; } })();
 function sdot(c, x, y, col, r) { const sp = spriteByColor[col] || (spriteByColor[col] = glowSprite(toHex(col))), s = r * 4.4; c.drawImage(sp, x - s / 2, y - s / 2, s, s); }
 function flame(c, t, y, w) {
@@ -1145,6 +1163,7 @@ function flame(c, t, y, w) {
 }
 const mirror = (c, half) => { c.beginPath(); c.moveTo(half[0][0], half[0][1]); for (const p of half) c.lineTo(p[0], p[1]); for (let i = half.length - 1; i >= 0; i--) c.lineTo(-half[i][0], half[i][1]); c.closePath(); };
 function drawShip(c, type, t) {
+  if (PREMIUM_SHIPS[type]) return drawPremiumShip(c, type, t);
   c.lineJoin = 'round';
   if (type === 'obelisco') { // Obelisco porteño: aguja blanca con piramidión, ventanita y base
     flame(c, t, 17, 5);
@@ -1188,8 +1207,63 @@ function drawShip(c, type, t) {
   }
   c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
 }
+function drawPremiumShip(c, type, t) { // naves que se desbloquean con un cafecito
+  c.lineJoin = 'round';
+  if (type === 'colectivo') { // Colectivo porteño de frente: cartel con el número, parabrisas partido, faros y filete
+    flame(c, t, 17, 5);
+    const r = 3.2; c.beginPath(); c.moveTo(-10, 15); c.lineTo(-10, -20 + r); c.quadraticCurveTo(-10, -24, -10 + r, -24.5); c.lineTo(10 - r, -24.5); c.quadraticCurveTo(10, -24, 10, -20 + r); c.lineTo(10, 15); c.closePath();
+    { const g = c.createLinearGradient(-10, 0, 10, 0); g.addColorStop(0, '#a3121e'); g.addColorStop(.5, '#e2283a'); g.addColorStop(1, '#8e0f1a'); c.fillStyle = g; c.fill(); }
+    c.strokeStyle = 'rgba(255,220,200,.8)'; c.lineWidth = .8; c.stroke();
+    c.fillStyle = '#f3e6c4'; c.fillRect(-10, -24, 20, 3.2);                                      // techo crema
+    c.fillStyle = '#141414'; c.fillRect(-7.5, -21.6, 15, 4.4);                                    // cartel
+    c.fillStyle = '#ffd23f'; c.font = 'bold 4.2px monospace'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('60', 0, -19.3);
+    { const g = c.createLinearGradient(0, -16, 0, -3); g.addColorStop(0, '#cfeaff'); g.addColorStop(1, '#5aa7e0'); c.fillStyle = g; c.fillRect(-8.6, -16, 8, 12.5); c.fillRect(.6, -16, 8, 12.5); }   // parabrisas partido
+    c.fillStyle = 'rgba(255,255,255,.55)'; c.beginPath(); c.moveTo(-8, -15.4); c.lineTo(-5, -15.4); c.lineTo(-8, -10); c.closePath(); c.fill(); c.beginPath(); c.moveTo(1.2, -15.4); c.lineTo(4.2, -15.4); c.lineTo(1.2, -10); c.closePath(); c.fill();
+    c.fillStyle = '#f3e6c4'; c.fillRect(-10, -1.5, 20, 3);                                       // franja crema
+    c.strokeStyle = '#ffd23f'; c.lineWidth = .8; c.beginPath(); c.moveTo(-6, 5); c.quadraticCurveTo(-3, 2.5, 0, 5); c.quadraticCurveTo(3, 7.5, 6, 5); c.stroke();   // filete
+    c.fillStyle = '#1d5fa8'; c.beginPath(); c.arc(0, 5, 1.3, 0, 7); c.fill();
+    c.fillStyle = '#c9c9c9'; c.fillRect(-11, 11.5, 22, 2.6);                                     // paragolpes
+    c.globalCompositeOperation = 'lighter'; sdot(c, -6.8, 8.2, '#fff3b0', 2.2); sdot(c, 6.8, 8.2, '#fff3b0', 2.2); sdot(c, -10, 16, CELESTE, 2); sdot(c, 10, 16, CELESTE, 2);
+  } else if (type === 'hornero') { // Hornero en su nido de barro (el "horno"), con la entrada redonda
+    flame(c, t, 17, 5);
+    c.beginPath(); c.moveTo(-13.5, 15); c.bezierCurveTo(-14.5, 0, -10, -11, 0, -11.5); c.bezierCurveTo(10, -11, 14.5, 0, 13.5, 15); c.closePath();
+    { const g = c.createRadialGradient(-4, -5, 2, 0, 3, 17); g.addColorStop(0, '#d8a36a'); g.addColorStop(.6, '#a8703c'); g.addColorStop(1, '#6e4420'); c.fillStyle = g; c.fill(); }
+    c.strokeStyle = 'rgba(255,220,170,.6)'; c.lineWidth = .8; c.stroke();
+    c.strokeStyle = 'rgba(90,55,25,.6)'; c.lineWidth = .6; c.beginPath(); c.moveTo(-11, 3); c.quadraticCurveTo(-4, 1, 2, 3.5); c.moveTo(-6, 9); c.quadraticCurveTo(2, 7, 11, 9.5); c.moveTo(-8, -4); c.quadraticCurveTo(-2, -6, 6, -4); c.stroke();   // capas de barro
+    c.fillStyle = '#2b1709'; c.beginPath(); c.ellipse(3.5, 4.5, 3.6, 4.4, 0, 0, 7); c.fill();              // entrada
+    c.fillStyle = '#5a3415'; c.fillRect(-14, 14, 28, 2.4);                                              // rama
+    // hornero arriba del nido
+    c.fillStyle = '#9a5a2a'; c.beginPath(); c.ellipse(-.5, -17, 5.2, 4.6, -.15, 0, 7); c.fill();          // cuerpo
+    c.fillStyle = '#e8c79a'; c.beginPath(); c.ellipse(.6, -15.6, 3, 2.6, -.15, 0, 7); c.fill();           // pecho
+    c.fillStyle = '#a5643a'; c.beginPath(); c.arc(1.8, -22.4, 3.2, 0, 7); c.fill();                        // cabeza
+    c.fillStyle = '#7a4520'; c.beginPath(); c.moveTo(-5, -18.5); c.lineTo(-9.5, -14.5); c.lineTo(-4.2, -15.5); c.closePath(); c.fill();   // cola
+    c.fillStyle = '#e6b94a'; c.beginPath(); c.moveTo(4.6, -23); c.lineTo(8.6, -22.2); c.lineTo(4.6, -21.4); c.closePath(); c.fill();    // pico
+    c.fillStyle = '#111'; c.beginPath(); c.arc(2.8, -23.2, .7, 0, 7); c.fill();
+    c.strokeStyle = '#6b4020'; c.lineWidth = .7; c.beginPath(); c.moveTo(-1, -12.6); c.lineTo(-1.6, -11.2); c.moveTo(1.4, -12.6); c.lineTo(1.2, -11.2); c.stroke();   // patas
+    c.globalCompositeOperation = 'lighter'; sdot(c, 1.8, -25.2, '#ffffff', 1.4); sdot(c, 3.5, 4.5, GOLD, 1.6); sdot(c, -13.5, 16, CELESTE, 2); sdot(c, 13.5, 16, CELESTE, 2);
+  } else { // Fernet con coca: botella oscura al medio y dos latas rojas a los costados (sin marcas)
+    flame(c, t, 17, 5);
+    const can = x => { const g = c.createLinearGradient(x - 4.2, 0, x + 4.2, 0); g.addColorStop(0, '#8e0d12'); g.addColorStop(.4, '#ef2a2a'); g.addColorStop(1, '#7d0b10'); c.fillStyle = g;
+      c.beginPath(); c.moveTo(x - 4.2, -4); c.lineTo(x - 3.4, -6.2); c.lineTo(x + 3.4, -6.2); c.lineTo(x + 4.2, -4); c.lineTo(x + 4.2, 13.5); c.lineTo(x + 3.4, 15.4); c.lineTo(x - 3.4, 15.4); c.lineTo(x - 4.2, 13.5); c.closePath(); c.fill();
+      c.fillStyle = '#d6d6d6'; c.fillRect(x - 3.4, -6.8, 6.8, 1.2); c.fillRect(x - 3.4, 15, 6.8, 1);   // tapa y fondo de aluminio
+      c.strokeStyle = '#ffffff'; c.lineWidth = 1.1; c.beginPath(); c.moveTo(x - 4.2, 6); c.bezierCurveTo(x - 1.5, 3.5, x + 1.5, 8.5, x + 4.2, 5.5); c.stroke();   // ola blanca
+      c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(x - 2.6, -4, 1, 16); };
+    can(-9.4); can(9.4);
+    // botella
+    mirror(c, [[1.6, -28], [1.9, -20], [2.2, -16], [5, -11], [5.4, -8], [5.4, 15], [4.4, 16.5]]);
+    { const g = c.createLinearGradient(-5.4, 0, 5.4, 0); g.addColorStop(0, '#120a06'); g.addColorStop(.45, '#3a2414'); g.addColorStop(1, '#0d0704'); c.fillStyle = g; c.fill(); }
+    c.strokeStyle = 'rgba(200,170,120,.55)'; c.lineWidth = .7; c.stroke();
+    c.fillStyle = '#c9a85a'; c.fillRect(-1.9, -28.4, 3.8, 3);                                            // tapa dorada
+    c.fillStyle = '#efe4c8'; c.fillRect(-5.4, -3, 10.8, 10);                                             // etiqueta genérica
+    c.fillStyle = '#7a1c1c'; c.fillRect(-5.4, -3, 10.8, 1.4); c.fillRect(-5.4, 5.6, 10.8, 1.4);
+    c.fillStyle = '#3a2414'; c.beginPath(); c.moveTo(0, -.2); c.lineTo(2.2, 2.2); c.lineTo(0, 4.6); c.lineTo(-2.2, 2.2); c.closePath(); c.fill();   // rombo de la etiqueta
+    c.fillStyle = 'rgba(255,255,255,.18)'; c.fillRect(-3.8, -10, 1, 24);
+    c.globalCompositeOperation = 'lighter'; sdot(c, 0, -28, '#ffe9a0', 1.6); sdot(c, -9.4, -6.5, '#ffffff', 1.3); sdot(c, 9.4, -6.5, '#ffffff', 1.3); sdot(c, -12, 16, CELESTE, 2); sdot(c, 12, 16, CELESTE, 2);
+  }
+  c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
+}
 function drawShipPreviews() { document.querySelectorAll('.shipOpt canvas').forEach(cv => { const c = cv.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(2.4, 0, 0, 2.4, cv.width / 2, cv.height / 2 + 2); drawShip(c, cv.parentElement.dataset.ship, 0); }); }
-function pickShip(type) { shipType = type; LS.set('sancor_ship', type); document.querySelectorAll('.shipOpt').forEach(b => { const on = b.dataset.ship === type; b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on); }); }
+function pickShip(type) { if (!shipOk(type)) type = 'monumento'; shipType = type; LS.set('sancor_ship', type); document.querySelectorAll('.shipOpt').forEach(b => { const on = b.dataset.ship === type; b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on); }); }
 // ---------- Estado ----------
 let state = 'menu', wave = 1, score = 0, respect = 100, flash = 0, shake = 0, combo = 0, comboT = 0, mult = 1, hudMsg = '', hudMsgT = 0, shieldT = 0;
 let danger = false, lastBeat = 0;
@@ -1768,7 +1842,9 @@ function closePodium() {
   setMode(cardBefore);
   if (cardBefore === 'over' && lastRes) renderBoard(lastRes, { name: playerName, score });
 }
-function openName() { setMode('name'); SFX.ui('card'); drawShipPreviews(); pickShip(shipType); $('nameInput').value = playerName; setTimeout(() => $('nameInput').focus(), 30); }
+function openName() { setMode('name'); SFX.ui('card'); drawShipPreviews(); markShips(); pickShip(shipType);
+  if (acct) accApi({ action: 'me', token: acct.token }).then(r => { if (r.progress) { setAcct(r); markShips(); pickShip(shipType); } });   // por si le activaron una nave hace un rato
+  $('nameInput').value = playerName; setTimeout(() => $('nameInput').focus(), 30); }
 function backToMenu() { state = 'menu'; SFX.musicStart(112, 'menu'); countT = 0; paused = false; $('pauseOv').hidden = true; $('pauseBtn').hidden = true; SFX.hold(false); $('kicker').textContent = 'Destruí al invasor. Cuidá lo nuestro.'; document.documentElement.classList.add('scene-menu'); $('banner').classList.remove('on'); setMode('menu'); }
 // ---------- Álbum: una imagen en 9 figuritas; cada logro destapa una ----------
 const ACH = [ // i = posición en la grilla 3x3 (fila por fila)
@@ -1904,7 +1980,7 @@ let syncT = 0;
 function dropAcct() { acct = null; LS.set('sancor_acct', 'null'); album = ALB0(); LS.set('sancor_album', JSON.stringify(album)); $('albCount').textContent = '0/9'; renderAccBox(); }   // al salir, las figuritas quedan solo en la cuenta
 function acctSync() { if (!acct) return; clearTimeout(syncT); syncT = setTimeout(async () => { const r = await accApi({ action: 'sync', token: acct.token, progress: album }); if (r.progress) mergeAlbum(r.progress); else if (r.status === 401) dropAcct(); }, 1200); }
 function setAcct(r) {
-  acct = { token: r.token || (acct && acct.token), nick: r.nick, email: r.email, pass: r.pass ?? (acct && acct.pass) }; LS.set('sancor_acct', JSON.stringify(acct));
+  acct = { token: r.token || (acct && acct.token), nick: r.nick, email: r.email, pass: r.pass ?? (acct && acct.pass), ships: Array.isArray(r.ships) ? r.ships : (acct && acct.ships) || [] }; LS.set('sancor_acct', JSON.stringify(acct));
   if (r.nick) { playerName = r.nick; LS.set('sancor_name', r.nick); } mergeAlbum(r.progress);
 }
 const escH = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -2175,6 +2251,7 @@ $('aDelGo').addEventListener('click', async () => { // eliminar la cuenta (con l
   renderAcct(); aOk('Tu cuenta fue eliminada.');
 });
 function renderAccBox() {
+  if (!shipOk(shipType)) { shipType = 'monumento'; LS.set('sancor_ship', shipType); } markShips();   // sin la cuenta dueña, vuelve a una nave libre
   $('albCount').hidden = !acct;   // sin sesión no se muestra cuántas figuritas hay
   const pb = $('profBtn'); pb.classList.toggle('on', !!(acct && acct.nick)); pb.querySelector('.ini').textContent = acct && acct.nick ? [...acct.nick][0] : '';
   pb.setAttribute('aria-label', acct && acct.nick ? `Tu cuenta: ${acct.nick}` : 'Iniciar sesión o crear cuenta'); pb.title = acct && acct.nick ? acct.nick : 'Iniciar sesión';
@@ -2732,7 +2809,20 @@ $('lvBack').addEventListener('click', openName);
 const toLevels = () => { lvSel = Math.max(1, Math.min(MAX_WAVE, wave)); backToMenu(); openLevels(); };   // vuelve al nivel que estaba jugando
 $('lvPickBtn').addEventListener('click', () => { countTok++; toLevels(); });
 $('lvPickBtn2').addEventListener('click', toLevels);
-document.querySelectorAll('.shipOpt').forEach(b => b.addEventListener('click', () => { pickShip(b.dataset.ship); SFX.ui('place'); }));
+function markShips() { document.querySelectorAll('.shipOpt.prem').forEach(b => { const ok = shipOk(b.dataset.ship); b.classList.toggle('locked', !ok); b.setAttribute('aria-label', PREMIUM_SHIPS[b.dataset.ship] + (ok ? '' : ': bloqueada, se desbloquea con un cafecito')); }); }
+function openShipModal(type) { // nave bloqueada: cómo desbloquearla con un cafecito
+  const name = PREMIUM_SHIPS[type], logged = !!(acct && acct.nick), msg = logged ? `${acct.nick} · ${name}` : '';
+  $('shipT').textContent = `Desbloqueá: ${name}`;
+  $('shipD').innerHTML = logged ? `Invitame un cafecito y en el mensaje escribí tu apodo y la nave. Apenas lo vea, la activo en tu cuenta y la vas a poder elegir.`
+    : `La nave queda guardada en tu cuenta. Primero <b>iniciá sesión o creá tu cuenta</b>; después invitame un cafecito con tu apodo y la nave en el mensaje.`;
+  $('shipMsg').textContent = msg; $('shipMsgBox').hidden = !logged; $('shipCopy').textContent = 'Copiar';
+  $('shipModal').hidden = false; SFX.ui('card'); setTimeout(() => $('shipCafe').focus(), 50);
+}
+$('shipNo').addEventListener('click', () => { $('shipModal').hidden = true; });
+$('shipModal').addEventListener('click', e => { if (e.target === $('shipModal')) $('shipModal').hidden = true; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('shipModal').hidden) $('shipModal').hidden = true; });
+$('shipCopy').addEventListener('click', async () => { const t = $('shipMsg').textContent; try { await navigator.clipboard.writeText(t); $('shipCopy').textContent = '¡Copiado!'; } catch (e) { const r = document.createRange(); r.selectNodeContents($('shipMsg')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); } });
+document.querySelectorAll('.shipOpt').forEach(b => b.addEventListener('click', () => { if (!shipOk(b.dataset.ship)) { openShipModal(b.dataset.ship); return; } pickShip(b.dataset.ship); SFX.ui('place'); }));
 $('credA').addEventListener('click', e => { e.preventDefault(); setMode('credits'); SFX.ui('card'); });
 $('howLink').addEventListener('click', e => { e.preventDefault(); openTuto(() => setMode('menu')); });
 $('credBack').addEventListener('click', () => setMode('menu'));
