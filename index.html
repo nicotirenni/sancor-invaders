@@ -1219,58 +1219,127 @@ function drawShip(c, type, t) {
   }
   c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
 }
+// sombreado de cilindro: bordes oscuros y un brillo a la izquierda del centro (latas, botella, nido)
+function cylShade(c, x0, x1, k = 1) {
+  const g = c.createLinearGradient(x0, 0, x1, 0);
+  g.addColorStop(0, `rgba(0,0,0,${.55 * k})`); g.addColorStop(.18, `rgba(0,0,0,${.12 * k})`); g.addColorStop(.32, `rgba(255,255,255,${.22 * k})`); g.addColorStop(.42, 'rgba(255,255,255,0)'); g.addColorStop(.75, `rgba(0,0,0,${.15 * k})`); g.addColorStop(1, `rgba(0,0,0,${.6 * k})`);
+  return g;
+}
+function hiStrip(c, x, y, w, h, a) { const g = c.createLinearGradient(x, 0, x + w, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, `rgba(255,255,255,${a})`); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(x, y, w, h); }
+function rrect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function bottlePath(c) {
+  c.beginPath(); c.moveTo(-1.95, -28.6); c.lineTo(1.95, -28.6); c.lineTo(1.95, -27.4); c.lineTo(1.75, -27); c.lineTo(1.85, -18.5);
+  c.bezierCurveTo(2.1, -14.5, 5.7, -13.2, 5.7, -8.2); c.lineTo(5.7, 15); c.bezierCurveTo(5.7, 16.4, 5.1, 16.9, 3.8, 16.9);
+  c.lineTo(-3.8, 16.9); c.bezierCurveTo(-5.1, 16.9, -5.7, 16.4, -5.7, 15); c.lineTo(-5.7, -8.2);
+  c.bezierCurveTo(-5.7, -13.2, -2.1, -14.5, -1.85, -18.5); c.lineTo(-1.75, -27); c.lineTo(-1.95, -27.4); c.closePath();
+}
+function canPath(c, x) {
+  c.beginPath(); c.moveTo(x - 3.3, -6.6); c.lineTo(x + 3.3, -6.6); c.bezierCurveTo(x + 3.5, -5.6, x + 4.4, -5.2, x + 4.4, -3.8); c.lineTo(x + 4.4, 13.2);
+  c.bezierCurveTo(x + 4.4, 14.4, x + 3.7, 14.8, x + 3.5, 15.6); c.lineTo(x - 3.5, 15.6); c.bezierCurveTo(x - 3.7, 14.8, x - 4.4, 14.4, x - 4.4, 13.2); c.lineTo(x - 4.4, -3.8);
+  c.bezierCurveTo(x - 4.4, -5.2, x - 3.5, -5.6, x - 3.3, -6.6); c.closePath();
+}
+function drawCan(c, x, s) { // lata roja genérica con franja blanca ondulada (s = 1 o -1 para espejar)
+  canPath(c, x); const g = c.createLinearGradient(x - 4.4, 0, x + 4.4, 0); g.addColorStop(0, '#6a070c'); g.addColorStop(.38, '#f23030'); g.addColorStop(1, '#5e060a'); c.fillStyle = g; c.fill();
+  c.save(); canPath(c, x); c.clip();
+  c.fillStyle = '#fff'; c.beginPath(); c.moveTo(x - 4.6 * s, 7.6); c.bezierCurveTo(x - 2 * s, 3.6, x + 1.4 * s, 9.4, x + 4.6 * s, 4.2); c.lineTo(x + 4.6 * s, 5.6); c.bezierCurveTo(x + 1.6 * s, 10.6, x - 1.8 * s, 6, x - 4.6 * s, 9.4); c.closePath(); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.85)'; c.fillRect(x - 2.6, -3.2, 5.2, .55);
+  c.fillStyle = cylShade(c, x - 4.4, x + 4.4, .8); c.fillRect(x - 5, -7, 10, 23); hiStrip(c, x - 2.6, -5, 1.4, 19, .55);
+  c.restore();
+  const al = c.createLinearGradient(x - 3.5, 0, x + 3.5, 0); al.addColorStop(0, '#7d7d84'); al.addColorStop(.35, '#f4f4f6'); al.addColorStop(.6, '#b9b9c0'); al.addColorStop(1, '#6a6a70'); c.fillStyle = al;
+  c.beginPath(); c.ellipse(x, -6.7, 3.4, .6, 0, 0, 7); c.fill();
+  c.beginPath(); c.moveTo(x - 3.5, 15.2); c.lineTo(x + 3.5, 15.2); c.quadraticCurveTo(x + 3.3, 16.6, x, 16.7); c.quadraticCurveTo(x - 3.3, 16.6, x - 3.5, 15.2); c.fill();
+  c.strokeStyle = 'rgba(255,200,200,.25)'; c.lineWidth = .4; canPath(c, x); c.stroke();
+}
 function drawPremiumShip(c, type, t) { // naves que se desbloquean con un cafecito
   c.lineJoin = 'round';
-  if (type === 'colectivo') { // Colectivo porteño de frente: cartel con el número, parabrisas partido, faros y filete
+  if (type === 'colectivo') { // Colectivo porteño de frente: cartel con el número, parabrisas partido, espejos, faros cromados y filete
     flame(c, t, 17, 5);
-    const r = 3.2; c.beginPath(); c.moveTo(-10, 15); c.lineTo(-10, -20 + r); c.quadraticCurveTo(-10, -24, -10 + r, -24.5); c.lineTo(10 - r, -24.5); c.quadraticCurveTo(10, -24, 10, -20 + r); c.lineTo(10, 15); c.closePath();
-    { const g = c.createLinearGradient(-10, 0, 10, 0); g.addColorStop(0, '#a3121e'); g.addColorStop(.5, '#e2283a'); g.addColorStop(1, '#8e0f1a'); c.fillStyle = g; c.fill(); }
-    c.strokeStyle = 'rgba(255,220,200,.8)'; c.lineWidth = .8; c.stroke();
-    c.fillStyle = '#f3e6c4'; c.fillRect(-10, -24, 20, 3.2);                                      // techo crema
-    c.fillStyle = '#141414'; c.fillRect(-7.5, -21.6, 15, 4.4);                                    // cartel
-    c.fillStyle = '#ffd23f'; c.font = 'bold 4.2px monospace'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('60', 0, -19.3);
-    { const g = c.createLinearGradient(0, -16, 0, -3); g.addColorStop(0, '#cfeaff'); g.addColorStop(1, '#5aa7e0'); c.fillStyle = g; c.fillRect(-8.6, -16, 8, 12.5); c.fillRect(.6, -16, 8, 12.5); }   // parabrisas partido
-    c.fillStyle = 'rgba(255,255,255,.55)'; c.beginPath(); c.moveTo(-8, -15.4); c.lineTo(-5, -15.4); c.lineTo(-8, -10); c.closePath(); c.fill(); c.beginPath(); c.moveTo(1.2, -15.4); c.lineTo(4.2, -15.4); c.lineTo(1.2, -10); c.closePath(); c.fill();
-    c.fillStyle = '#f3e6c4'; c.fillRect(-10, -1.5, 20, 3);                                       // franja crema
-    c.strokeStyle = '#ffd23f'; c.lineWidth = .8; c.beginPath(); c.moveTo(-6, 5); c.quadraticCurveTo(-3, 2.5, 0, 5); c.quadraticCurveTo(3, 7.5, 6, 5); c.stroke();   // filete
-    c.fillStyle = '#1d5fa8'; c.beginPath(); c.arc(0, 5, 1.3, 0, 7); c.fill();
-    c.fillStyle = '#c9c9c9'; c.fillRect(-11, 11.5, 22, 2.6);                                     // paragolpes
-    c.globalCompositeOperation = 'lighter'; sdot(c, -6.8, 8.2, '#fff3b0', 2.2); sdot(c, 6.8, 8.2, '#fff3b0', 2.2); sdot(c, -10, 16, CELESTE, 2); sdot(c, 10, 16, CELESTE, 2);
-  } else if (type === 'hornero') { // Hornero en su nido de barro (el "horno"), con la entrada redonda
+    c.strokeStyle = '#1a1a1a'; c.lineWidth = .7; c.beginPath(); c.moveTo(-10, -14); c.quadraticCurveTo(-13.5, -14, -13.2, -10.5); c.moveTo(10, -14); c.quadraticCurveTo(13.5, -14, 13.2, -10.5); c.stroke();   // brazos de los espejos
+    c.fillStyle = '#1a1a1a'; rrect(c, -14.4, -11, 2.4, 4.2, .8); c.fill(); rrect(c, 12, -11, 2.4, 4.2, .8); c.fill();
+    c.fillStyle = 'rgba(160,210,255,.5)'; c.fillRect(-13.9, -10.4, 1.4, 3); c.fillRect(12.5, -10.4, 1.4, 3);
+    c.fillStyle = '#111'; rrect(c, -9.6, 13.4, 4.2, 3.6, 1); c.fill(); rrect(c, 5.4, 13.4, 4.2, 3.6, 1); c.fill();   // ruedas
+    rrect(c, -10.4, -24.6, 20.8, 39.4, 3.4);
+    { const g = c.createLinearGradient(-10.4, 0, 10.4, 0); g.addColorStop(0, '#7a0c15'); g.addColorStop(.3, '#e2283a'); g.addColorStop(.55, '#c81b2c'); g.addColorStop(1, '#6e0a12'); c.fillStyle = g; c.fill(); }
+    c.save(); rrect(c, -10.4, -24.6, 20.8, 39.4, 3.4); c.clip();
+    { const g = c.createLinearGradient(0, -24.6, 0, -20.6); g.addColorStop(0, '#fff6dc'); g.addColorStop(1, '#d9c99f'); c.fillStyle = g; c.fillRect(-10.4, -24.6, 20.8, 4); }   // techo crema
+    c.fillStyle = '#0d0d0d'; rrect(c, -7.6, -22.4, 15.2, 4.6, .8); c.fill();                                                  // cartel
+    c.fillStyle = 'rgba(255,210,63,.18)'; c.fillRect(-7, -21.9, 14, 3.6);
+    c.fillStyle = '#ffd23f'; c.font = 'bold 4.2px monospace'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('60', -3.4, -19.9);
+    c.fillStyle = 'rgba(255,210,63,.75)'; c.fillRect(.4, -21, 5.8, .5); c.fillRect(.4, -19.8, 4.6, .5); c.fillRect(.4, -18.6, 5.4, .5);   // recorrido
+    for (const x of [-8.8, .5]) {                                                                                                // parabrisas partido
+      rrect(c, x, -16.6, 8.3, 13, 1.2); const g = c.createLinearGradient(0, -16.6, 0, -3.6); g.addColorStop(0, '#d8f0ff'); g.addColorStop(.55, '#6fb6e8'); g.addColorStop(1, '#2f6fa6'); c.fillStyle = g; c.fill();
+      c.fillStyle = 'rgba(255,255,255,.5)'; c.beginPath(); c.moveTo(x + .6, -16); c.lineTo(x + 3.6, -16); c.lineTo(x + .6, -10.6); c.closePath(); c.fill();
+      c.fillStyle = 'rgba(255,255,255,.22)'; c.beginPath(); c.moveTo(x + 5, -16); c.lineTo(x + 6.2, -16); c.lineTo(x + 2.4, -9); c.lineTo(x + 1.2, -9); c.closePath(); c.fill();
+      c.strokeStyle = '#222'; c.lineWidth = .45; c.beginPath(); c.moveTo(x + 1.6, -4.4); c.lineTo(x + 6.4, -7.6); c.stroke();      // limpiaparabrisas
+    }
+    c.fillStyle = '#5a0a12'; c.fillRect(-.4, -16.6, .8, 13);                                                                    // parante
+    { const g = c.createLinearGradient(0, -2, 0, 1.2); g.addColorStop(0, '#fff6dc'); g.addColorStop(1, '#cdbb8e'); c.fillStyle = g; c.fillRect(-10.4, -2, 20.8, 3.2); }   // franja crema
+    c.strokeStyle = '#1d5fa8'; c.lineWidth = .35; c.beginPath(); c.moveTo(-10.4, -1.4); c.lineTo(10.4, -1.4); c.moveTo(-10.4, .6); c.lineTo(10.4, .6); c.stroke();
+    c.strokeStyle = '#ffd23f'; c.lineWidth = .7; c.beginPath(); c.moveTo(-6.4, 4.8); c.bezierCurveTo(-4.6, 2.2, -2, 2.6, -1.6, 4.4); c.bezierCurveTo(-1.2, 6, -3, 6.2, -3.2, 4.9);   // filete
+    c.moveTo(6.4, 4.8); c.bezierCurveTo(4.6, 2.2, 2, 2.6, 1.6, 4.4); c.bezierCurveTo(1.2, 6, 3, 6.2, 3.2, 4.9); c.stroke();
+    c.fillStyle = '#1d5fa8'; c.beginPath(); c.arc(0, 4.6, 1.4, 0, 7); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.arc(-.4, 4.2, .4, 0, 7); c.fill();
+    c.fillStyle = '#1a1a1a'; rrect(c, -4.4, 7.2, 8.8, 3.4, .6); c.fill();                                                       // parrilla
+    c.strokeStyle = '#8a8a90'; c.lineWidth = .3; c.beginPath(); for (let y = 7.9; y < 10.4; y += .8) { c.moveTo(-4, y); c.lineTo(4, y); } c.stroke();
+    for (const x of [-7, 7]) {                                                                                                   // faros con aro cromado
+      const g = c.createRadialGradient(x - .5, 8.4, .2, x, 8.9, 2.2); g.addColorStop(0, '#ffffff'); g.addColorStop(.5, '#fff1a8'); g.addColorStop(1, '#c9a43a'); c.fillStyle = '#c9c9cf'; c.beginPath(); c.arc(x, 8.9, 2.3, 0, 7); c.fill(); c.fillStyle = g; c.beginPath(); c.arc(x, 8.9, 1.7, 0, 7); c.fill();
+    }
+    c.fillStyle = cylShade(c, -10.4, 10.4, .45); c.fillRect(-10.4, -24.6, 20.8, 39.4);
+    c.restore();
+    { const g = c.createLinearGradient(0, 11.4, 0, 14.4); g.addColorStop(0, '#f4f4f6'); g.addColorStop(.5, '#a9a9b0'); g.addColorStop(1, '#5d5d63'); c.fillStyle = g; rrect(c, -11.2, 11.4, 22.4, 3, 1.2); c.fill(); }   // paragolpes cromado
+    c.fillStyle = '#f2f2f2'; c.fillRect(-2.6, 11.9, 5.2, 2); c.fillStyle = '#222'; c.fillRect(-2, 12.6, 4, .5);                   // patente
+    c.strokeStyle = 'rgba(255,220,200,.6)'; c.lineWidth = .5; rrect(c, -10.4, -24.6, 20.8, 39.4, 3.4); c.stroke();
+    c.globalCompositeOperation = 'lighter'; sdot(c, -7, 8.9, '#fff3b0', 2.2); sdot(c, 7, 8.9, '#fff3b0', 2.2); sdot(c, -10, 16.5, CELESTE, 2); sdot(c, 10, 16.5, CELESTE, 2);
+  } else if (type === 'hornero') { // Hornero arriba de su nido de barro (el "horno") apoyado en una rama
     flame(c, t, 17, 5);
-    c.beginPath(); c.moveTo(-13.5, 15); c.bezierCurveTo(-14.5, 0, -10, -11, 0, -11.5); c.bezierCurveTo(10, -11, 14.5, 0, 13.5, 15); c.closePath();
-    { const g = c.createRadialGradient(-4, -5, 2, 0, 3, 17); g.addColorStop(0, '#d8a36a'); g.addColorStop(.6, '#a8703c'); g.addColorStop(1, '#6e4420'); c.fillStyle = g; c.fill(); }
-    c.strokeStyle = 'rgba(255,220,170,.6)'; c.lineWidth = .8; c.stroke();
-    c.strokeStyle = 'rgba(90,55,25,.6)'; c.lineWidth = .6; c.beginPath(); c.moveTo(-11, 3); c.quadraticCurveTo(-4, 1, 2, 3.5); c.moveTo(-6, 9); c.quadraticCurveTo(2, 7, 11, 9.5); c.moveTo(-8, -4); c.quadraticCurveTo(-2, -6, 6, -4); c.stroke();   // capas de barro
-    c.fillStyle = '#2b1709'; c.beginPath(); c.ellipse(3.5, 4.5, 3.6, 4.4, 0, 0, 7); c.fill();              // entrada
-    c.fillStyle = '#5a3415'; c.fillRect(-14, 14, 28, 2.4);                                              // rama
-    // hornero arriba del nido
-    c.fillStyle = '#9a5a2a'; c.beginPath(); c.ellipse(-.5, -17, 5.2, 4.6, -.15, 0, 7); c.fill();          // cuerpo
-    c.fillStyle = '#e8c79a'; c.beginPath(); c.ellipse(.6, -15.6, 3, 2.6, -.15, 0, 7); c.fill();           // pecho
-    c.fillStyle = '#a5643a'; c.beginPath(); c.arc(1.8, -22.4, 3.2, 0, 7); c.fill();                        // cabeza
-    c.fillStyle = '#7a4520'; c.beginPath(); c.moveTo(-5, -18.5); c.lineTo(-9.5, -14.5); c.lineTo(-4.2, -15.5); c.closePath(); c.fill();   // cola
-    c.fillStyle = '#e6b94a'; c.beginPath(); c.moveTo(4.6, -23); c.lineTo(8.6, -22.2); c.lineTo(4.6, -21.4); c.closePath(); c.fill();    // pico
-    c.fillStyle = '#111'; c.beginPath(); c.arc(2.8, -23.2, .7, 0, 7); c.fill();
-    c.strokeStyle = '#6b4020'; c.lineWidth = .7; c.beginPath(); c.moveTo(-1, -12.6); c.lineTo(-1.6, -11.2); c.moveTo(1.4, -12.6); c.lineTo(1.2, -11.2); c.stroke();   // patas
-    c.globalCompositeOperation = 'lighter'; sdot(c, 1.8, -25.2, '#ffffff', 1.4); sdot(c, 3.5, 4.5, GOLD, 1.6); sdot(c, -13.5, 16, CELESTE, 2); sdot(c, 13.5, 16, CELESTE, 2);
+    const nest = () => { c.beginPath(); c.moveTo(-13.4, 13.6); c.bezierCurveTo(-14.6, -1, -10.4, -11.6, 0, -12); c.bezierCurveTo(10.4, -11.6, 14.6, -1, 13.4, 13.6); c.quadraticCurveTo(0, 15.4, -13.4, 13.6); c.closePath(); };
+    nest(); { const g = c.createRadialGradient(-4, -5, 1, 0, 2, 18); g.addColorStop(0, '#e2b07a'); g.addColorStop(.55, '#b07a44'); g.addColorStop(1, '#6a4020'); c.fillStyle = g; c.fill(); }
+    c.save(); nest(); c.clip();
+    c.lineCap = 'round';                                                                                                         // capas de barro y pajitas
+    c.strokeStyle = 'rgba(95,58,26,.55)'; c.lineWidth = .7; c.beginPath(); c.moveTo(-12, 4); c.quadraticCurveTo(-4, 1.6, 3, 4.2); c.moveTo(-7, 10); c.quadraticCurveTo(2, 7.8, 12, 10.2); c.moveTo(-9, -3.4); c.quadraticCurveTo(-2, -6, 7, -3.6); c.moveTo(5, 1.4); c.quadraticCurveTo(9, .2, 12.6, 2); c.stroke();
+    c.strokeStyle = 'rgba(255,228,180,.4)'; c.lineWidth = .45; c.beginPath(); c.moveTo(-11.6, 5.2); c.quadraticCurveTo(-5, 3, 1, 5.4); c.moveTo(-8, -2.2); c.quadraticCurveTo(-2, -4.6, 5, -2.6); c.stroke();
+    c.strokeStyle = 'rgba(230,200,120,.7)'; c.lineWidth = .3; c.beginPath(); c.moveTo(-10, 7); c.lineTo(-7.4, 6.2); c.moveTo(8, -6); c.lineTo(10.2, -4.4); c.moveTo(-3, 11.6); c.lineTo(-.6, 12.2); c.moveTo(9.6, 6.4); c.lineTo(11.4, 7.8); c.stroke();
+    c.fillStyle = cylShade(c, -13.4, 13.4, .7); c.fillRect(-15, -13, 30, 29);
+    c.restore();
+    c.fillStyle = '#c99060'; c.beginPath(); c.ellipse(3.6, 4.6, 4.4, 5.2, 0, 0, 7); c.fill();                                          // entrada: borde de barro + hueco
+    { const g = c.createRadialGradient(3.2, 3.6, .3, 3.6, 4.6, 4.2); g.addColorStop(0, '#000'); g.addColorStop(1, '#3a210c'); c.fillStyle = g; c.beginPath(); c.ellipse(3.6, 4.8, 3.4, 4.2, 0, 0, 7); c.fill(); }
+    c.strokeStyle = 'rgba(255,225,180,.6)'; c.lineWidth = .4; c.beginPath(); c.ellipse(3.6, 4.6, 4.4, 5.2, 0, Math.PI * 1.05, Math.PI * 1.75); c.stroke();
+    { const g = c.createLinearGradient(0, 13.4, 0, 16.6); g.addColorStop(0, '#7a4f2a'); g.addColorStop(1, '#3a2210'); c.fillStyle = g; c.beginPath(); c.moveTo(-15, 14.2); c.quadraticCurveTo(0, 13, 15, 14.4); c.lineTo(15, 16.4); c.quadraticCurveTo(0, 15.6, -15, 16.6); c.closePath(); c.fill(); }   // rama
+    c.fillStyle = '#4f8a3a'; c.beginPath(); c.moveTo(13, 14.4); c.quadraticCurveTo(16.4, 12, 17.2, 13.6); c.quadraticCurveTo(15.6, 15.6, 13, 14.4); c.fill();   // hojita
+    // hornero
+    c.fillStyle = '#7a4520'; c.beginPath(); c.moveTo(-4.4, -18.4); c.bezierCurveTo(-7, -17.6, -9.4, -15.6, -10.4, -13.6); c.lineTo(-8.4, -13.2); c.bezierCurveTo(-7.4, -14.6, -5.6, -15.4, -3.8, -15.6); c.closePath(); c.fill();   // cola
+    c.beginPath(); c.moveTo(-5.4, -17.4); c.bezierCurveTo(-5.4, -21.4, 3.4, -21.8, 4.2, -17.6); c.bezierCurveTo(4.6, -14.4, 1.4, -12.6, -1.2, -12.8); c.bezierCurveTo(-3.8, -13, -5.4, -14.8, -5.4, -17.4); c.closePath();   // cuerpo
+    { const g = c.createLinearGradient(-5, -21, 3, -13); g.addColorStop(0, '#b56a32'); g.addColorStop(1, '#7e4620'); c.fillStyle = g; c.fill(); }
+    c.fillStyle = '#ecd2a4'; c.beginPath(); c.moveTo(1.4, -19); c.bezierCurveTo(4.4, -18.6, 4.4, -14.6, 1.2, -13.2); c.bezierCurveTo(-.6, -14.4, -.6, -17.6, 1.4, -19); c.fill();   // pecho
+    c.strokeStyle = 'rgba(70,35,10,.6)'; c.lineWidth = .35; c.beginPath(); c.moveTo(-3.8, -17.6); c.quadraticCurveTo(-1.6, -16, .2, -17.2); c.moveTo(-3.2, -15.8); c.quadraticCurveTo(-1.4, -14.6, .2, -15.4); c.stroke();   // alas
+    { const g = c.createRadialGradient(1.2, -23.4, .4, 1.8, -22.4, 3.4); g.addColorStop(0, '#c98448'); g.addColorStop(1, '#8e5226'); c.fillStyle = g; c.beginPath(); c.arc(1.8, -22.4, 3.2, 0, 7); c.fill(); }   // cabeza
+    c.fillStyle = '#f0dcb4'; c.beginPath(); c.ellipse(3.4, -21.2, 1.4, 1.1, 0, 0, 7); c.fill();                                       // garganta clara
+    c.fillStyle = '#d9a94a'; c.beginPath(); c.moveTo(4.6, -23.4); c.quadraticCurveTo(7.4, -23, 9, -22.2); c.quadraticCurveTo(7.2, -21.8, 4.6, -21.6); c.closePath(); c.fill();   // pico
+    c.strokeStyle = 'rgba(255,240,220,.85)'; c.lineWidth = .35; c.beginPath(); c.moveTo(.6, -24.4); c.quadraticCurveTo(2.6, -25, 4.4, -23.8); c.stroke();   // ceja
+    c.fillStyle = '#111'; c.beginPath(); c.arc(3, -23.1, .75, 0, 7); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.arc(3.25, -23.35, .25, 0, 7); c.fill();
+    c.strokeStyle = '#6b4020'; c.lineWidth = .6; c.beginPath(); c.moveTo(-1.4, -13); c.lineTo(-1.8, -11.6); c.lineTo(-2.6, -11.4); c.moveTo(1, -13); c.lineTo(1, -11.6); c.lineTo(1.8, -11.4); c.stroke();   // patas
+    c.globalCompositeOperation = 'lighter'; sdot(c, 1.4, -24.8, '#ffffff', 1.2); sdot(c, 3.6, 4.6, GOLD, 1.4); sdot(c, -13.4, 16.6, CELESTE, 2); sdot(c, 13.4, 16.6, CELESTE, 2);
   } else { // Fernet con coca: botella oscura al medio y dos latas rojas a los costados (sin marcas)
     flame(c, t, 17, 5);
-    const can = x => { const g = c.createLinearGradient(x - 4.2, 0, x + 4.2, 0); g.addColorStop(0, '#8e0d12'); g.addColorStop(.4, '#ef2a2a'); g.addColorStop(1, '#7d0b10'); c.fillStyle = g;
-      c.beginPath(); c.moveTo(x - 4.2, -4); c.lineTo(x - 3.4, -6.2); c.lineTo(x + 3.4, -6.2); c.lineTo(x + 4.2, -4); c.lineTo(x + 4.2, 13.5); c.lineTo(x + 3.4, 15.4); c.lineTo(x - 3.4, 15.4); c.lineTo(x - 4.2, 13.5); c.closePath(); c.fill();
-      c.fillStyle = '#d6d6d6'; c.fillRect(x - 3.4, -6.8, 6.8, 1.2); c.fillRect(x - 3.4, 15, 6.8, 1);   // tapa y fondo de aluminio
-      c.strokeStyle = '#ffffff'; c.lineWidth = 1.1; c.beginPath(); c.moveTo(x - 4.2, 6); c.bezierCurveTo(x - 1.5, 3.5, x + 1.5, 8.5, x + 4.2, 5.5); c.stroke();   // ola blanca
-      c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(x - 2.6, -4, 1, 16); };
-    can(-9.4); can(9.4);
-    // botella
-    mirror(c, [[1.6, -28], [1.9, -20], [2.2, -16], [5, -11], [5.4, -8], [5.4, 15], [4.4, 16.5]]);
-    { const g = c.createLinearGradient(-5.4, 0, 5.4, 0); g.addColorStop(0, '#120a06'); g.addColorStop(.45, '#3a2414'); g.addColorStop(1, '#0d0704'); c.fillStyle = g; c.fill(); }
-    c.strokeStyle = 'rgba(200,170,120,.55)'; c.lineWidth = .7; c.stroke();
-    c.fillStyle = '#c9a85a'; c.fillRect(-1.9, -28.4, 3.8, 3);                                            // tapa dorada
-    c.fillStyle = '#efe4c8'; c.fillRect(-5.4, -3, 10.8, 10);                                             // etiqueta genérica
-    c.fillStyle = '#7a1c1c'; c.fillRect(-5.4, -3, 10.8, 1.4); c.fillRect(-5.4, 5.6, 10.8, 1.4);
-    c.fillStyle = '#3a2414'; c.beginPath(); c.moveTo(0, -.2); c.lineTo(2.2, 2.2); c.lineTo(0, 4.6); c.lineTo(-2.2, 2.2); c.closePath(); c.fill();   // rombo de la etiqueta
-    c.fillStyle = 'rgba(255,255,255,.18)'; c.fillRect(-3.8, -10, 1, 24);
-    c.globalCompositeOperation = 'lighter'; sdot(c, 0, -28, '#ffe9a0', 1.6); sdot(c, -9.4, -6.5, '#ffffff', 1.3); sdot(c, 9.4, -6.5, '#ffffff', 1.3); sdot(c, -12, 16, CELESTE, 2); sdot(c, 12, 16, CELESTE, 2);
+    drawCan(c, -9.6, 1); drawCan(c, 9.6, -1);
+    bottlePath(c); { const g = c.createLinearGradient(-5.7, 0, 5.7, 0); g.addColorStop(0, '#030201'); g.addColorStop(.3, '#2c1a0d'); g.addColorStop(.45, '#3d2513'); g.addColorStop(.7, '#140b05'); g.addColorStop(1, '#020100'); c.fillStyle = g; c.fill(); }
+    c.save(); bottlePath(c); c.clip();
+    c.fillStyle = '#0b0b0b'; c.fillRect(-2.2, -29, 4.4, 3.6); c.fillStyle = '#c9a85a'; c.fillRect(-2.2, -25.5, 4.4, .45);         // tapa
+    c.fillStyle = '#f0d6ae'; c.fillRect(-2.2, -25, 4.4, 3.6); c.fillStyle = '#d9763a'; c.fillRect(-2.2, -24.4, 4.4, .3); c.fillRect(-2.2, -22, 4.4, .3);   // collar
+    c.fillStyle = '#0f4a2a'; c.fillRect(-2.4, -21.4, 4.8, 3.4);                                                                    // vidrio verde del cuello
+    { const v = c.createLinearGradient(-2, 0, 2, 0); v.addColorStop(0, 'rgba(0,0,0,.5)'); v.addColorStop(.35, 'rgba(120,220,150,.35)'); v.addColorStop(1, 'rgba(0,0,0,.55)'); c.fillStyle = v; c.fillRect(-2.4, -21.4, 4.8, 3.4); }
+    c.fillStyle = '#f0d6ae'; c.beginPath(); c.arc(0, -6.4, 3.05, 0, 7); c.fill();                                                   // medallón con sol
+    { const m = c.createLinearGradient(0, -9, 0, -3.8); m.addColorStop(0, '#2e8fb0'); m.addColorStop(.6, '#9fd4c6'); m.addColorStop(1, '#f2b866'); c.fillStyle = m; c.beginPath(); c.arc(0, -6.4, 2.6, 0, 7); c.fill(); }
+    c.fillStyle = '#e8a33a'; c.beginPath(); c.arc(0, -5.8, 1, 0, 7); c.fill();
+    c.fillStyle = '#f2dcb8'; c.fillRect(-5.8, -1.6, 11.6, 11.6);                                                                   // etiqueta
+    c.strokeStyle = '#7a1c1c'; c.lineWidth = .3; c.strokeRect(-5.1, -1, 10.2, 10.4);
+    c.fillStyle = '#1b0f08'; c.font = '900 2.6px "Arial Narrow", "Roboto Condensed", Arial, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.save(); c.translate(0, 2.4); c.scale(.8, 1.15); c.fillText('FERNET', 0, 0); c.restore();
+    c.fillStyle = 'rgba(60,30,15,.6)'; c.fillRect(-3.6, 5, 7.2, .35); c.fillRect(-3, 6, 6, .3);
+    c.fillStyle = cylShade(c, -5.7, 5.7); c.fillRect(-6, -29, 12, 46); hiStrip(c, -4.2, -9, 1.4, 22, .45);
+    c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = .45; c.beginPath(); c.moveTo(-1.5, -17); c.bezierCurveTo(-1.8, -14.6, -4.2, -13.2, -4.6, -10); c.stroke();
+    c.restore();
+    c.strokeStyle = 'rgba(200,170,120,.45)'; c.lineWidth = .6; bottlePath(c); c.stroke();
+    c.globalCompositeOperation = 'lighter'; sdot(c, 0, -28.4, '#ffe9a0', 1.4); sdot(c, -9.6, -6.8, '#ffffff', 1.1); sdot(c, 9.6, -6.8, '#ffffff', 1.1); sdot(c, -12, 16.5, CELESTE, 2); sdot(c, 12, 16.5, CELESTE, 2);
   }
   c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
 }
