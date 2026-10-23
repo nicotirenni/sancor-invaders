@@ -236,6 +236,7 @@
   #acct .aDel{display:none;width:100%;background:none;box-shadow:none;border:0;color:#ff7a95;padding:.7em 1em} #acct .aDel::before{display:none} #acct .aDel:hover,#acct .aDel:focus-visible{color:#ff5a78;background:rgba(255,90,120,.08)} #acct.done .aDel{display:block}
   #shipModal{position:fixed;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:rgba(3,4,12,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)} #shipModal[hidden]{display:none}
   #shipModal .dm{box-shadow:0 0 0 1px rgba(255,201,40,.4),0 20px 60px rgba(0,0,0,.6)} #shipModal p{margin:0;font-size:14px;line-height:1.5;color:#c9d2f0} #shipModal p b{color:#fff}
+  .newK{align-self:center;font:700 12px/1 var(--body);letter-spacing:.14em;text-transform:uppercase;color:#ffc928} #shipModal.won #shipPrev{width:128px;height:128px;filter:drop-shadow(0 0 18px rgba(255,201,40,.45))} #shipModal #shipUse{display:block} #shipModal #shipUse[hidden],#shipModal #shipCafe[hidden]{display:none}
   #shipPrev{display:block;width:96px;height:96px;margin:-4px auto 0} #shipModal h2{text-align:center}
   .powBox{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:12px;background:linear-gradient(180deg,rgba(255,201,40,.14),rgba(255,201,40,.04));box-shadow:inset 0 0 0 1px rgba(255,201,40,.45)}
   .powK{font:700 11px/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:#ffc928} .powBox b{font:800 20px/1.15 var(--display);color:#fff} .powBox span:not(.powK){font-size:14px;line-height:1.45;color:#dfe5fb} .powBox small{font-size:12px;line-height:1.4;color:var(--muted)}
@@ -548,12 +549,13 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
 <div id="intro"><canvas id="introCv"></canvas><button id="introSkip" type="button">Saltar ›</button></div>
 <canvas id="sparks"></canvas>
 <div id="shipModal" hidden role="dialog" aria-modal="true" aria-labelledby="shipT"><div class="dm">
+  <span class="newK" id="shipNewK" hidden>¡Nave desbloqueada!</span>
   <canvas id="shipPrev" width="192" height="192" aria-hidden="true"></canvas>
   <h2 id="shipT">Desbloqueá esta nave</h2>
   <div class="powBox"><span class="powK">Poder</span><b id="powName"></b><span id="powDesc"></span><small id="powTor"></small></div>
   <p id="shipD"></p>
   <div class="smMsg" id="shipMsgBox"><span id="shipMsg"></span><button class="gh" id="shipCopy" type="button">Copiar</button></div>
-  <div class="dmBtns"><a class="sb" id="shipCafe" href="https://cafecito.app/nicotirenni/gallery" target="_blank" rel="noopener">Conseguir nave</a><button class="gh" id="shipNo" type="button">Cerrar</button></div>
+  <div class="dmBtns"><a class="sb" id="shipCafe" href="https://cafecito.app/nicotirenni/gallery" target="_blank" rel="noopener">Conseguir nave</a><button class="sb" id="shipUse" type="button" hidden>Usar esta nave</button><button class="gh" id="shipNo" type="button">Cerrar</button></div>
 </div></div>
 <div id="delModal" hidden role="dialog" aria-modal="true" aria-labelledby="delT" aria-describedby="delD"><div class="dm">
   <h2 id="delT">Eliminar tu cuenta</h2>
@@ -2014,8 +2016,8 @@ function closePodium() {
   setMode(cardBefore);
   if (cardBefore === 'over' && lastRes) renderBoard(lastRes, { name: playerName, score });
 }
-function openName() { setMode('name'); SFX.ui('card'); drawShipPreviews(); markShips(); pickShip(shipType);
-  if (acct) accApi({ action: 'me', token: acct.token }).then(r => { if (r.progress) { setAcct(r); markShips(); pickShip(shipType); } });   // por si le activaron una nave hace un rato
+function openName() { setMode('name'); SFX.ui('card'); drawShipPreviews(); markShips(); pickShip(shipType); celebrateShips();
+  if (acct) accApi({ action: 'me', token: acct.token }).then(r => { if (r.progress) { setAcct(r); markShips(); pickShip(shipType); if ($('card').dataset.mode === 'name') celebrateShips(); } });   // por si le activaron una nave hace un rato
   $('nameInput').value = playerName; setTimeout(() => $('nameInput').focus(), 30); }
 function backToMenu() { state = 'menu'; SFX.musicStart(112, 'menu'); countT = 0; paused = false; $('pauseOv').hidden = true; $('pauseBtn').hidden = true; SFX.hold(false); $('kicker').textContent = 'Destruí al invasor. Cuidá lo nuestro.'; document.documentElement.classList.add('scene-menu'); $('banner').classList.remove('on'); setMode('menu'); }
 // ---------- Álbum: una imagen en 9 figuritas; cada logro destapa una ----------
@@ -3006,19 +3008,35 @@ const toLevels = () => { lvSel = Math.max(1, Math.min(MAX_WAVE, wave)); backToMe
 $('lvPickBtn').addEventListener('click', () => { countTok++; toLevels(); });
 $('lvPickBtn2').addEventListener('click', toLevels);
 function markShips() { document.querySelectorAll('.shipOpt.prem').forEach(b => { const ok = shipOk(b.dataset.ship); b.classList.toggle('locked', !ok); b.setAttribute('aria-label', PREMIUM_SHIPS[b.dataset.ship] + (ok ? '' : ': bloqueada, se desbloquea con un cafecito')); }); }
-function openShipModal(type) { // nave bloqueada: cómo desbloquearla con un cafecito
+function openShipModal(type, won) { // nave bloqueada: cómo desbloquearla con un cafecito · won: festejo de una nave recién activada
   const name = PREMIUM_SHIPS[type], logged = !!(acct && acct.nick), msg = logged ? `${acct.nick} · ${name}` : '';
-  $('shipT').textContent = `Desbloqueá: ${name}`;
+  $('shipModal').classList.toggle('won', !!won); $('shipNewK').hidden = !won; $('shipCafe').hidden = !!won; $('shipUse').hidden = !won; $('shipUse').dataset.ship = type;
+  $('shipT').textContent = won ? name : `Desbloqueá: ${name}`;
   $('shipD').innerHTML = logged ? `Invitame un cafecito y en el mensaje escribí tu apodo y la nave. Apenas lo vea, la activo en tu cuenta y la vas a poder elegir.`
     : `La nave queda guardada en tu cuenta. Primero <b>iniciá sesión o creá tu cuenta</b>; después invitame un cafecito con tu apodo y la nave en el mensaje.`;
   const P = SHIP_POWER_CARD[type]; $('powName').textContent = P[0]; $('powDesc').textContent = P[1]; $('powTor').textContent = P[2];
   { const cv = $('shipPrev'), c = cv.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(3.2, 0, 0, 3.2, cv.width / 2, cv.height / 2 + 8); drawShip(c, type, 0); }
-  $('shipMsg').textContent = msg; $('shipMsgBox').hidden = !logged; $('shipCopy').textContent = 'Copiar';
-  $('shipModal').hidden = false; SFX.ui('card'); setTimeout(() => $('shipCafe').focus(), 50);
+  $('shipMsg').textContent = msg; $('shipMsgBox').hidden = !logged || !!won; $('shipCopy').textContent = 'Copiar';
+  if (won) $('shipD').innerHTML = 'Ya está activada en tu cuenta y la podés elegir cuando quieras. ¡Gracias por bancar el juego!';
+  $('shipModal').hidden = false; SFX.ui(won ? 'save' : 'card'); setTimeout(() => $(won ? 'shipUse' : 'shipCafe').focus(), 50);
 }
-$('shipNo').addEventListener('click', () => { $('shipModal').hidden = true; });
-$('shipModal').addEventListener('click', e => { if (e.target === $('shipModal')) $('shipModal').hidden = true; });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('shipModal').hidden) $('shipModal').hidden = true; });
+// naves recién activadas: se festejan una sola vez por activación (si se la sacan y se la vuelven a dar, se festeja de nuevo)
+let shipQueue = [];
+function newShips() {
+  if (!acct || !Array.isArray(acct.ships)) return [];
+  const k = 'sancor_shipsSeen_' + (acct.email || acct.nick); let seen = [];
+  try { seen = JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) {}
+  seen = seen.filter(t => acct.ships.includes(t));
+  const fresh = acct.ships.filter(t => PREMIUM_SHIPS[t] && !seen.includes(t));
+  try { localStorage.setItem(k, JSON.stringify(seen.concat(fresh))); } catch (e) {}
+  return fresh;
+}
+function celebrateShips() { for (const t of newShips()) if (!shipQueue.includes(t)) shipQueue.push(t); if ($('shipModal').hidden && shipQueue.length) openShipModal(shipQueue.shift(), true); }
+function closeShipModal() { $('shipModal').hidden = true; if (shipQueue.length) setTimeout(() => openShipModal(shipQueue.shift(), true), 250); }
+$('shipUse').addEventListener('click', () => { pickShip($('shipUse').dataset.ship); closeShipModal(); });
+$('shipNo').addEventListener('click', closeShipModal);
+$('shipModal').addEventListener('click', e => { if (e.target === $('shipModal')) closeShipModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('shipModal').hidden) closeShipModal(); });
 $('shipCopy').addEventListener('click', async () => { const t = $('shipMsg').textContent; try { await navigator.clipboard.writeText(t); $('shipCopy').textContent = '¡Copiado!'; } catch (e) { const r = document.createRange(); r.selectNodeContents($('shipMsg')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); } });
 document.querySelectorAll('.shipOpt').forEach(b => b.addEventListener('click', () => { if (!shipOk(b.dataset.ship)) { openShipModal(b.dataset.ship); return; } pickShip(b.dataset.ship); SFX.ui('place'); }));
 $('credA').addEventListener('click', e => { e.preventDefault(); setMode('credits'); SFX.ui('card'); });
