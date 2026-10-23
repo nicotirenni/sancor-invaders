@@ -431,6 +431,7 @@
   #contOv .pbox{width:min(calc(100vw - 32px),460px)} #contOv .podTitle{opacity:1;font-size:32px;text-align:center} #contOv .prow #contGo{order:1}
   @media (max-width:599px){#contOv .podTitle{font-size:24px} #contOv .prow{flex-direction:column} #contOv .prow #contGo{order:-1}}
   html.cont #pauseBtn{display:none!important}
+  html.is-mobile body:has(#pauseBtn:not([hidden])) #mute{display:none} html.is-mobile #pauseBtn{left:50%;bottom:auto;top:calc(10px + env(safe-area-inset-top,0px));translate:-50% 0}   /* celu jugando: solo pausa, arriba al centro; el volumen está en el menú de pausa */
   .contP{margin:0;color:#c9d2f0;font-size:15px;text-align:center;max-width:32ch} .contBar{width:100%;height:4px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden} .contBar i{display:block;height:100%;width:100%;background:var(--gold);transform-origin:left}
   #pauseOv{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:rgba(3,4,12,.62);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
   .pbox{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:min(78vw,300px);padding:26px 30px;border-radius:22px;background:rgba(7,11,32,.7);border:1px solid rgba(116,192,245,.18)}
@@ -1030,6 +1031,7 @@ stadiumImg.src = "data:image/webp;base64,UklGRsomBQBXRUJQVlA4WAoAAAAwAAAAXwUAFwI
 // ---------- Sprites -> puntos ----------
 const STEP = 8, R = 2.9, K = .75; // K: escala del dibujo de drones (más chico = más espacio para jugar)
 let mobileView = false;
+const SHIP_K = () => mobileView ? 2 : 1;   // en el celu la nave se dibuja el doble de grande (la zona donde te pegan no cambia)
 // Invasor al estilo show real: drones solo sobre el contorno de letras y logo
 const ogap = () => 9.6; // separación de drones del invasor
 function ringPts(mask, w, h, gap, c) { // contorno de una máscara, con drones separados >= gap
@@ -1582,7 +1584,8 @@ function drawFoes(t) {
     for (const p of sh) dot(f.x + (p.x * Math.cos(wob) - p.y * Math.sin(wob)) * sc, f.y + (p.x * Math.sin(wob) + p.y * Math.cos(wob)) * sc, f.flash > 0 ? '#ffffff' : RED, r, .55 + .45 * dmg);
     if (f.t < .45 && f.age >= 1.6 && !f.burst) dot(f.x, f.y + 4, '#ffe1e7', 2.2 + (.45 - f.t) * 9, .9);   // aviso: está por disparar
   }
-  for (const b of ebullets) { dot(b.x - b.vx * .02, b.y - b.vy * .02, '#ff3040', 2.4, .5); dot(b.x, b.y, '#ff3040', 3.6, 1); dot(b.x, b.y, '#ffffff', 1.4, 1); }
+  for (const b of ebullets) { dot(b.x - b.vx * .02, b.y - b.vy * .02, '#ff3040', 2.4, .5); dot(b.x, b.y, '#ff3040', 3.6, 1); dot(b.x, b.y, '#ffffff', 1.4, 1);
+    if (mobileView) { ctx.fillStyle = 'rgba(10,0,4,.75)'; ctx.beginPath(); ctx.arc(b.x, b.y, 9, 0, 7); ctx.fill(); ctx.fillStyle = '#ff3040'; ctx.beginPath(); ctx.arc(b.x, b.y, 6.5, 0, 7); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, 2.4, 0, 7); ctx.fill(); } }   // celu: más grandes y con borde blanco para verlas sobre el estadio
 }
 function buildWave() {
   groups = []; if (state === 'play') SFX.whoosh();
@@ -2524,7 +2527,7 @@ function start() {
   wave = startWave; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
   itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; contUsed = false; $('pauseOv').hidden = true; newCards = []; lives = 3; ship.inv = 0; foes = []; foeQueue = []; ebullets = [];
   document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(...levelSong(startWave)); buildWave(); $('pauseBtn').hidden = false;
-  ship.dashCd = 0;
+  ship.dashCd = 0; dragHint = mobileView ? 5 : 0;
 }
 let clearAt = 0, clearResults = null;
 function showLevelResults(bonus, allies) {
@@ -3102,7 +3105,7 @@ function layoutAll() {
   const cw = Math.round(W * SC), ch = Math.round(H * SC);
   if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
   bloomCv.width = 220; bloomCv.height = Math.round(220 * H / W);
-  stadiumPxH = Math.min(vw * 536 / 1376, .52 * sh); IMG_H = stadiumPxH / (sw / W); document.documentElement.classList.toggle('is-mobile', matchMedia('(pointer:coarse)').matches || vw < 700); const mob = mobileView = vw < 700 || (matchMedia('(pointer:coarse)').matches && vw < vh); stadiumLift = mob ? stadiumPxH * .4 : 0; const liftL = stadiumLift / (sw / W); SHIP_Y = H - IMG_H * .68 - liftL; STADIUM_TOP = SHIP_Y - 26; ship.y = SHIP_Y;      // fondo 20% más abajo; la nave 25% más abajo (medidos sobre el alto del fondo)
+  stadiumPxH = Math.min(vw * 536 / 1376, .52 * sh); IMG_H = stadiumPxH / (sw / W); document.documentElement.classList.toggle('is-mobile', matchMedia('(pointer:coarse)').matches || vw < 700); const mob = mobileView = vw < 700 || (matchMedia('(pointer:coarse)').matches && vw < vh); stadiumLift = mob ? stadiumPxH * .4 : 0; const liftL = stadiumLift / (sw / W); SHIP_Y = H - IMG_H * .68 - liftL; STADIUM_TOP = SHIP_Y - 26 * (mob ? 2 / 1.15 : 1);   /* con la nave más grande la línea sube con su punta; el logo baja proporcional al recorrido, así que tarda lo mismo */ ship.y = SHIP_Y;      // fondo 20% más abajo; la nave 25% más abajo (medidos sobre el alto del fondo)
   crowd = Array.from({ length: 170 }, () => ({ x: rnd0(14, W - 14), y: rnd0(H - IMG_H * .34 - liftL, H - IMG_H * .02 - liftL), p: Math.random() * 6, c: Math.random() < .3 ? '#74c0f5' : '#ffffff' }));
   const scale = sw / W, hb = $('hud').getBoundingClientRect().bottom;
   SANCOR_Y0 = Math.max(6, (hb + 8 - (vh - sh)) / scale);                                           // Sancor arranca justo debajo del HUD
@@ -3149,9 +3152,11 @@ addEventListener('keydown', e => { if (state !== 'play' || e.repeat) return;
 const stage = $('stage');
 addEventListener('contextmenu', e => { if (!(e.target.closest && e.target.closest('input,textarea,a'))) e.preventDefault(); });   // long press en el celu: sin menú contextual
 function toLogical(e) { const r = stage.getBoundingClientRect(); return (e.clientX - r.left) / r.width * W; }
-let lastPtr = 0;
-stage.addEventListener('pointerdown', e => { if (state === 'play' && !paused) { const x = toLogical(e), now = performance.now(); if (now - lastPtr < 300) shipDash(x >= ship.x ? 1 : -1); lastPtr = now; touching = true; ship.x = x; } });
-stage.addEventListener('pointermove', e => { if (touching) ship.x = toLogical(e); });
+let lastPtr = 0, dragHint = 0;
+// arrastre relativo: la nave se mueve lo mismo que el dedo (no salta debajo), así el dedo no la tapa
+const drag = { x0: 0, s0: 0 }, DRAG_GAIN = 1.25;
+stage.addEventListener('pointerdown', e => { if (state === 'play' && !paused) { const x = toLogical(e), now = performance.now(); if (now - lastPtr < 300) shipDash(x >= drag.x0 ? 1 : -1); lastPtr = now; touching = true; drag.x0 = x; drag.s0 = ship.x; } });
+stage.addEventListener('pointermove', e => { if (!touching) return; const x = toLogical(e); ship.x = Math.max(24, Math.min(W - 24, drag.s0 + (x - drag.x0) * DRAG_GAIN)); if (Math.abs(x - drag.x0) > 12) dragHint = 0; });
 addEventListener('pointerup', () => touching = false);
 
 // ---------- Efectos ----------
@@ -3189,12 +3194,12 @@ function update(dt) {
     return;
   }
   if ((keys.Space || touching) && ship.cd <= 0) {
-    bullets.push({ x: ship.x, y: ship.y - 24, vx: 0 }); SFX.shot(ship.x);
+    const k = SHIP_K(); bullets.push({ x: ship.x, y: ship.y - 24 * k, vx: 0 }); SFX.shot(ship.x);
     const fern = shipPower() === 'fernet' && !(buffs.triple > 0);   // fernet: las latas también disparan
-    if (buffs.triple > 0 || fern) { bullets.push({ x: ship.x - 8, y: ship.y - 20, vx: -110 }); bullets.push({ x: ship.x + 8, y: ship.y - 20, vx: 110 }); }
+    if (buffs.triple > 0 || fern) { bullets.push({ x: ship.x - 8 * k, y: ship.y - 20 * k, vx: -110 }); bullets.push({ x: ship.x + 8 * k, y: ship.y - 20 * k, vx: 110 }); }
     ship.cd = buffs.rapid > 0 ? .085 : fern ? (powerLight() ? .32 : .26) : .2;
   }
-  for (const k in buffs) buffs[k] = Math.max(0, buffs[k] - dt);
+  for (const k in buffs) buffs[k] = Math.max(0, buffs[k] - dt); dragHint = Math.max(0, dragHint - dt);
   ship.inv = Math.max(0, ship.inv - dt); updateFoes(dt); if (state !== 'play') return;
   itemT -= dt; // los power-ups caen al azar durante toda la partida
   if (itemT <= 0) { const k = Object.keys(POWERS).filter(t => t !== 'life' || (wave >= 6 && lives < 3)); const ix = rnd(40, W - 40); items.push({ type: k[Math.floor(Math.random() * k.length)], x: ix, y: -20, ph: Math.random() * 6 }); SFX.drop(ix); itemT = rnd(7, 13); }
@@ -3204,7 +3209,7 @@ function update(dt) {
     if (dx * dx + dy * dy < (mobileView ? 48 : 30) ** 2) { it.got = true; collect(it); }
   }
   items = items.filter(it => !it.got && it.y < H + 30);
-  if (Math.random() < .8) parts.push({ x: ship.x + rnd(-3, 3), y: ship.y + 12, vx: rnd(-14, 14), vy: rnd(60, 110), l: .35, m: .35, c: Math.random() < .5 ? CELESTE : '#ffffff', s: .7 });
+  if (Math.random() < .8) parts.push({ x: ship.x + rnd(-3, 3), y: ship.y + 12 * SHIP_K(), vx: rnd(-14, 14), vy: rnd(60, 110), l: .35, m: .35, c: Math.random() < .5 ? CELESTE : '#ffffff', s: .7 });
 
   let enemies = 0, allies = 0, lowest = -1e9;
   for (const g of groups) {
@@ -3314,12 +3319,16 @@ function draw(t) {
   drawFoes(t);
   // nave elegida por el jugador (parpadea mientras es invulnerable después de un golpe)
   if (ship.inv > 0 && !(ship.dashing > 0) && Math.floor(t * 14) % 2) ctx.globalAlpha = .3;
-  ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.tilt * .35); if (mobileView) ctx.scale(1.15, 1.15);
+  ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.tilt * .35); if (SHIP_K() !== 1) ctx.scale(SHIP_K(), SHIP_K());
   drawShip(ctx, shipType, t);
   if (ship.shield) { ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = `rgba(224,173,120,${.45 + Math.sin(t * 5) * .15})`; ctx.lineWidth = 2; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.arc(0, -4, 27, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over'; }   // escudo de barro
   if (ship.dashing > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = ship.dashing * 1.6; ctx.strokeStyle = CELESTE; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -4, 26, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
   ctx.restore();
   ctx.restore();
+  if (dragHint > 0 && state === 'play') { // celu: indica la zona para mover la nave con el pulgar
+    const y = Math.min(H - 40, SHIP_Y + (H - SHIP_Y) * .55); ctx.globalAlpha = Math.min(1, dragHint) * .9; ctx.font = '700 30px Roboto, system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const tx = '◀  Deslizá acá para moverte  ▶', w = ctx.measureText(tx).width + 56; ctx.fillStyle = 'rgba(8,12,34,.72)'; ctx.beginPath(); ctx.roundRect(W / 2 - w / 2, y - 32, w, 64, 32); ctx.fill();
+    ctx.strokeStyle = 'rgba(116,192,245,.6)'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#fff'; ctx.fillText(tx, W / 2, y + 1); ctx.globalAlpha = 1; }
 
   // puntos flotantes y HUD
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.textAlign = 'center';
