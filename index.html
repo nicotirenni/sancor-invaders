@@ -1184,6 +1184,7 @@ const SHIP_POWER_CARD = { // [nombre, qué hace, cómo es en Torneo]
 const SHIP_POWER_SHORT = { fernet: 'Disparo de a 3', colectivo: 'Esquive: Shift o doble toque', hornero: 'Escudo de barro' };
 const shipPower = () => PREMIUM_SHIPS[shipType] && shipOk(shipType) ? shipType : '';
 const powerLight = () => gameMode === 'torneo';
+const colePower = () => window.COLE_POWER || 'bocina';   // poder del colectivo en prueba: 'bocina' o 'ramal'
 const shipOk = type => !PREMIUM_SHIPS[type] || !!(typeof acct !== 'undefined' && acct && Array.isArray(acct.ships) && acct.ships.includes(type));
 let shipType = (() => { try { return localStorage.getItem('sancor_ship') || 'monumento'; } catch { return 'monumento'; } })();
 function sdot(c, x, y, col, r) { const sp = spriteByColor[col] || (spriteByColor[col] = glowSprite(toHex(col))), s = r * 4.4; c.drawImage(sp, x - s / 2, y - s / 2, s, s); }
@@ -1825,6 +1826,7 @@ const SFX = (() => {
     setVol(k, v) { vol[k] = Math.max(0, Math.min(1, v)); LS.set('sancor_vol_' + k, String(vol[k])); const b = k === 'sfx' ? sfxBus : musBus; if (b) { b.gain.cancelScheduledValues(ac.currentTime); b.gain.setTargetAtTime(vol[k], ac.currentTime, .03); } },
     toggle() { muted = !muted; LS.set('sancor_muted', muted ? '1' : '0'); if (master) master.gain.setTargetAtTime(muted ? 0 : .9, ac.currentTime, .03); ensure(); return muted; },
     // efectos de juego (graves, con cuerpo; paneados según dónde pasan)
+    horn() { if (!ok()) return; for (const d of [0, .2]) { tone('pulse', 440, 432, .18, .07, { lp: 2000, delay: d }); tone('pulse', 554, 545, .18, .06, { lp: 2000, delay: d }); } },   // bocinazo de colectivo: dos toques
     shot(x) { if (!ok() || now() - lastShot < .06) return; lastShot = now(); const p = at(x);
       tone('pulse', 330, 140, .09, .07, { lp: 1600, pan: p }); tone('triangle', 250, 85, .16, .2, { lp: 1400, pan: p }); tone('sine', 120, 52, .2, .3, { pan: p }); noise(.05, .06, 900, { pan: p }); },
     hit(n, x, c = 0) { if (!ok() || now() - lastHit < .05) return; lastHit = now(); const p = at(x), k = Math.pow(2, Math.min(c, 14) / 24);   // sube de a poco con el combo
@@ -3122,7 +3124,7 @@ function updateHud() {
   let h = '';
   if (mult > 1 || combo > 4) h += `<span style="color:${GOLD}">COMBO x${mult} (${combo})</span>`;
   { const pw = state === 'play' ? shipPower() : '';
-    if (pw === 'colectivo') h += `<span style="color:${CELESTE}">ESQUIVE ${ship.dashCd > 0 ? ship.dashCd.toFixed(1) + 's' : 'LISTO'}</span>`;
+    if (pw === 'colectivo' && colePower() === 'bocina') h += `<span style="color:#ffd23f">BOCINA ${ship.honkCd > 0 ? ship.honkCd.toFixed(1) + 's' : 'LISTA'}</span>`;
     else if (pw === 'hornero' && ship.shield) h += `<span style="color:#e0ad78">ESCUDO DE BARRO</span>`; }
   for (const k of ['triple', 'rapid']) if (buffs[k] > 0) h += `<span style="color:${POWERS[k].c}">${POWERS[k].name} ${buffs[k].toFixed(1)}s</span>`;
   if (h !== lastHud) { $('hudSub').innerHTML = h; lastHud = h; }
@@ -3139,8 +3141,14 @@ addEventListener('keydown', e => {
   else if ((e.code === 'Space' || e.code === 'Enter') && state === 'over' && $('card').dataset.mode === 'over' && performance.now() - overAt > 1200) tryStart();
 });
 addEventListener('keyup', e => keys[e.code] = false);
+const HONK_R = 200;
+function honk() {
+  ship.honkCd = powerLight() ? 12 : 8; let n = 0;
+  for (const b of ebullets) if ((b.x - ship.x) ** 2 + (b.y - ship.y) ** 2 < HONK_R * HONK_R) { burst(b.x, b.y, '#ffd23f', 6, 120); b.y = 1e9; n++; }
+  rings.push({ x: ship.x, y: ship.y, r: 10, l: .85, c: '#ffd23f' }, { x: ship.x, y: ship.y, r: 0, l: .7, c: '#ffffff' }); shake = Math.max(shake, 5); SFX.horn(); say('¡Bocinazo!');
+}
 function shipDash(d) { // colectivo: esquive lateral con las ruedas DeLorean
-  if (state !== 'play' || paused || countT > 0 || shipPower() !== 'colectivo' || ship.dashCd > 0) return;
+  if (state !== 'play' || paused || countT > 0 || shipPower() !== 'colectivo' || colePower() !== 'esquive' || ship.dashCd > 0) return;
   ship.dashCd = powerLight() ? 7 : 4; ship.dashing = powerLight() ? .4 : .5; ship.inv = Math.max(ship.inv, ship.dashing);
   ship.x = Math.max(24, Math.min(W - 24, ship.x + (d || (ship.vx >= 0 ? 1 : -1)) * 90)); burst(ship.x, ship.y + 6, CELESTE, 16, 150); SFX.swish(d || 1); say('¡Esquive!');
 }
@@ -3185,7 +3193,9 @@ function update(dt) {
   const prev = ship.x;
   ship.x = Math.max(24, Math.min(W - 24, ship.x + dir * 380 * dt));
   ship.vx += ((ship.x - prev) / dt - ship.vx) * .3; ship.tilt += (ship.vx / 380 - ship.tilt) * .2;
-  ship.cd -= dt; ship.dashCd = Math.max(0, (ship.dashCd || 0) - dt); ship.dashing = Math.max(0, (ship.dashing || 0) - dt);
+  ship.cd -= dt; ship.dashCd = Math.max(0, (ship.dashCd || 0) - dt); ship.honkCd = Math.max(0, (ship.honkCd || 0) - dt);
+  if (state === 'play' && countT <= 0 && ship.honkCd <= 0 && shipPower() === 'colectivo' && colePower() === 'bocina') { // bocinazo: si una bala enemiga se acerca, la onda borra las que estén cerca
+    const R2 = HONK_R * HONK_R; if (ebullets.some(b => (b.x - ship.x) ** 2 + (b.y - ship.y) ** 2 < R2)) honk(); } ship.dashing = Math.max(0, (ship.dashing || 0) - dt);
   if (countT > 0) { // cuenta regresiva: la nave se mueve, el resto espera
     for (const g of groups) g.age += dt;
     countT -= dt; const n = Math.ceil(countT);
@@ -3194,7 +3204,7 @@ function update(dt) {
     return;
   }
   if ((keys.Space || touching) && ship.cd <= 0) {
-    const k = SHIP_K(); bullets.push({ x: ship.x, y: ship.y - 24 * k, vx: 0 }); SFX.shot(ship.x);
+    const k = SHIP_K(); bullets.push({ x: ship.x, y: ship.y - 24 * k, vx: 0, pierce: shipPower() === 'colectivo' && colePower() === 'ramal' ? (powerLight() ? 2 : 3) : 0 }); SFX.shot(ship.x);   // ramal directo: atraviesa drones
     if (buffs.triple > 0) { bullets.push({ x: ship.x - 8 * k, y: ship.y - 20 * k, vx: -110 }); bullets.push({ x: ship.x + 8 * k, y: ship.y - 20 * k, vx: 110 }); }
     if (shipPower() === 'fernet') { // fernet: la botella dispara siempre y las latas suman un disparo recto cada 2 (cada 3 en Torneo)
       ship.shots = (ship.shots || 0) + 1;
@@ -3246,7 +3256,7 @@ function update(dt) {
       if (q < bd) { bd = q; best = d; bg = g; bp = p; }
     }
     if (!best) continue;
-    b.y = -99;
+    if (!bg.ally && b.pierce > 0) b.pierce--; else b.y = -99;   // la bala del ramal directo sigue de largo
     if (bg.ally) {
       best.alive = false; burst(bp[0], bp[1], best.c, 10); rings.push({ x: bp[0], y: bp[1], r: 4, l: .5, c: '#ff3040' });
       waveAllyHits++; respect -= 4; score = Math.max(0, score - 10); pops.push({ x: bp[0], y: bp[1], t: '-10', l: 1, bad: true }); flash = .35; shake = 14; combo = 0; mult = 1; say('¡NO! Es de los nuestros'); SFX.bad(bp[0]);
