@@ -509,7 +509,7 @@
   .shipLbl{width:100%;text-align:left;font-size:clamp(12px,1.6cqw,15px);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
   .shipPick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:10px;width:100%}   /* todas las celdas miden lo mismo: la más alta manda */
   .shipOpt.prem{position:relative} .shipOpt .pb{display:none;align-items:center;gap:4px;font:700 11px/1 var(--body);font-style:normal;letter-spacing:.04em;color:#1a1300;background:#ffc928;border-radius:999px;padding:4px 8px 3px}
-  .shipOpt.locked .pb{display:inline-flex;position:absolute;top:6px;right:6px;padding:4px}   /* naves de cafecito sin desbloquear: solo un candado arriba a la derecha */
+  .shipOpt.locked .pb{display:inline-flex;position:absolute;top:8px;right:8px;padding:0;background:none;color:#ffc928}   /* naves de cafecito sin desbloquear: solo un candado arriba a la derecha */
   .shipOpt{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px;padding:10px;border:0;border-radius:12px;background:#121730;color:#cfd6f0;font:600 clamp(12px,1.5cqw,14px)/1.2 var(--body);cursor:pointer;box-shadow:0 0 0 1px #313857 inset;transition:background .15s,box-shadow .15s,color .15s}
   #stage #shipPick canvas{position:static;display:block;inset:auto;width:64px;height:64px;pointer-events:none} .shipOpt:hover{background:#1a2040;color:#fff}
   .shipOpt.sel{background:#22142c;color:#fff;box-shadow:0 0 0 2px var(--pink) inset,0 0 18px rgba(214,32,104,.25)} .shipOpt:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
@@ -553,7 +553,7 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
   <div class="powBox"><span class="powK">Poder</span><b id="powName"></b><span id="powDesc"></span><small id="powTor"></small></div>
   <p id="shipD"></p>
   <div class="smMsg" id="shipMsgBox"><span id="shipMsg"></span><button class="gh" id="shipCopy" type="button">Copiar</button></div>
-  <div class="dmBtns"><a class="sb" id="shipCafe" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener">Invitar un cafecito</a><button class="gh" id="shipNo" type="button">Cerrar</button></div>
+  <div class="dmBtns"><a class="sb" id="shipCafe" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener">Conseguir nave</a><button class="gh" id="shipNo" type="button">Cerrar</button></div>
 </div></div>
 <div id="delModal" hidden role="dialog" aria-modal="true" aria-labelledby="delT" aria-describedby="delD"><div class="dm">
   <h2 id="delT">Eliminar tu cuenta</h2>
@@ -653,9 +653,9 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
           <button class="shipOpt" type="button" data-ship="monumento" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Monumento a la Bandera</span></button>
           <button class="shipOpt" type="button" data-ship="obelisco" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Obelisco</span></button>
           <button class="shipOpt" type="button" data-ship="copa" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Copa del Mundo</span></button>
-          <button class="shipOpt prem" type="button" data-ship="colectivo" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Colectivo</span><i class="pb" aria-label="Bloqueada"><svg class="lk" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></i></button>
-          <button class="shipOpt prem" type="button" data-ship="hornero" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Hornero</span><i class="pb" aria-label="Bloqueada"><svg class="lk" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></i></button>
-          <button class="shipOpt prem" type="button" data-ship="fernet" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Fernet con coca</span><i class="pb" aria-label="Bloqueada"><svg class="lk" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></i></button>
+          <button class="shipOpt prem" type="button" data-ship="colectivo" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Colectivo</span><i class="pb" aria-label="Bloqueada"><svg class="lk" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></i></button>
+          <button class="shipOpt prem" type="button" data-ship="hornero" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Hornero</span><i class="pb" aria-label="Bloqueada"><svg class="lk" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></i></button>
+          <button class="shipOpt prem" type="button" data-ship="fernet" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Fernet con coca</span><i class="pb" aria-label="Bloqueada"><svg class="lk" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></i></button>
         </div>
         <div class="nameAcc" id="nameAcc"></div>
         <div class="row">
@@ -3009,7 +3009,7 @@ function openShipModal(type) { // nave bloqueada: cómo desbloquearla con un caf
   $('shipT').textContent = `Desbloqueá: ${name}`;
   $('shipD').innerHTML = logged ? `Invitame un cafecito y en el mensaje escribí tu apodo y la nave. Apenas lo vea, la activo en tu cuenta y la vas a poder elegir.`
     : `La nave queda guardada en tu cuenta. Primero <b>iniciá sesión o creá tu cuenta</b>; después invitame un cafecito con tu apodo y la nave en el mensaje.`;
-  const P = SHIP_POWER_CARD[type]; $('powName').textContent = P[0]; $('powDesc').textContent = P[1]; $('powTor').textContent = P[2] + ' Además, el logo baja un 5% más rápido.';
+  const P = SHIP_POWER_CARD[type]; $('powName').textContent = P[0]; $('powDesc').textContent = P[1]; $('powTor').textContent = P[2];
   { const cv = $('shipPrev'), c = cv.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(3.2, 0, 0, 3.2, cv.width / 2, cv.height / 2 + 8); drawShip(c, type, 0); }
   $('shipMsg').textContent = msg; $('shipMsgBox').hidden = !logged; $('shipCopy').textContent = 'Copiar';
   $('shipModal').hidden = false; SFX.ui('card'); setTimeout(() => $('shipCafe').focus(), 50);
