@@ -1335,11 +1335,11 @@ function drawPremiumShip(c, type, t) { // naves que se desbloquean con un cafeci
     for (const x of [-12.2, 10.6]) { c.fillStyle = chrome(x, x + 1.6); rrect(c, x, -22.4, 1.6, 2.6, .6); c.fill(); }
     // trompa
     const hood = () => { c.beginPath(); c.moveTo(-6.6, -19); c.lineTo(-6.6, -25.4); c.bezierCurveTo(-6.6, -27.4, -5, -28, -3, -28); c.lineTo(3, -28); c.bezierCurveTo(5, -28, 6.6, -27.4, 6.6, -25.4); c.lineTo(6.6, -19); c.closePath(); };
-    hood(); { const g = c.createLinearGradient(-6.6, 0, 6.6, 0); g.addColorStop(0, '#0f1f4c'); g.addColorStop(.35, '#3557b0'); g.addColorStop(1, '#0f1f4c'); c.fillStyle = g; c.fill(); }
+    hood(); { const g = c.createLinearGradient(-6.6, 0, 6.6, 0); g.addColorStop(0, '#7e0a17'); g.addColorStop(.35, '#e3283a'); g.addColorStop(1, '#7e0a17'); c.fillStyle = g; c.fill(); }
     c.save(); hood(); c.clip();
     c.strokeStyle = '#f2f2f2'; c.lineWidth = .6; c.beginPath(); c.moveTo(-6.6, -19.6); c.quadraticCurveTo(-2.4, -21.6, -1.2, -27.4); c.moveTo(6.6, -19.6); c.quadraticCurveTo(2.4, -21.6, 1.2, -27.4); c.stroke();   // filete en V
-    c.strokeStyle = '#d8203a'; c.lineWidth = .5; c.beginPath(); c.moveTo(-6.6, -20.6); c.quadraticCurveTo(-3, -22.2, -2, -27.6); c.moveTo(6.6, -20.6); c.quadraticCurveTo(3, -22.2, 2, -27.6); c.stroke();
-    c.fillStyle = '#d8203a'; c.fillRect(-6.6, -19.8, 13.2, .7);
+    c.strokeStyle = '#1d3f9a'; c.lineWidth = .5; c.beginPath(); c.moveTo(-6.6, -20.6); c.quadraticCurveTo(-3, -22.2, -2, -27.6); c.moveTo(6.6, -20.6); c.quadraticCurveTo(3, -22.2, 2, -27.6); c.stroke();
+    c.fillStyle = '#1d3f9a'; c.fillRect(-6.6, -19.8, 13.2, .7);
     c.restore();
     c.fillStyle = chrome(-.5, .5); c.fillRect(-.35, -27.2, .7, 5);                                                              // moldura cromada central
     for (const s of [-1, 1]) {                                                                                                   // faros en las esquinas
