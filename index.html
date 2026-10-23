@@ -236,6 +236,7 @@
   #acct .aDel{display:none;width:100%;background:none;box-shadow:none;border:0;color:#ff7a95;padding:.7em 1em} #acct .aDel::before{display:none} #acct .aDel:hover,#acct .aDel:focus-visible{color:#ff5a78;background:rgba(255,90,120,.08)} #acct.done .aDel{display:block}
   #shipModal{position:fixed;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:rgba(3,4,12,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)} #shipModal[hidden]{display:none}
   #shipModal .dm{box-shadow:0 0 0 1px rgba(255,201,40,.4),0 20px 60px rgba(0,0,0,.6)} #shipModal p{margin:0;font-size:14px;line-height:1.5;color:#c9d2f0} #shipModal p b{color:#fff}
+  .newK{align-self:center;font:700 12px/1 var(--body);letter-spacing:.14em;text-transform:uppercase;color:#ffc928} #shipModal.won #shipPrev{width:128px;height:128px;filter:drop-shadow(0 0 18px rgba(255,201,40,.45))} #shipModal #shipUse{display:block} #shipModal #shipUse[hidden],#shipModal #shipCafe[hidden]{display:none}
   #shipPrev{display:block;width:96px;height:96px;margin:-4px auto 0} #shipModal h2{text-align:center}
   .powBox{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:12px;background:linear-gradient(180deg,rgba(255,201,40,.14),rgba(255,201,40,.04));box-shadow:inset 0 0 0 1px rgba(255,201,40,.45)}
   .powK{font:700 11px/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:#ffc928} .powBox b{font:800 20px/1.15 var(--display);color:#fff} .powBox span:not(.powK){font-size:14px;line-height:1.45;color:#dfe5fb} .powBox small{font-size:12px;line-height:1.4;color:var(--muted)}
@@ -430,6 +431,7 @@
   #contOv .pbox{width:min(calc(100vw - 32px),460px)} #contOv .podTitle{opacity:1;font-size:32px;text-align:center} #contOv .prow #contGo{order:1}
   @media (max-width:599px){#contOv .podTitle{font-size:24px} #contOv .prow{flex-direction:column} #contOv .prow #contGo{order:-1}}
   html.cont #pauseBtn{display:none!important}
+  html.is-mobile body:has(#pauseBtn:not([hidden])) #mute{display:none} html.is-mobile #pauseBtn{left:12px}   /* celu jugando: solo pausa, abajo a la izquierda; el volumen está en el menú de pausa */
   .contP{margin:0;color:#c9d2f0;font-size:15px;text-align:center;max-width:32ch} .contBar{width:100%;height:4px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden} .contBar i{display:block;height:100%;width:100%;background:var(--gold);transform-origin:left}
   #pauseOv{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:rgba(3,4,12,.62);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
   .pbox{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:min(78vw,300px);padding:26px 30px;border-radius:22px;background:rgba(7,11,32,.7);border:1px solid rgba(116,192,245,.18)}
@@ -548,12 +550,13 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
 <div id="intro"><canvas id="introCv"></canvas><button id="introSkip" type="button">Saltar ›</button></div>
 <canvas id="sparks"></canvas>
 <div id="shipModal" hidden role="dialog" aria-modal="true" aria-labelledby="shipT"><div class="dm">
+  <span class="newK" id="shipNewK" hidden>¡Nave desbloqueada!</span>
   <canvas id="shipPrev" width="192" height="192" aria-hidden="true"></canvas>
   <h2 id="shipT">Desbloqueá esta nave</h2>
   <div class="powBox"><span class="powK">Poder</span><b id="powName"></b><span id="powDesc"></span><small id="powTor"></small></div>
   <p id="shipD"></p>
   <div class="smMsg" id="shipMsgBox"><span id="shipMsg"></span><button class="gh" id="shipCopy" type="button">Copiar</button></div>
-  <div class="dmBtns"><a class="sb" id="shipCafe" href="https://cafecito.app/nicotirenni/gallery" target="_blank" rel="noopener">Conseguir nave</a><button class="gh" id="shipNo" type="button">Cerrar</button></div>
+  <div class="dmBtns"><a class="sb" id="shipCafe" href="https://cafecito.app/nicotirenni/gallery" target="_blank" rel="noopener">Conseguir nave</a><button class="sb" id="shipUse" type="button" hidden>Usar esta nave</button><button class="gh" id="shipNo" type="button">Cerrar</button></div>
 </div></div>
 <div id="delModal" hidden role="dialog" aria-modal="true" aria-labelledby="delT" aria-describedby="delD"><div class="dm">
   <h2 id="delT">Eliminar tu cuenta</h2>
@@ -604,7 +607,7 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>Invitame un cafecito</a></div>
-      <span class="ver" id="ver">v2.12.0</span>
+      <span class="ver" id="ver">v2.13.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -1028,6 +1031,7 @@ stadiumImg.src = "data:image/webp;base64,UklGRsomBQBXRUJQVlA4WAoAAAAwAAAAXwUAFwI
 // ---------- Sprites -> puntos ----------
 const STEP = 8, R = 2.9, K = .75; // K: escala del dibujo de drones (más chico = más espacio para jugar)
 let mobileView = false;
+const SHIP_K = () => mobileView ? 2 : 1;   // en el celu la nave se dibuja el doble de grande (la zona donde te pegan no cambia)
 // Invasor al estilo show real: drones solo sobre el contorno de letras y logo
 const ogap = () => 9.6; // separación de drones del invasor
 function ringPts(mask, w, h, gap, c) { // contorno de una máscara, con drones separados >= gap
@@ -1580,7 +1584,8 @@ function drawFoes(t) {
     for (const p of sh) dot(f.x + (p.x * Math.cos(wob) - p.y * Math.sin(wob)) * sc, f.y + (p.x * Math.sin(wob) + p.y * Math.cos(wob)) * sc, f.flash > 0 ? '#ffffff' : RED, r, .55 + .45 * dmg);
     if (f.t < .45 && f.age >= 1.6 && !f.burst) dot(f.x, f.y + 4, '#ffe1e7', 2.2 + (.45 - f.t) * 9, .9);   // aviso: está por disparar
   }
-  for (const b of ebullets) { dot(b.x - b.vx * .02, b.y - b.vy * .02, '#ff3040', 2.4, .5); dot(b.x, b.y, '#ff3040', 3.6, 1); dot(b.x, b.y, '#ffffff', 1.4, 1); }
+  for (const b of ebullets) { dot(b.x - b.vx * .02, b.y - b.vy * .02, '#ff3040', 2.4, .5); dot(b.x, b.y, '#ff3040', 3.6, 1); dot(b.x, b.y, '#ffffff', 1.4, 1);
+    if (mobileView) { ctx.fillStyle = 'rgba(10,0,4,.75)'; ctx.beginPath(); ctx.arc(b.x, b.y, 9, 0, 7); ctx.fill(); ctx.fillStyle = '#ff3040'; ctx.beginPath(); ctx.arc(b.x, b.y, 6.5, 0, 7); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, 2.4, 0, 7); ctx.fill(); } }   // celu: más grandes y con borde blanco para verlas sobre el estadio
 }
 function buildWave() {
   groups = []; if (state === 'play') SFX.whoosh();
@@ -2014,8 +2019,8 @@ function closePodium() {
   setMode(cardBefore);
   if (cardBefore === 'over' && lastRes) renderBoard(lastRes, { name: playerName, score });
 }
-function openName() { setMode('name'); SFX.ui('card'); drawShipPreviews(); markShips(); pickShip(shipType);
-  if (acct) accApi({ action: 'me', token: acct.token }).then(r => { if (r.progress) { setAcct(r); markShips(); pickShip(shipType); } });   // por si le activaron una nave hace un rato
+function openName() { setMode('name'); SFX.ui('card'); drawShipPreviews(); markShips(); pickShip(shipType); celebrateShips();
+  if (acct) accApi({ action: 'me', token: acct.token }).then(r => { if (r.progress) { setAcct(r); markShips(); pickShip(shipType); if ($('card').dataset.mode === 'name') celebrateShips(); } });   // por si le activaron una nave hace un rato
   $('nameInput').value = playerName; setTimeout(() => $('nameInput').focus(), 30); }
 function backToMenu() { state = 'menu'; SFX.musicStart(112, 'menu'); countT = 0; paused = false; $('pauseOv').hidden = true; $('pauseBtn').hidden = true; SFX.hold(false); $('kicker').textContent = 'Destruí al invasor. Cuidá lo nuestro.'; document.documentElement.classList.add('scene-menu'); $('banner').classList.remove('on'); setMode('menu'); }
 // ---------- Álbum: una imagen en 9 figuritas; cada logro destapa una ----------
@@ -2522,7 +2527,7 @@ function start() {
   wave = startWave; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
   itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; contUsed = false; $('pauseOv').hidden = true; newCards = []; lives = 3; ship.inv = 0; foes = []; foeQueue = []; ebullets = [];
   document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(...levelSong(startWave)); buildWave(); $('pauseBtn').hidden = false;
-  ship.dashCd = 0;
+  ship.dashCd = 0; dragHint = mobileView ? 5 : 0;
 }
 let clearAt = 0, clearResults = null;
 function showLevelResults(bonus, allies) {
@@ -3006,19 +3011,35 @@ const toLevels = () => { lvSel = Math.max(1, Math.min(MAX_WAVE, wave)); backToMe
 $('lvPickBtn').addEventListener('click', () => { countTok++; toLevels(); });
 $('lvPickBtn2').addEventListener('click', toLevels);
 function markShips() { document.querySelectorAll('.shipOpt.prem').forEach(b => { const ok = shipOk(b.dataset.ship); b.classList.toggle('locked', !ok); b.setAttribute('aria-label', PREMIUM_SHIPS[b.dataset.ship] + (ok ? '' : ': bloqueada, se desbloquea con un cafecito')); }); }
-function openShipModal(type) { // nave bloqueada: cómo desbloquearla con un cafecito
+function openShipModal(type, won) { // nave bloqueada: cómo desbloquearla con un cafecito · won: festejo de una nave recién activada
   const name = PREMIUM_SHIPS[type], logged = !!(acct && acct.nick), msg = logged ? `${acct.nick} · ${name}` : '';
-  $('shipT').textContent = `Desbloqueá: ${name}`;
+  $('shipModal').classList.toggle('won', !!won); $('shipNewK').hidden = !won; $('shipCafe').hidden = !!won; $('shipUse').hidden = !won; $('shipUse').dataset.ship = type;
+  $('shipT').textContent = won ? name : `Desbloqueá: ${name}`;
   $('shipD').innerHTML = logged ? `Invitame un cafecito y en el mensaje escribí tu apodo y la nave. Apenas lo vea, la activo en tu cuenta y la vas a poder elegir.`
     : `La nave queda guardada en tu cuenta. Primero <b>iniciá sesión o creá tu cuenta</b>; después invitame un cafecito con tu apodo y la nave en el mensaje.`;
   const P = SHIP_POWER_CARD[type]; $('powName').textContent = P[0]; $('powDesc').textContent = P[1]; $('powTor').textContent = P[2];
   { const cv = $('shipPrev'), c = cv.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(3.2, 0, 0, 3.2, cv.width / 2, cv.height / 2 + 8); drawShip(c, type, 0); }
-  $('shipMsg').textContent = msg; $('shipMsgBox').hidden = !logged; $('shipCopy').textContent = 'Copiar';
-  $('shipModal').hidden = false; SFX.ui('card'); setTimeout(() => $('shipCafe').focus(), 50);
+  $('shipMsg').textContent = msg; $('shipMsgBox').hidden = !logged || !!won; $('shipCopy').textContent = 'Copiar';
+  if (won) $('shipD').innerHTML = 'Ya está activada en tu cuenta y la podés elegir cuando quieras. ¡Gracias por bancar el juego!';
+  $('shipModal').hidden = false; SFX.ui(won ? 'save' : 'card'); setTimeout(() => $(won ? 'shipUse' : 'shipCafe').focus(), 50);
 }
-$('shipNo').addEventListener('click', () => { $('shipModal').hidden = true; });
-$('shipModal').addEventListener('click', e => { if (e.target === $('shipModal')) $('shipModal').hidden = true; });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('shipModal').hidden) $('shipModal').hidden = true; });
+// naves recién activadas: se festejan una sola vez por activación (si se la sacan y se la vuelven a dar, se festeja de nuevo)
+let shipQueue = [];
+function newShips() {
+  if (!acct || !Array.isArray(acct.ships)) return [];
+  const k = 'sancor_shipsSeen_' + (acct.email || acct.nick); let seen = [];
+  try { seen = JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) {}
+  seen = seen.filter(t => acct.ships.includes(t));
+  const fresh = acct.ships.filter(t => PREMIUM_SHIPS[t] && !seen.includes(t));
+  try { localStorage.setItem(k, JSON.stringify(seen.concat(fresh))); } catch (e) {}
+  return fresh;
+}
+function celebrateShips() { for (const t of newShips()) if (!shipQueue.includes(t)) shipQueue.push(t); if ($('shipModal').hidden && shipQueue.length) openShipModal(shipQueue.shift(), true); }
+function closeShipModal() { $('shipModal').hidden = true; if (shipQueue.length) setTimeout(() => openShipModal(shipQueue.shift(), true), 250); }
+$('shipUse').addEventListener('click', () => { pickShip($('shipUse').dataset.ship); closeShipModal(); });
+$('shipNo').addEventListener('click', closeShipModal);
+$('shipModal').addEventListener('click', e => { if (e.target === $('shipModal')) closeShipModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('shipModal').hidden) closeShipModal(); });
 $('shipCopy').addEventListener('click', async () => { const t = $('shipMsg').textContent; try { await navigator.clipboard.writeText(t); $('shipCopy').textContent = '¡Copiado!'; } catch (e) { const r = document.createRange(); r.selectNodeContents($('shipMsg')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); } });
 document.querySelectorAll('.shipOpt').forEach(b => b.addEventListener('click', () => { if (!shipOk(b.dataset.ship)) { openShipModal(b.dataset.ship); return; } pickShip(b.dataset.ship); SFX.ui('place'); }));
 $('credA').addEventListener('click', e => { e.preventDefault(); setMode('credits'); SFX.ui('card'); });
@@ -3084,7 +3105,7 @@ function layoutAll() {
   const cw = Math.round(W * SC), ch = Math.round(H * SC);
   if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
   bloomCv.width = 220; bloomCv.height = Math.round(220 * H / W);
-  stadiumPxH = Math.min(vw * 536 / 1376, .52 * sh); IMG_H = stadiumPxH / (sw / W); document.documentElement.classList.toggle('is-mobile', matchMedia('(pointer:coarse)').matches || vw < 700); const mob = mobileView = vw < 700 || (matchMedia('(pointer:coarse)').matches && vw < vh); stadiumLift = mob ? stadiumPxH * .4 : 0; const liftL = stadiumLift / (sw / W); SHIP_Y = H - IMG_H * .68 - liftL; STADIUM_TOP = SHIP_Y - 26; ship.y = SHIP_Y;      // fondo 20% más abajo; la nave 25% más abajo (medidos sobre el alto del fondo)
+  stadiumPxH = Math.min(vw * 536 / 1376, .52 * sh); IMG_H = stadiumPxH / (sw / W); document.documentElement.classList.toggle('is-mobile', matchMedia('(pointer:coarse)').matches || vw < 700); const mob = mobileView = vw < 700 || (matchMedia('(pointer:coarse)').matches && vw < vh); stadiumLift = mob ? stadiumPxH * .4 : 0; const liftL = stadiumLift / (sw / W); SHIP_Y = H - IMG_H * .68 - liftL; STADIUM_TOP = SHIP_Y - 26 * (mob ? 2 / 1.15 : 1);   /* con la nave más grande la línea sube con su punta; el logo baja proporcional al recorrido, así que tarda lo mismo */ ship.y = SHIP_Y;      // fondo 20% más abajo; la nave 25% más abajo (medidos sobre el alto del fondo)
   crowd = Array.from({ length: 170 }, () => ({ x: rnd0(14, W - 14), y: rnd0(H - IMG_H * .34 - liftL, H - IMG_H * .02 - liftL), p: Math.random() * 6, c: Math.random() < .3 ? '#74c0f5' : '#ffffff' }));
   const scale = sw / W, hb = $('hud').getBoundingClientRect().bottom;
   SANCOR_Y0 = Math.max(6, (hb + 8 - (vh - sh)) / scale);                                           // Sancor arranca justo debajo del HUD
@@ -3131,9 +3152,11 @@ addEventListener('keydown', e => { if (state !== 'play' || e.repeat) return;
 const stage = $('stage');
 addEventListener('contextmenu', e => { if (!(e.target.closest && e.target.closest('input,textarea,a'))) e.preventDefault(); });   // long press en el celu: sin menú contextual
 function toLogical(e) { const r = stage.getBoundingClientRect(); return (e.clientX - r.left) / r.width * W; }
-let lastPtr = 0;
-stage.addEventListener('pointerdown', e => { if (state === 'play' && !paused) { const x = toLogical(e), now = performance.now(); if (now - lastPtr < 300) shipDash(x >= ship.x ? 1 : -1); lastPtr = now; touching = true; ship.x = x; } });
-stage.addEventListener('pointermove', e => { if (touching) ship.x = toLogical(e); });
+let lastPtr = 0, dragHint = 0;
+// arrastre relativo: la nave se mueve lo mismo que el dedo (no salta debajo), así el dedo no la tapa
+const drag = { x0: 0, s0: 0 }, DRAG_GAIN = 1.25;
+stage.addEventListener('pointerdown', e => { if (state === 'play' && !paused) { const x = toLogical(e), now = performance.now(); if (now - lastPtr < 300) shipDash(x >= drag.x0 ? 1 : -1); lastPtr = now; touching = true; drag.x0 = x; drag.s0 = ship.x; } });
+stage.addEventListener('pointermove', e => { if (!touching) return; const x = toLogical(e); ship.x = Math.max(24, Math.min(W - 24, drag.s0 + (x - drag.x0) * DRAG_GAIN)); if (Math.abs(x - drag.x0) > 12) dragHint = 0; });
 addEventListener('pointerup', () => touching = false);
 
 // ---------- Efectos ----------
@@ -3171,12 +3194,12 @@ function update(dt) {
     return;
   }
   if ((keys.Space || touching) && ship.cd <= 0) {
-    bullets.push({ x: ship.x, y: ship.y - 24, vx: 0 }); SFX.shot(ship.x);
+    const k = SHIP_K(); bullets.push({ x: ship.x, y: ship.y - 24 * k, vx: 0 }); SFX.shot(ship.x);
     const fern = shipPower() === 'fernet' && !(buffs.triple > 0);   // fernet: las latas también disparan
-    if (buffs.triple > 0 || fern) { bullets.push({ x: ship.x - 8, y: ship.y - 20, vx: -110 }); bullets.push({ x: ship.x + 8, y: ship.y - 20, vx: 110 }); }
+    if (buffs.triple > 0 || fern) { bullets.push({ x: ship.x - 8 * k, y: ship.y - 20 * k, vx: -110 }); bullets.push({ x: ship.x + 8 * k, y: ship.y - 20 * k, vx: 110 }); }
     ship.cd = buffs.rapid > 0 ? .085 : fern ? (powerLight() ? .32 : .26) : .2;
   }
-  for (const k in buffs) buffs[k] = Math.max(0, buffs[k] - dt);
+  for (const k in buffs) buffs[k] = Math.max(0, buffs[k] - dt); dragHint = Math.max(0, dragHint - dt);
   ship.inv = Math.max(0, ship.inv - dt); updateFoes(dt); if (state !== 'play') return;
   itemT -= dt; // los power-ups caen al azar durante toda la partida
   if (itemT <= 0) { const k = Object.keys(POWERS).filter(t => t !== 'life' || (wave >= 6 && lives < 3)); const ix = rnd(40, W - 40); items.push({ type: k[Math.floor(Math.random() * k.length)], x: ix, y: -20, ph: Math.random() * 6 }); SFX.drop(ix); itemT = rnd(7, 13); }
@@ -3186,7 +3209,7 @@ function update(dt) {
     if (dx * dx + dy * dy < (mobileView ? 48 : 30) ** 2) { it.got = true; collect(it); }
   }
   items = items.filter(it => !it.got && it.y < H + 30);
-  if (Math.random() < .8) parts.push({ x: ship.x + rnd(-3, 3), y: ship.y + 12, vx: rnd(-14, 14), vy: rnd(60, 110), l: .35, m: .35, c: Math.random() < .5 ? CELESTE : '#ffffff', s: .7 });
+  if (Math.random() < .8) parts.push({ x: ship.x + rnd(-3, 3), y: ship.y + 12 * SHIP_K(), vx: rnd(-14, 14), vy: rnd(60, 110), l: .35, m: .35, c: Math.random() < .5 ? CELESTE : '#ffffff', s: .7 });
 
   let enemies = 0, allies = 0, lowest = -1e9;
   for (const g of groups) {
@@ -3296,12 +3319,16 @@ function draw(t) {
   drawFoes(t);
   // nave elegida por el jugador (parpadea mientras es invulnerable después de un golpe)
   if (ship.inv > 0 && !(ship.dashing > 0) && Math.floor(t * 14) % 2) ctx.globalAlpha = .3;
-  ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.tilt * .35); if (mobileView) ctx.scale(1.15, 1.15);
+  ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.tilt * .35); if (SHIP_K() !== 1) ctx.scale(SHIP_K(), SHIP_K());
   drawShip(ctx, shipType, t);
   if (ship.shield) { ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = `rgba(224,173,120,${.45 + Math.sin(t * 5) * .15})`; ctx.lineWidth = 2; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.arc(0, -4, 27, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over'; }   // escudo de barro
   if (ship.dashing > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = ship.dashing * 1.6; ctx.strokeStyle = CELESTE; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -4, 26, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
   ctx.restore();
   ctx.restore();
+  if (dragHint > 0 && state === 'play') { // celu: indica la zona para mover la nave con el pulgar
+    const y = Math.min(H - 40, SHIP_Y + (H - SHIP_Y) * .55); ctx.globalAlpha = Math.min(1, dragHint) * .9; ctx.font = '700 30px Roboto, system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const tx = '◀  Deslizá acá para moverte  ▶', w = ctx.measureText(tx).width + 56; ctx.fillStyle = 'rgba(8,12,34,.72)'; ctx.beginPath(); ctx.roundRect(W / 2 - w / 2, y - 32, w, 64, 32); ctx.fill();
+    ctx.strokeStyle = 'rgba(116,192,245,.6)'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#fff'; ctx.fillText(tx, W / 2, y + 1); ctx.globalAlpha = 1; }
 
   // puntos flotantes y HUD
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.textAlign = 'center';
