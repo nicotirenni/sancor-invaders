@@ -11,6 +11,10 @@
     {
       "source": "/stats",
       "destination": "/stats.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
     }
   ],
   "functions": {

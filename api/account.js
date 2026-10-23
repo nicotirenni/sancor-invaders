@@ -28,7 +28,9 @@ const putUser = (key, u) => redis([['SET', key, JSON.stringify(u)]]);
 const histKey = key => 'sancor:hist:' + key.slice('sancor:acct:'.length);
 const cleanStats = st => { st = st && typeof st === 'object' ? st : {}; const n = (v, m) => Math.max(0, Math.min(m, Math.floor(Number(v) || 0)));
   return { games: n(st.games, 1e6), wins: n(st.wins, 1e6), best: n(st.best, 15e5), maxWave: n(st.maxWave, 20), total: n(st.total, 1e12) }; };
-const out = async (key, u, extra = {}) => ({ token: await newToken(key), nick: u.nick, email: u.email, google: !!u.google, pass: !!u.hash, progress: cleanProgress(u.progress), ...extra });
+const SHIPS = ['colectivo', 'hornero', 'fernet'];   // naves que se desbloquean con un cafecito (las activa el dueño desde /admin)
+const cleanShips = a => SHIPS.filter(x => Array.isArray(a) && a.includes(x));
+const out = async (key, u, extra = {}) => ({ token: await newToken(key), nick: u.nick, email: u.email, google: !!u.google, pass: !!u.hash, ships: cleanShips(u.ships), progress: cleanProgress(u.progress), ...extra });
 
 // Códigos de confirmación por mail (6 dígitos, vencen en 10 minutos, 5 intentos). Sin clave de Resend no se piden.
 const mailId = email => crypto.createHash('sha256').update(email).digest('hex').slice(0, 32);
@@ -168,7 +170,7 @@ module.exports = async (req, res) => {
         if (u.hash) { const a = Buffer.from(hash(String(b.pass || ''), u.salt), 'hex'), c = Buffer.from(u.hash, 'hex');
           if (a.length !== c.length || !crypto.timingSafeEqual(a, c)) return res.status(401).json({ error: 'La contraseña no es correcta.' }); }
         else if (String(b.confirm || '').trim().toLowerCase() !== 'drones invasores') return res.status(400).json({ error: 'Escribí "Drones Invasores" para confirmar.' });   // cuenta de Google: confirma escribiendo el nombre del juego
-        const cmds = [['DEL', key], ['DEL', histKey(key)], ['DEL', 'sancor:tok:' + b.token], ['DEL', codeKey('register', u.email)], ['DEL', codeKey('reset', u.email)]];
+        const cmds = [['DEL', key], ['DEL', histKey(key)], ['SREM', 'sancor:ship-owners', key], ['DEL', 'sancor:tok:' + b.token], ['DEL', codeKey('register', u.email)], ['DEL', codeKey('reset', u.email)]];
         if (u.nick) { const [owner] = await redis([['GET', nickKey(u.nick)]]); if (owner === key) cmds.push(['DEL', nickKey(u.nick)]); }
         await redis(cmds);
         if (u.nick) { // saca del ranking los puntajes con su apodo (cada entrada es "apodo␁fecha␁azar")
@@ -194,7 +196,7 @@ module.exports = async (req, res) => {
         const [list] = await redis([['LRANGE', histKey(key), 0, 29]]);
         return res.status(200).json({ stats: cleanStats(u.stats), games: (list || []).map(x => { try { return JSON.parse(x); } catch { return null; } }).filter(Boolean) });
       }
-      return res.status(200).json({ nick: u.nick, email: u.email, google: !!u.google, pass: !!u.hash, progress: cleanProgress(u.progress) });
+      return res.status(200).json({ nick: u.nick, email: u.email, google: !!u.google, pass: !!u.hash, ships: cleanShips(u.ships), progress: cleanProgress(u.progress) });
     }
     if (action === 'checkNick') { // ¿está libre este apodo? (para avisar mientras se escribe)
       const ip = ipOf(req), want = cleanName(b.nick);
