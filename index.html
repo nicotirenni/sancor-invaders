@@ -431,7 +431,7 @@
   #contOv .pbox{width:min(calc(100vw - 32px),460px)} #contOv .podTitle{opacity:1;font-size:32px;text-align:center} #contOv .prow #contGo{order:1}
   @media (max-width:599px){#contOv .podTitle{font-size:24px} #contOv .prow{flex-direction:column} #contOv .prow #contGo{order:-1}}
   html.cont #pauseBtn{display:none!important}
-  html.is-mobile body:has(#pauseBtn:not([hidden])) #mute{display:none} html.is-mobile #pauseBtn{left:50%;bottom:auto;top:calc(10px + env(safe-area-inset-top,0px));translate:-50% 0}   /* celu jugando: solo pausa, arriba al centro; el volumen está en el menú de pausa */
+  html.is-mobile body:has(#pauseBtn:not([hidden])) #mute{display:none} html.is-mobile #pauseBtn{left:12px}   /* celu jugando: solo pausa, abajo a la izquierda; el volumen está en el menú de pausa */
   .contP{margin:0;color:#c9d2f0;font-size:15px;text-align:center;max-width:32ch} .contBar{width:100%;height:4px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden} .contBar i{display:block;height:100%;width:100%;background:var(--gold);transform-origin:left}
   #pauseOv{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:rgba(3,4,12,.62);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
   .pbox{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:min(78vw,300px);padding:26px 30px;border-radius:22px;background:rgba(7,11,32,.7);border:1px solid rgba(116,192,245,.18)}
