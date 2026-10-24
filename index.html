@@ -3146,13 +3146,13 @@ const stage = $('stage');
 addEventListener('contextmenu', e => { if (!(e.target.closest && e.target.closest('input,textarea,a'))) e.preventDefault(); });   // long press en el celu: sin menú contextual
 function toLogical(e) { const r = stage.getBoundingClientRect(); return (e.clientX - r.left) / r.width * W; }
 let dragHint = 0;
-// arrastrar: la nave se mueve lo mismo que el dedo (no salta debajo, así el dedo no la tapa) y dispara
-// toque corto: la nave salta a ese lugar sin disparar (sirve para pasar por encima de los nuestros)
+// tocar: la nave salta a esa posición al instante, sin disparar (sirve para pasar por encima de los nuestros)
+// arrastrar desde ahí: la nave acompaña al dedo un poco más rápido y dispara; dejar el dedo quieto también dispara
 const drag = { x0: 0, s0: 0, t0: 0, moved: false }, DRAG_GAIN = 1.25, TAP_MS = 300;
 const clampX = x => Math.max(24, Math.min(W - 24, x));
-stage.addEventListener('pointerdown', e => { if (state === 'play' && !paused) { touching = true; Object.assign(drag, { x0: toLogical(e), s0: ship.x, t0: performance.now(), moved: false }); } });
-stage.addEventListener('pointermove', e => { if (!touching) return; const x = toLogical(e); if (Math.abs(x - drag.x0) > 12) { drag.moved = true; dragHint = 0; } if (drag.moved) ship.x = clampX(drag.s0 + (x - drag.x0) * DRAG_GAIN); });
-addEventListener('pointerup', () => { if (touching && !drag.moved && performance.now() - drag.t0 < TAP_MS && state === 'play' && !paused) ship.x = clampX(drag.x0); touching = false; });
+stage.addEventListener('pointerdown', e => { if (state === 'play' && !paused) { const x = toLogical(e); touching = true; ship.x = clampX(x); Object.assign(drag, { x0: x, s0: ship.x, t0: performance.now(), moved: false }); } });
+stage.addEventListener('pointermove', e => { if (!touching) return; const x = toLogical(e); if (Math.abs(x - drag.x0) > 18) { drag.moved = true; dragHint = 0; } if (drag.moved) ship.x = clampX(drag.s0 + (x - drag.x0) * DRAG_GAIN); });
+addEventListener('pointerup', () => { touching = false; });
 const touchFire = () => touching && (drag.moved || performance.now() - drag.t0 > TAP_MS);
 
 // ---------- Efectos ----------
