@@ -607,7 +607,7 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>Invitame un cafecito</a></div>
-      <span class="ver" id="ver">v2.13.0</span>
+      <span class="ver" id="ver">v2.14.0</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -1176,12 +1176,12 @@ function dot(x, y, c, r, a = 1) {
 // más 3 naves que se desbloquean invitando un cafecito; el dueño del juego las activa por cuenta desde /admin
 const PREMIUM_SHIPS = { colectivo: 'Colectivo', hornero: 'Hornero', fernet: 'Fernet con coca' };
 // poderes de las naves de Cafecito: completos en Casual, más leves en Torneo (y ahí el logo baja un 5% más rápido)
-const SHIP_POWERS = { fernet: 'Dispara de a 3 todo el tiempo, un poco más lento.', colectivo: 'Esquive con las ruedas DeLorean: Shift o doble toque y quedás invulnerable un instante.', hornero: 'Escudo de barro que aguanta un golpe por ronda.' };
+const SHIP_POWERS = { fernet: 'La botella dispara siempre y las latas suman disparos rectos cada 2.', colectivo: 'Bocinazo: una onda expansiva que borra los disparos enemigos.', hornero: 'Escudo de barro que aguanta un golpe por ronda.' };
 const SHIP_POWER_CARD = { // [nombre, qué hace, cómo es en Torneo]
-  fernet: ['Disparo de a 3', 'Las latas también disparan: tirás de a 3 todo el tiempo, un poco más lento.', 'En Torneo dispara más lento.'],
-  colectivo: ['Esquive DeLorean', 'Con Shift o doble toque te corrés a un costado y quedás invulnerable un instante. Se recarga en 4 segundos.', 'En Torneo se recarga en 7 segundos.'],
+  fernet: ['Disparo de a 3', 'La botella dispara siempre y cada 2 disparos las latas suman uno recto cada una.', 'En Torneo las latas disparan cada 3.'],
+  colectivo: ['Bocinazo', 'Cuando una bala enemiga se te acerca, tocás bocina y sale una onda expansiva que borra todos los disparos enemigos que cruza. Se recarga en 8 segundos.', 'En Torneo se recarga en 12 segundos.'],
   hornero: ['Escudo de barro', 'Arrancás cada ronda con un escudo que aguanta un golpe.', 'En Torneo el escudo aparece una ronda sí y otra no.'] };
-const SHIP_POWER_SHORT = { fernet: 'Disparo de a 3', colectivo: 'Esquive: Shift o doble toque', hornero: 'Escudo de barro' };
+const SHIP_POWER_SHORT = { fernet: 'Disparo de a 3', colectivo: 'Bocinazo', hornero: 'Escudo de barro' };
 const shipPower = () => PREMIUM_SHIPS[shipType] && shipOk(shipType) ? shipType : '';
 const powerLight = () => gameMode === 'torneo';
 const shipOk = type => !PREMIUM_SHIPS[type] || !!(typeof acct !== 'undefined' && acct && Array.isArray(acct.ships) && acct.ships.includes(type));
@@ -1825,6 +1825,7 @@ const SFX = (() => {
     setVol(k, v) { vol[k] = Math.max(0, Math.min(1, v)); LS.set('sancor_vol_' + k, String(vol[k])); const b = k === 'sfx' ? sfxBus : musBus; if (b) { b.gain.cancelScheduledValues(ac.currentTime); b.gain.setTargetAtTime(vol[k], ac.currentTime, .03); } },
     toggle() { muted = !muted; LS.set('sancor_muted', muted ? '1' : '0'); if (master) master.gain.setTargetAtTime(muted ? 0 : .9, ac.currentTime, .03); ensure(); return muted; },
     // efectos de juego (graves, con cuerpo; paneados según dónde pasan)
+    horn() { if (!ok()) return; for (const d of [0, .2]) { tone('pulse', 440, 432, .18, .07, { lp: 2000, delay: d }); tone('pulse', 554, 545, .18, .06, { lp: 2000, delay: d }); } },   // bocinazo de colectivo: dos toques
     shot(x) { if (!ok() || now() - lastShot < .06) return; lastShot = now(); const p = at(x);
       tone('pulse', 330, 140, .09, .07, { lp: 1600, pan: p }); tone('triangle', 250, 85, .16, .2, { lp: 1400, pan: p }); tone('sine', 120, 52, .2, .3, { pan: p }); noise(.05, .06, 900, { pan: p }); },
     hit(n, x, c = 0) { if (!ok() || now() - lastHit < .05) return; lastHit = now(); const p = at(x), k = Math.pow(2, Math.min(c, 14) / 24);   // sube de a poco con el combo
@@ -2527,7 +2528,7 @@ function start() {
   wave = startWave; score = 0; respect = 100; combo = 0; mult = 1; bullets = []; parts = []; rings = []; pops = []; items = [];
   itemT = 8; buffs = { triple: 0, rapid: 0 }; paused = false; contUsed = false; $('pauseOv').hidden = true; newCards = []; lives = 3; ship.inv = 0; foes = []; foeQueue = []; ebullets = [];
   document.documentElement.classList.remove('scene-menu'); galaxyState.targetActive = 0; $('card').hidden = true; state = 'play'; SFX.start(); SFX.pad(.05); SFX.musicStart(...levelSong(startWave)); buildWave(); $('pauseBtn').hidden = false;
-  ship.dashCd = 0; dragHint = mobileView ? 5 : 0;
+  honkWave = null; dragHint = mobileView ? 5 : 0;
 }
 let clearAt = 0, clearResults = null;
 function showLevelResults(bonus, allies) {
@@ -3122,7 +3123,7 @@ function updateHud() {
   let h = '';
   if (mult > 1 || combo > 4) h += `<span style="color:${GOLD}">COMBO x${mult} (${combo})</span>`;
   { const pw = state === 'play' ? shipPower() : '';
-    if (pw === 'colectivo') h += `<span style="color:${CELESTE}">ESQUIVE ${ship.dashCd > 0 ? ship.dashCd.toFixed(1) + 's' : 'LISTO'}</span>`;
+    if (pw === 'colectivo') h += `<span style="color:#ffd23f">BOCINA ${ship.honkCd > 0 ? ship.honkCd.toFixed(1) + 's' : 'LISTA'}</span>`;
     else if (pw === 'hornero' && ship.shield) h += `<span style="color:#e0ad78">ESCUDO DE BARRO</span>`; }
   for (const k of ['triple', 'rapid']) if (buffs[k] > 0) h += `<span style="color:${POWERS[k].c}">${POWERS[k].name} ${buffs[k].toFixed(1)}s</span>`;
   if (h !== lastHud) { $('hudSub').innerHTML = h; lastHud = h; }
@@ -3139,25 +3140,20 @@ addEventListener('keydown', e => {
   else if ((e.code === 'Space' || e.code === 'Enter') && state === 'over' && $('card').dataset.mode === 'over' && performance.now() - overAt > 1200) tryStart();
 });
 addEventListener('keyup', e => keys[e.code] = false);
-function shipDash(d) { // colectivo: esquive lateral con las ruedas DeLorean
-  if (state !== 'play' || paused || countT > 0 || shipPower() !== 'colectivo' || ship.dashCd > 0) return;
-  ship.dashCd = powerLight() ? 7 : 4; ship.dashing = powerLight() ? .4 : .5; ship.inv = Math.max(ship.inv, ship.dashing);
-  ship.x = Math.max(24, Math.min(W - 24, ship.x + (d || (ship.vx >= 0 ? 1 : -1)) * 90)); burst(ship.x, ship.y + 6, CELESTE, 16, 150); SFX.swish(d || 1); say('¡Esquive!');
-}
-const lastTap = {};
-addEventListener('keydown', e => { if (state !== 'play' || e.repeat) return;
-  const dk = { ArrowLeft: -1, KeyA: -1, ArrowRight: 1, KeyD: 1 }[e.code];
-  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') shipDash((keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0));
-  else if (dk) { const now = performance.now(); if (now - (lastTap[dk] || 0) < 260) shipDash(dk); lastTap[dk] = now; } });
+const HONK_R = 220, HONK_MAX = 620; let honkWave = null;
+function honk() { ship.honkCd = powerLight() ? 12 : 8; honkWave = { x: ship.x, y: ship.y - 10, r: 0 }; shake = Math.max(shake, 6); SFX.horn(); say('¡Bocinazo!'); }
 const stage = $('stage');
 addEventListener('contextmenu', e => { if (!(e.target.closest && e.target.closest('input,textarea,a'))) e.preventDefault(); });   // long press en el celu: sin menú contextual
 function toLogical(e) { const r = stage.getBoundingClientRect(); return (e.clientX - r.left) / r.width * W; }
-let lastPtr = 0, dragHint = 0;
-// arrastre relativo: la nave se mueve lo mismo que el dedo (no salta debajo), así el dedo no la tapa
-const drag = { x0: 0, s0: 0 }, DRAG_GAIN = 1.25;
-stage.addEventListener('pointerdown', e => { if (state === 'play' && !paused) { const x = toLogical(e), now = performance.now(); if (now - lastPtr < 300) shipDash(x >= drag.x0 ? 1 : -1); lastPtr = now; touching = true; drag.x0 = x; drag.s0 = ship.x; } });
-stage.addEventListener('pointermove', e => { if (!touching) return; const x = toLogical(e); ship.x = Math.max(24, Math.min(W - 24, drag.s0 + (x - drag.x0) * DRAG_GAIN)); if (Math.abs(x - drag.x0) > 12) dragHint = 0; });
-addEventListener('pointerup', () => touching = false);
+let dragHint = 0;
+// tocar: la nave salta a esa posición al instante, sin disparar (sirve para pasar por encima de los nuestros)
+// arrastrar desde ahí: la nave acompaña al dedo un poco más rápido y dispara; dejar el dedo quieto también dispara
+const drag = { x0: 0, s0: 0, t0: 0, moved: false }, DRAG_GAIN = 1.25, TAP_MS = 300;
+const clampX = x => Math.max(24, Math.min(W - 24, x));
+stage.addEventListener('pointerdown', e => { if (state === 'play' && !paused) { const x = toLogical(e); touching = true; ship.x = clampX(x); Object.assign(drag, { x0: x, s0: ship.x, t0: performance.now(), moved: false }); } });
+stage.addEventListener('pointermove', e => { if (!touching) return; const x = toLogical(e); if (Math.abs(x - drag.x0) > 18) { drag.moved = true; dragHint = 0; } if (drag.moved) ship.x = clampX(drag.s0 + (x - drag.x0) * DRAG_GAIN); });
+addEventListener('pointerup', () => { touching = false; });
+const touchFire = () => touching && (drag.moved || performance.now() - drag.t0 > TAP_MS);
 
 // ---------- Efectos ----------
 function burst(x, y, c, n, sp = 150) {
@@ -3185,7 +3181,12 @@ function update(dt) {
   const prev = ship.x;
   ship.x = Math.max(24, Math.min(W - 24, ship.x + dir * 380 * dt));
   ship.vx += ((ship.x - prev) / dt - ship.vx) * .3; ship.tilt += (ship.vx / 380 - ship.tilt) * .2;
-  ship.cd -= dt; ship.dashCd = Math.max(0, (ship.dashCd || 0) - dt); ship.dashing = Math.max(0, (ship.dashing || 0) - dt);
+  ship.cd -= dt; ship.honkCd = Math.max(0, (ship.honkCd || 0) - dt);
+  if (state === 'play' && countT <= 0 && ship.honkCd <= 0 && shipPower() === 'colectivo') { // bocinazo: si una bala enemiga se acerca, sale una onda expansiva
+    const R2 = HONK_R * HONK_R; if (ebullets.some(b => (b.x - ship.x) ** 2 + (b.y - ship.y) ** 2 < R2)) honk(); }
+  if (honkWave) { honkWave.r += 680 * dt; // la onda borra toda bala enemiga que cruza
+    for (const b of ebullets) if ((b.x - honkWave.x) ** 2 + (b.y - honkWave.y) ** 2 < honkWave.r * honkWave.r) { burst(b.x, b.y, '#ffd23f', 6, 120); b.y = 1e9; }
+    if (honkWave.r > HONK_MAX) honkWave = null; }
   if (countT > 0) { // cuenta regresiva: la nave se mueve, el resto espera
     for (const g of groups) g.age += dt;
     countT -= dt; const n = Math.ceil(countT);
@@ -3193,11 +3194,14 @@ function update(dt) {
     if (countT <= 0) { SFX.beep(0); if (shipPower()) say('Poder: ' + SHIP_POWER_SHORT[shipPower()]); banner('¡Ya!', '♪ ' + SFX.trackName(levelSong(wave)[1])); }
     return;
   }
-  if ((keys.Space || touching) && ship.cd <= 0) {
+  if ((keys.Space || touchFire()) && ship.cd <= 0) {
     const k = SHIP_K(); bullets.push({ x: ship.x, y: ship.y - 24 * k, vx: 0 }); SFX.shot(ship.x);
-    const fern = shipPower() === 'fernet' && !(buffs.triple > 0);   // fernet: las latas también disparan
-    if (buffs.triple > 0 || fern) { bullets.push({ x: ship.x - 8 * k, y: ship.y - 20 * k, vx: -110 }); bullets.push({ x: ship.x + 8 * k, y: ship.y - 20 * k, vx: 110 }); }
-    ship.cd = buffs.rapid > 0 ? .085 : fern ? (powerLight() ? .32 : .26) : .2;
+    if (buffs.triple > 0) { bullets.push({ x: ship.x - 8 * k, y: ship.y - 20 * k, vx: -110 }); bullets.push({ x: ship.x + 8 * k, y: ship.y - 20 * k, vx: 110 }); }
+    if (shipPower() === 'fernet') { // fernet: la botella dispara siempre y las latas suman un disparo recto cada 2 (cada 3 en Torneo)
+      ship.shots = (ship.shots || 0) + 1;
+      if (ship.shots % (powerLight() ? 3 : 2) === 0) { bullets.push({ x: ship.x - 9.6 * k, y: ship.y - 7 * k, vx: 0 }); bullets.push({ x: ship.x + 9.6 * k, y: ship.y - 7 * k, vx: 0 }); }
+    }
+    ship.cd = buffs.rapid > 0 ? .085 : .2;
   }
   for (const k in buffs) buffs[k] = Math.max(0, buffs[k] - dt); dragHint = Math.max(0, dragHint - dt);
   ship.inv = Math.max(0, ship.inv - dt); updateFoes(dt); if (state !== 'play') return;
@@ -3318,11 +3322,17 @@ function draw(t) {
   }
   drawFoes(t);
   // nave elegida por el jugador (parpadea mientras es invulnerable después de un golpe)
-  if (ship.inv > 0 && !(ship.dashing > 0) && Math.floor(t * 14) % 2) ctx.globalAlpha = .3;
+  if (honkWave) { const q = honkWave.r / HONK_MAX; ctx.globalCompositeOperation = 'lighter'; // onda del bocinazo
+    const g = ctx.createRadialGradient(honkWave.x, honkWave.y, Math.max(0, honkWave.r - 40), honkWave.x, honkWave.y, honkWave.r); g.addColorStop(0, 'rgba(255,210,63,0)'); g.addColorStop(1, `rgba(255,210,63,${.22 * (1 - q)})`);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(honkWave.x, honkWave.y, honkWave.r, 0, 7); ctx.fill();
+    ctx.strokeStyle = `rgba(255,210,63,${.9 * (1 - q)})`; ctx.lineWidth = 6 * (1 - q) + 1.5; ctx.stroke();
+    ctx.strokeStyle = `rgba(255,255,255,${.6 * (1 - q)})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(honkWave.x, honkWave.y, honkWave.r * .9, 0, 7); ctx.stroke(); ctx.globalCompositeOperation = 'source-over'; }
+  if (ship.inv > 0 && Math.floor(t * 14) % 2) ctx.globalAlpha = .3;
   ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.tilt * .35); if (SHIP_K() !== 1) ctx.scale(SHIP_K(), SHIP_K());
   drawShip(ctx, shipType, t);
-  if (ship.shield) { ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = `rgba(224,173,120,${.45 + Math.sin(t * 5) * .15})`; ctx.lineWidth = 2; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.arc(0, -4, 27, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over'; }   // escudo de barro
-  if (ship.dashing > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = ship.dashing * 1.6; ctx.strokeStyle = CELESTE; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -4, 26, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
+  if (ship.shield) { // escudo de barro: aro punteado que gira alrededor de la nave, con tres terrones en órbita
+    ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = `rgba(224,173,120,${.5 + Math.sin(t * 5) * .15})`; ctx.lineWidth = 2; ctx.setLineDash([5, 4]); ctx.lineDashOffset = -t * 24; ctx.beginPath(); ctx.arc(0, -4, 27, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.lineDashOffset = 0; ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 3; i++) { const a = t * 2.4 + i * Math.PI * 2 / 3, x = Math.cos(a) * 27, y = -4 + Math.sin(a) * 27; const g = ctx.createRadialGradient(x - 1, y - 1, .3, x, y, 3.4); g.addColorStop(0, '#e8b886'); g.addColorStop(1, '#7a4a22'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 3.2, 0, 7); ctx.fill(); } }
   ctx.restore();
   ctx.restore();
   if (dragHint > 0 && state === 'play') { // celu: indica la zona para mover la nave con el pulgar
@@ -3333,7 +3343,10 @@ function draw(t) {
   // puntos flotantes y HUD
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.textAlign = 'center';
   ctx.font = '700 15px Roboto, system-ui';
-  for (const it of items) { ctx.fillStyle = '#fff'; ctx.font = `700 ${mobileView ? 26 : 13}px Roboto, system-ui`; ctx.fillText(POWERS[it.type].label, it.x, it.y + (mobileView ? 9 : 4.5)); }
+  for (const it of items) { // ícono centrado con su caja real (cada símbolo tiene otras medidas)
+    ctx.fillStyle = '#fff'; ctx.font = `700 ${mobileView ? 26 : 13}px Roboto, system-ui`; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    const m = ctx.measureText(POWERS[it.type].label); ctx.fillText(POWERS[it.type].label, it.x - (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2, it.y + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2); }
+  ctx.textAlign = 'center';
   ctx.font = '700 15px Roboto, system-ui';
   const tag = (x, y, txt, col, a) => { ctx.font = '700 12px Roboto, system-ui'; const w = ctx.measureText(txt).width + 16; ctx.globalAlpha = a; const px = x; x = Math.max(w / 2 + 6, Math.min(W - w / 2 - 6, x));
     ctx.fillStyle = 'rgba(7,11,32,.85)'; ctx.beginPath(); ctx.roundRect(x - w / 2, y - 18, w, 20, 10); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.stroke();
