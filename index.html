@@ -509,7 +509,7 @@
   }
   /* selector de nave */
   .shipLbl{width:100%;text-align:left;font-size:clamp(12px,1.6cqw,15px);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
-  .shipInfo{width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:3px;padding:10px 14px;border-radius:12px;background:#121730;box-shadow:inset 0 0 0 1px #313857;min-height:72px;justify-content:center}
+  .shipInfo{width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:3px;padding:10px 14px;border-radius:12px;background:#121730;box-shadow:inset 0 0 0 1px #313857;justify-content:center;overflow:hidden}
   .shipInfo.pow{background:linear-gradient(180deg,rgba(255,201,40,.14),rgba(255,201,40,.04));box-shadow:inset 0 0 0 1px rgba(255,201,40,.45)} .shipInfo b{font:800 17px/1.15 var(--display);color:#fff} .shipInfo span:not(.powK){font-size:13px;line-height:1.4;color:#dfe5fb} .shipInfo small{font-size:11.5px;line-height:1.35;color:var(--muted)}
   .shipPick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:10px;width:100%}   /* todas las celdas miden lo mismo: la más alta manda */
   .shipOpt.prem{position:relative} .shipOpt .pb{display:none;align-items:center;gap:4px;font:700 11px/1 var(--body);font-style:normal;letter-spacing:.04em;color:#1a1300;background:#ffc928;border-radius:999px;padding:4px 8px 3px}
@@ -1191,6 +1191,13 @@ function shipInfo(type) { // qué hace la nave elegida, debajo del selector
   el.innerHTML = P ? `<span class="powK">Poder · ${PREMIUM_SHIPS[type]}</span><b>${P[0]}</b><span>${P[1]}</span><small>${P[2]}</small>`
     : `<span class="powK">${SHIP_NAMES[type] || ''}</span><span>Nave clásica: disparo simple y los power-ups de siempre. Las naves con candado tienen un poder especial.</span>`;
 }
+function sizeShipInfo() { // la caja mide siempre lo mismo: el alto del texto más largo con el ancho actual
+  const el = document.getElementById('shipInfo'); if (!el || !el.offsetParent) return;
+  el.style.height = ''; let h = 0;
+  for (const t of ['monumento', 'colectivo', 'hornero', 'fernet']) { shipInfo(t); h = Math.max(h, el.getBoundingClientRect().height); }
+  shipInfo(shipType); el.style.height = Math.ceil(h) + 'px';
+}
+addEventListener('resize', () => requestAnimationFrame(sizeShipInfo));
 const SHIP_POWER_SHORT = { fernet: 'Disparo de a 3', colectivo: 'Bocinazo', hornero: 'Escudo de barro' };
 const shipPower = () => PREMIUM_SHIPS[shipType] && shipOk(shipType) ? shipType : '';
 const powerLight = () => gameMode === 'torneo';
@@ -2030,7 +2037,7 @@ function closePodium() {
   setMode(cardBefore);
   if (cardBefore === 'over' && lastRes) renderBoard(lastRes, { name: playerName, score });
 }
-function openName() { setMode('name'); SFX.ui('card'); drawShipPreviews(); markShips(); pickShip(shipType); celebrateShips();
+function openName() { setMode('name'); SFX.ui('card'); drawShipPreviews(); markShips(); pickShip(shipType); requestAnimationFrame(sizeShipInfo); celebrateShips();
   if (acct) accApi({ action: 'me', token: acct.token }).then(r => { if (r.progress) { setAcct(r); markShips(); pickShip(shipType); if ($('card').dataset.mode === 'name') celebrateShips(); } });   // por si le activaron una nave hace un rato
   $('nameInput').value = playerName; setTimeout(() => $('nameInput').focus(), 30); }
 function backToMenu() { state = 'menu'; SFX.musicStart(112, 'menu'); countT = 0; paused = false; $('pauseOv').hidden = true; $('pauseBtn').hidden = true; SFX.hold(false); $('kicker').textContent = 'Destruí al invasor. Cuidá lo nuestro.'; document.documentElement.classList.add('scene-menu'); $('banner').classList.remove('on'); setMode('menu'); }
