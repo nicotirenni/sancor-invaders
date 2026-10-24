@@ -3343,7 +3343,10 @@ function draw(t) {
   // puntos flotantes y HUD
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.textAlign = 'center';
   ctx.font = '700 15px Roboto, system-ui';
-  for (const it of items) { ctx.fillStyle = '#fff'; ctx.font = `700 ${mobileView ? 26 : 13}px Roboto, system-ui`; ctx.fillText(POWERS[it.type].label, it.x, it.y + (mobileView ? 9 : 4.5)); }
+  for (const it of items) { // ícono centrado con su caja real (cada símbolo tiene otras medidas)
+    ctx.fillStyle = '#fff'; ctx.font = `700 ${mobileView ? 26 : 13}px Roboto, system-ui`; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    const m = ctx.measureText(POWERS[it.type].label); ctx.fillText(POWERS[it.type].label, it.x - (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2, it.y + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2); }
+  ctx.textAlign = 'center';
   ctx.font = '700 15px Roboto, system-ui';
   const tag = (x, y, txt, col, a) => { ctx.font = '700 12px Roboto, system-ui'; const w = ctx.measureText(txt).width + 16; ctx.globalAlpha = a; const px = x; x = Math.max(w / 2 + 6, Math.min(W - w / 2 - 6, x));
     ctx.fillStyle = 'rgba(7,11,32,.85)'; ctx.beginPath(); ctx.roundRect(x - w / 2, y - 18, w, 20, 10); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.stroke();
