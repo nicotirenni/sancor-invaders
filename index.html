@@ -509,6 +509,8 @@
   }
   /* selector de nave */
   .shipLbl{width:100%;text-align:left;font-size:clamp(12px,1.6cqw,15px);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+  .shipInfo{width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:3px;padding:10px 14px;border-radius:12px;background:#121730;box-shadow:inset 0 0 0 1px #313857;justify-content:center;overflow:hidden}
+  .shipInfo.pow{background:linear-gradient(180deg,rgba(255,201,40,.14),rgba(255,201,40,.04));box-shadow:inset 0 0 0 1px rgba(255,201,40,.45)} .shipInfo b{font:800 17px/1.15 var(--display);color:#fff} .shipInfo span:not(.powK){font-size:13px;line-height:1.4;color:#dfe5fb} .shipInfo small{font-size:11.5px;line-height:1.35;color:var(--muted)}
   .shipPick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:10px;width:100%}   /* todas las celdas miden lo mismo: la más alta manda */
   .shipOpt.prem{position:relative} .shipOpt .pb{display:none;align-items:center;gap:4px;font:700 11px/1 var(--body);font-style:normal;letter-spacing:.04em;color:#1a1300;background:#ffc928;border-radius:999px;padding:4px 8px 3px}
   .shipOpt.locked .pb{display:inline-flex;position:absolute;top:8px;right:8px;padding:0;background:none;color:#ffc928}   /* naves de cafecito sin desbloquear: solo un candado arriba a la derecha */
@@ -607,7 +609,7 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
         <button class="gh" id="albBtn" type="button">Álbum <span class="albCount" id="albCount">0/9</span></button>
       </div>
       <div class="credLink" id="credLink"><a href="#como-jugar" id="howLink">Cómo jugar</a><span aria-hidden="true">·</span><a href="#creditos" id="credA">Créditos</a><span class="cafeSep" aria-hidden="true">·</span><a class="cafeM" href="https://cafecito.app/nicotirenni" target="_blank" rel="noopener" id="cafeMenu"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>Invitame un cafecito</a></div>
-      <span class="ver" id="ver">v2.14.0</span>
+      <span class="ver" id="ver">v2.14.1</span>
       <div class="cred" id="cred">
         <div class="credName">Nico Tirenni</div>
         <div class="credRole">UX / Product Designer</div>
@@ -660,6 +662,7 @@ if (!window.AUTOMATED) { const s = document.createElement('script'); s.defer = t
           <button class="shipOpt prem" type="button" data-ship="hornero" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Hornero</span><i class="pb" aria-label="Bloqueada"><svg class="lk" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></i></button>
           <button class="shipOpt prem" type="button" data-ship="fernet" aria-pressed="false"><canvas width="128" height="128"></canvas><span>Fernet con coca</span><i class="pb" aria-label="Bloqueada"><svg class="lk" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></i></button>
         </div>
+        <div class="shipInfo" id="shipInfo" aria-live="polite"></div>
         <div class="nameAcc" id="nameAcc"></div>
         <div class="row">
           <button class="sb" id="playBtn" type="button">Empezar</button>
@@ -1181,6 +1184,20 @@ const SHIP_POWER_CARD = { // [nombre, qué hace, cómo es en Torneo]
   fernet: ['Disparo de a 3', 'La botella dispara siempre y cada 2 disparos las latas suman uno recto cada una.', 'En Torneo las latas disparan cada 3.'],
   colectivo: ['Bocinazo', 'Cuando una bala enemiga se te acerca, tocás bocina y sale una onda expansiva que borra todos los disparos enemigos que cruza. Se recarga en 8 segundos.', 'En Torneo se recarga en 12 segundos.'],
   hornero: ['Escudo de barro', 'Arrancás cada ronda con un escudo que aguanta un golpe.', 'En Torneo el escudo aparece una ronda sí y otra no.'] };
+const SHIP_NAMES = { monumento: 'Monumento a la Bandera', obelisco: 'Obelisco', copa: 'Copa del Mundo' };
+function shipInfo(type) { // qué hace la nave elegida, debajo del selector
+  const el = document.getElementById('shipInfo'); if (!el) return; const P = SHIP_POWER_CARD[type];
+  el.classList.toggle('pow', !!P);
+  el.innerHTML = P ? `<span class="powK">Poder · ${PREMIUM_SHIPS[type]}</span><b>${P[0]}</b><span>${P[1]}</span><small>${P[2]}</small>`
+    : `<span class="powK">${SHIP_NAMES[type] || ''}</span><span>Nave clásica: disparo simple y los power-ups de siempre. Las naves con candado tienen un poder especial.</span>`;
+}
+function sizeShipInfo() { // la caja mide siempre lo mismo: el alto del texto más largo con el ancho actual
+  const el = document.getElementById('shipInfo'); if (!el || !el.offsetParent) return;
+  el.style.height = ''; let h = 0;
+  for (const t of ['monumento', 'colectivo', 'hornero', 'fernet']) { shipInfo(t); h = Math.max(h, el.getBoundingClientRect().height); }
+  shipInfo(shipType); el.style.height = Math.ceil(h) + 'px';
+}
+addEventListener('resize', () => requestAnimationFrame(sizeShipInfo));
 const SHIP_POWER_SHORT = { fernet: 'Disparo de a 3', colectivo: 'Bocinazo', hornero: 'Escudo de barro' };
 const shipPower = () => PREMIUM_SHIPS[shipType] && shipOk(shipType) ? shipType : '';
 const powerLight = () => gameMode === 'torneo';
@@ -1436,7 +1453,7 @@ function drawPremiumShip(c, type, t) { // naves que se desbloquean con un cafeci
   c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
 }
 function drawShipPreviews() { document.querySelectorAll('.shipOpt canvas').forEach(cv => { const c = cv.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(2.2, 0, 0, 2.2, cv.width / 2, cv.height / 2 + 6); drawShip(c, cv.parentElement.dataset.ship, 0); }); }
-function pickShip(type) { if (!shipOk(type)) type = 'monumento'; shipType = type; LS.set('sancor_ship', type); document.querySelectorAll('.shipOpt').forEach(b => { const on = b.dataset.ship === type; b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on); }); }
+function pickShip(type) { if (!shipOk(type)) type = 'monumento'; shipType = type; LS.set('sancor_ship', type); shipInfo(type); document.querySelectorAll('.shipOpt').forEach(b => { const on = b.dataset.ship === type; b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on); }); }
 // ---------- Estado ----------
 let state = 'menu', wave = 1, score = 0, respect = 100, flash = 0, shake = 0, combo = 0, comboT = 0, mult = 1, hudMsg = '', hudMsgT = 0, shieldT = 0;
 let danger = false, lastBeat = 0;
@@ -2020,7 +2037,7 @@ function closePodium() {
   setMode(cardBefore);
   if (cardBefore === 'over' && lastRes) renderBoard(lastRes, { name: playerName, score });
 }
-function openName() { setMode('name'); SFX.ui('card'); drawShipPreviews(); markShips(); pickShip(shipType); celebrateShips();
+function openName() { setMode('name'); SFX.ui('card'); drawShipPreviews(); markShips(); pickShip(shipType); requestAnimationFrame(sizeShipInfo); celebrateShips();
   if (acct) accApi({ action: 'me', token: acct.token }).then(r => { if (r.progress) { setAcct(r); markShips(); pickShip(shipType); if ($('card').dataset.mode === 'name') celebrateShips(); } });   // por si le activaron una nave hace un rato
   $('nameInput').value = playerName; setTimeout(() => $('nameInput').focus(), 30); }
 function backToMenu() { state = 'menu'; SFX.musicStart(112, 'menu'); countT = 0; paused = false; $('pauseOv').hidden = true; $('pauseBtn').hidden = true; SFX.hold(false); $('kicker').textContent = 'Destruí al invasor. Cuidá lo nuestro.'; document.documentElement.classList.add('scene-menu'); $('banner').classList.remove('on'); setMode('menu'); }
