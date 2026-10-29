@@ -513,6 +513,7 @@
   .shipInfo.pow{background:linear-gradient(180deg,rgba(255,201,40,.14),rgba(255,201,40,.04));box-shadow:inset 0 0 0 1px rgba(255,201,40,.45)} .shipInfo b{font:800 17px/1.15 var(--display);color:#fff} .shipInfo span:not(.powK){font-size:13px;line-height:1.4;color:#dfe5fb} .shipInfo small{font-size:11.5px;line-height:1.35;color:var(--muted)}
   .shipPick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:10px;width:100%}   /* todas las celdas miden lo mismo: la más alta manda */
   .shipOpt.prem{position:relative} .shipOpt .pb{display:none;align-items:center;gap:4px;font:700 11px/1 var(--body);font-style:normal;letter-spacing:.04em;color:#1a1300;background:#ffc928;border-radius:999px;padding:4px 8px 3px}
+  .shipOpt.promo::after{content:'GRATIS';position:absolute;top:7px;right:7px;padding:3px 6px 2px;border-radius:999px;background:#ffc928;color:#1a1300;font:800 9px/1 var(--body);letter-spacing:.06em} .shipInfo .promoTxt{font:inherit;color:#ffc928}
   .shipOpt.locked .pb{display:inline-flex;position:absolute;top:8px;right:8px;padding:0;background:none;color:#ffc928}   /* naves de cafecito sin desbloquear: solo un candado arriba a la derecha */
   .shipOpt{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px;padding:10px;border:0;border-radius:12px;background:#121730;color:#cfd6f0;font:600 clamp(12px,1.5cqw,14px)/1.2 var(--body);cursor:pointer;box-shadow:0 0 0 1px #313857 inset;transition:background .15s,box-shadow .15s,color .15s}
   #stage #shipPick canvas{position:static;display:block;inset:auto;width:64px;height:64px;pointer-events:none} .shipOpt:hover{background:#1a2040;color:#fff}
@@ -1188,7 +1189,7 @@ const SHIP_NAMES = { monumento: 'Monumento a la Bandera', obelisco: 'Obelisco', 
 function shipInfo(type) { // qué hace la nave elegida, debajo del selector
   const el = document.getElementById('shipInfo'); if (!el) return; const P = SHIP_POWER_CARD[type];
   el.classList.toggle('pow', !!P);
-  el.innerHTML = P ? `<span class="powK">Poder · ${PREMIUM_SHIPS[type]}</span><b>${P[0]}</b><span>${P[1]}</span><small>${P[2]}</small>`
+  el.innerHTML = P ? `<span class="powK">Poder · ${PREMIUM_SHIPS[type]}</span><b>${P[0]}</b><span>${P[1]}</span><small>${P[2]}${shipPromo() && !shipOwned(type) ? ` · <b class="promoTxt">${SHIP_PROMO_TXT}</b>` : ''}</small>`
     : `<span class="powK">${SHIP_NAMES[type] || ''}</span><span>Nave clásica: disparo simple y los power-ups de siempre. Las naves con candado tienen un poder especial.</span>`;
 }
 function sizeShipInfo() { // la caja mide siempre lo mismo: el alto del texto más largo con el ancho actual
@@ -1201,7 +1202,12 @@ addEventListener('resize', () => requestAnimationFrame(sizeShipInfo));
 const SHIP_POWER_SHORT = { fernet: 'Disparo de a 3', colectivo: 'Bocinazo', hornero: 'Escudo de barro' };
 const shipPower = () => PREMIUM_SHIPS[shipType] && shipOk(shipType) ? shipType : '';
 const powerLight = () => gameMode === 'torneo';
-const shipOk = type => !PREMIUM_SHIPS[type] || !!(typeof acct !== 'undefined' && acct && Array.isArray(acct.ships) && acct.ships.includes(type));
+const shipOwned = type => !!(typeof acct !== 'undefined' && acct && Array.isArray(acct.ships) && acct.ships.includes(type));
+// promo: las naves de Cafecito se pueden usar gratis en Casual hasta el 5/11 inclusive (23:59 hora argentina); después vuelven a bloquearse solas
+const SHIP_PROMO_UNTIL = Date.parse('2026-11-06T03:00:00Z'), SHIP_PROMO_TXT = 'Gratis en Casual hasta el 5/11';
+let modeNow = 'torneo';
+const promoOn = () => Date.now() < SHIP_PROMO_UNTIL, shipPromo = () => modeNow === 'casual' && promoOn();
+const shipOk = type => !PREMIUM_SHIPS[type] || shipOwned(type) || shipPromo();
 let shipType = (() => { try { return localStorage.getItem('sancor_ship') || 'monumento'; } catch { return 'monumento'; } })();
 function sdot(c, x, y, col, r) { const sp = spriteByColor[col] || (spriteByColor[col] = glowSprite(toHex(col))), s = r * 4.4; c.drawImage(sp, x - s / 2, y - s / 2, s, s); }
 function flame(c, t, y, w) {
@@ -2641,7 +2647,7 @@ function endGame(why = 'Fin del show', won = false) {
 let gameMode = 'torneo';   // 'casual' (cualquier nivel, sin ranking ni figuritas) o 'torneo' (con cuenta: ranking, figuritas e historial)
 $('newBtn').addEventListener('click', () => { setMode('mode'); SFX.ui('card'); });
 $('modeBack').addEventListener('click', () => setMode('menu'));
-const setGameMode = m => { gameMode = m; $('card').classList.toggle('casual', m === 'casual'); const b = $('playBtn'); (b.querySelector('.sb-in') || b).textContent = m === 'casual' ? 'Confirmar selección' : 'Empezar'; };
+const setGameMode = m => { gameMode = m; modeNow = m; $('card').classList.toggle('casual', m === 'casual'); const b = $('playBtn'); (b.querySelector('.sb-in') || b).textContent = m === 'casual' ? 'Confirmar selección' : 'Empezar'; };
 $('modeCasual').addEventListener('click', () => { setGameMode('casual'); openName(); });                      // Casual: nave → selector de niveles
 $('modeTorneo').addEventListener('click', () => { setGameMode('torneo'); startWave = 1; if (acct && acct.nick) openName(); else { openAcct('mode'); if (acct) { aMode = 'nick'; $('acctNick').value = ''; goStep(4); } } });   // el Torneo exige cuenta con apodo   // Torneo: con cuenta, siempre desde la ronda 1
 // Dificultad de cada nivel (0 a 1) a partir de lo que trae: drones que disparan, cadencia, puntería, velocidad, vida, ráfagas y los nuestros que pasan
@@ -3028,7 +3034,7 @@ $('lvBack').addEventListener('click', openName);
 const toLevels = () => { lvSel = Math.max(1, Math.min(MAX_WAVE, wave)); backToMenu(); openLevels(); };   // vuelve al nivel que estaba jugando
 $('lvPickBtn').addEventListener('click', () => { countTok++; toLevels(); });
 $('lvPickBtn2').addEventListener('click', toLevels);
-function markShips() { document.querySelectorAll('.shipOpt.prem').forEach(b => { const ok = shipOk(b.dataset.ship); b.classList.toggle('locked', !ok); b.setAttribute('aria-label', PREMIUM_SHIPS[b.dataset.ship] + (ok ? '' : ': bloqueada, se desbloquea con un cafecito')); }); }
+function markShips() { document.querySelectorAll('.shipOpt.prem').forEach(b => { const ok = shipOk(b.dataset.ship); b.classList.toggle('locked', !ok); b.classList.toggle('promo', ok && !shipOwned(b.dataset.ship)); b.setAttribute('aria-label', PREMIUM_SHIPS[b.dataset.ship] + (ok ? '' : ': bloqueada, se desbloquea con un cafecito')); }); }
 function openShipModal(type, won) { // nave bloqueada: cómo desbloquearla con un cafecito · won: festejo de una nave recién activada
   const name = PREMIUM_SHIPS[type], logged = !!(acct && acct.nick), msg = logged ? `${acct.nick} · ${name}` : '';
   $('shipModal').classList.toggle('won', !!won); $('shipNewK').hidden = !won; $('shipCafe').hidden = !!won; $('shipUse').hidden = !won; $('shipUse').dataset.ship = type;
@@ -3038,6 +3044,7 @@ function openShipModal(type, won) { // nave bloqueada: cómo desbloquearla con u
   const P = SHIP_POWER_CARD[type]; $('powName').textContent = P[0]; $('powDesc').textContent = P[1]; $('powTor').textContent = P[2];
   { const cv = $('shipPrev'), c = cv.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(3.2, 0, 0, 3.2, cv.width / 2, cv.height / 2 + 8); drawShip(c, type, 0); }
   $('shipMsg').textContent = msg; $('shipMsgBox').hidden = !logged || !!won; $('shipCopy').textContent = 'Copiar';
+  if (!won && promoOn()) $('shipD').innerHTML += ` <b>Probala gratis en modo Casual hasta el 5/11.</b>`;
   if (won) $('shipD').innerHTML = 'Ya está activada en tu cuenta y la podés elegir cuando quieras. ¡Gracias por bancar el juego!';
   $('shipModal').hidden = false; SFX.ui(won ? 'save' : 'card'); setTimeout(() => $(won ? 'shipUse' : 'shipCafe').focus(), 50);
 }
